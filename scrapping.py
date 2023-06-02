@@ -1,5 +1,5 @@
-from bs4 import BeautifulSoup
-import pandas as pd
+# from bs4 import BeautifulSoup
+# import pandas as pd
 import pprint as pp
 import binascii
 
@@ -29,6 +29,7 @@ def scr():
             temp_li.append('GST_MMI')
             temp_li.append(temp[i])
             for j in range(8):
+
                 temp_li.append(temp[i + 4 + j])
             i += j
             li.append(temp_li)

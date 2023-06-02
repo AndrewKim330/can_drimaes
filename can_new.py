@@ -1,166 +1,307 @@
-import time
-import pprint
+
 import scrapping3 as scr
 
-import can
 import sys
+import can
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
+from can import interfaces
+import can_thread as worker
 
-bus1 = can.interface.Bus(bustype='vector', channel="0, 1", bitrate='500000')
+form_class = uic.loadUiType("untitled.ui")[0]
+
 # bus1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-# bus2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+
+# try:
+#     # bus2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+# except:
+#     # bus1 = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+#     # bus2 = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+#     print("No good")
 
 
-class ThreadWorker(QThread):
-    sig = pyqtSignal(list)
+class Main(QMainWindow, form_class):
+    custom_signal = pyqtSignal("PyQt_PyObject")
 
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-    def run(self):
-        flowControl = False
-        temp = []
-        while True:
-            a = str(bus1.recv()).split()
-            # self.sig.emit(a)
-            if a[3] == '18daf141':
-                print(a)
-                if flowControl:
-                    temp.append(a)
-                if a[8] == '10':
-                    temp.append(a)
-                    message = can.Message(arbitration_id=0x18da41f1, data=[0x30, 0x00, 0x00, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
-                    bus1.send(message)
-                    print("flow control")
-                    flowControl = True
-            if len(temp) == 10:
-                self.sig.emit(temp)
-                flowControl = False
-                temp = []
-
-
-class MyWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setGeometry(100, 100, 700, 500)
 
-        self.text = QPlainTextEdit(self)
-        self.text.move(80, 80)
-        self.text.resize(500, 100)
-        self.text.setReadOnly(True)
-        # self.worker.timeout.connect(self.timeout)
+        self.setupUi(self)
 
-        self.btn1 = QPushButton("0x19 01", self)
-        self.btn2 = QPushButton("0x19 02", self)
-        self.btn3 = QPushButton("textbox clear", self)
-        self.btn1.move(20, 20)
-        self.btn2.move(50, 50)
-        self.btn3.move(200, 50)
-        self.btn1.clicked.connect(self.btn_clicked1)
-        self.btn2.clicked.connect(self.btn_clicked2)
-        self.btn3.clicked.connect(self.text_clear)
+        # Default value of Power mode radio button
+        self.acc.setChecked(True)
 
-        self.worker = ThreadWorker(self)
-        self.worker.sig.connect(self.sig)
-        self.worker.start()
+        # Default value of Gear radio button
+        self.gear_n.setChecked(True)
 
-    def btn_clicked1(self):
-        print("19 01 service")
-        message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-        bus1.send(message)
+        self.bus = None
+        self.bus_flag = False
 
-    def btn_clicked2(self):
-        print("19 02 service")
-        message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-        bus1.send(message)
+        # self.nrc_sess_12.clicked.connect(self.session_cont)
+        # self.nrc_sess_13.clicked.connect(self.session_cont)
 
-    def text_clear(self):
-        self.text.clear()
+        # self.hw_reset.clicked.connect(self.reset_cont)
+        # self.sw_reset.clicked.connect(self.reset_cont)
+        # self.nrc_reset_12.clicked.connect(self.reset_cont)
+        # self.nrc_reset_13.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
+        #
+        # self.clear_console.clicked.connect(self.diag_text_clear)
+
+        self.thread_worker = worker.ThreadWorker(parent=self)
+
+        self.swrc_worker = worker.Swrc(parent=self)
+
+        self.btn_ok.clicked.connect(self.swrc_worker.swrc)
+        self.btn_left.clicked.connect(self.swrc_worker.swrc)
+        self.btn_left_long.clicked.connect(self.swrc_worker.swrc)
+        self.btn_right.clicked.connect(self.swrc_worker.swrc)
+        self.btn_right_long.clicked.connect(self.swrc_worker.swrc)
+        self.btn_undo.clicked.connect(self.swrc_worker.swrc)
+        self.btn_mode.clicked.connect(self.swrc_worker.swrc)
+        self.btn_mute.clicked.connect(self.swrc_worker.swrc)
+
+        self.btn_call.clicked.connect(self.swrc_worker.swrc)
+        self.btn_call_long.clicked.connect(self.swrc_worker.swrc)
+        self.btn_vol_up.clicked.connect(self.swrc_worker.swrc)
+        self.btn_vol_up_long.clicked.connect(self.swrc_worker.swrc)
+        self.btn_vol_down.clicked.connect(self.swrc_worker.swrc)
+        self.btn_vol_down_long.clicked.connect(self.swrc_worker.swrc)
+
+        self.tx_worker = worker.TxOnlyWorker(parent=self)
+        self.hvac_worker = worker.Hvac(parent=self)
+
+        self.tx_worker.sig2.connect(self.sig2)
+        # self.custom_signal.connect(self.tx_worker.good2)
+
+        # self.thread_worker.sig1.connect(self.sig1)
+        # self.custom_signal.connect(self.thread_worker.)
+
+        self.btn_bus_on.clicked.connect(self.thread_start)
+        self.btn_bus_off.clicked.connect(self.thread_stop)
+
+    def thread_start(self):
+        try:
+            self.bus = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+            self.bus_flag = True
+            self.bus_console.appendPlainText("PCAN bus connected")
+        except interfaces.pcan.pcan.PcanCanInitializationError as e1:
+            print(e1)
+            self.bus_console.appendPlainText("PCAN bus is not connected")
+        try:
+            self.bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+            self.bus_flag = True
+            self.bus_console.appendPlainText("Vector bus connected")
+        except interfaces.vector.VectorError as e2:
+            print(e2)
+            self.bus_console.appendPlainText("CAN device is not connected")
+
+        if self.bus_flag:
+            self.thread_worker.start()
+            self.tx_worker.start()
+            self.hvac_worker.start()
+            self.swrc_worker.start()
+            self.thread_worker._isRunning = True
+            self.tx_worker._isRunning = True
+            self.hvac_worker._isRunning = True
+            self.swrc_worker._isRunning = True
+
+    def thread_stop(self):
+        self.thread_worker.stop()
+        self.tx_worker.stop()
+        self.hvac_worker.stop()
+        self.swrc_worker.stop()
+
+        self.thread_worker.quit()
+        self.tx_worker.quit()
+        self.hvac_worker.quit()
+        self.swrc_worker.quit()
+
+    # def btn_clicked_dtc_num(self):
+    #     print("19 01 service")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
+    #
+    # def btn_clicked_dtc_list(self):
+    #     print("19 02 service")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
+
+    def btn_clicked_security(self):
+        self.custom_signal.emit("security")
+
+    def btn_clicked_write(self):
+        self.custom_signal.emit("write")
+
+    # def btn_clicked5(self):
+    #     print("2E - ECU date")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
+    #
+    # def btn_clicked6(self):
+    #     print("27 02 service")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
+
+    def diag_text_clear(self):
+        self.diag_console.clear()
+
+    def mmi_text_clear(self):
+        self.mmi_console.clear()
 
     @pyqtSlot(list)
-    def sig(self, li):
-        print('emit success')
-        scr.scr(li)
-        for i in li:
-            self.text.appendPlainText(str(i))
+    def sig1(self, li):
+        # print("good1", li)
+        # print('emit success')
+        # scr.scr(li)
+        # print("good1", li)
+        # self.mmi_hvac.appendPlainText(li[5])
+        if li[3] == "18daf141":
+            self.diag_console.appendPlainText(li[5])
+        #     print("diag", li)
+        #     self.session_cont(li)
+        # if li[3] == '18ffd741':
+        #     print("Seat_HAVC", li)
+        #     self.mmi_console.appendPlainText(str(li))
+        # for i in li:
+        #     self.mmi_hvac.append(str(i))
+        #     # self.text_box.appendPlainText(str(i))
+        # if li[3] == '18ff8621':
+            # print("good", li)
+            # self.mmi_console.appendPlainText(str(li))
 
+    @pyqtSlot(list)
+    def sig2(self, li):
+        self.mmi_console.appendPlainText(str(li))
+        if li[3] == '18ffd741':
+            seat_hvac_bin = bin(int(li[9], 16))[2:].zfill(8)
+            drv_heat = seat_hvac_bin[6:8]
+            self.txt_res_drv_heat.setText(str(int(drv_heat, 2)))
+            pass_heat = seat_hvac_bin[4:6]
+            self.txt_res_pass_heat.setText(str(int(pass_heat, 2)))
+            drv_vent = seat_hvac_bin[2:4]
+            self.txt_res_drv_vent.setText(str(int(drv_vent, 2)))
+            pass_vent = seat_hvac_bin[0:2]
+            self.txt_res_pass_vent.setText(str(int(pass_vent, 2)))
 
-#
-#
-# class MyApp(QMainWindow, windowForm):
-#     def __init__(self):
-#         super().__init__()
-#         self.setupUi(self)
-#
-#
-# class threadWorker1(QThread):
-#     def __init__(self, parent):
-#         super().__init__(parent)
-#         self.parent = parent
-#
-#     def run(self):
-#         for num in range(10):
-#             text = f'thread1 count + {str(num)}'
-#             self.parent.textBrowser1.append(text)
-#
-#         self.quit()
-#         self.wait(5000)
-#
-# class threadWorker2(QThread):
-#     def __init__(self, parent):
-#         super().__init__(parent)
-#         self.parent() = parent
-#
-#     def run(self):
-#
-#
-#
-# class MyWindow(QMainWindow):
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.worker = threadWorker()
-#
-#     def btn_clicked(self):
-#         self.close()
-#
-#
-# def good():
-#
-#     # Use a breakpoint in the code line below to debug your script.
-#     bus1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-#     bus2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-#     print(bus2)
-#
-#     ign_message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7a, 0xdf, 0xff, 0xfa, 0xff, 0xff, 0xff])
-#
-#     i = 0
-#     print(bus1.recv())
-#     while True:
-#         print(bus1.recv())
-#         print('aaa')
-#         app = QApplication(sys.argv)
-#         mywindow = MyWindow()
-#         mywindow.show()
-#
-#         app.exec_()
-#
-#         a = str(bus1.recv()).split()
-#         bus1.send(ign_message)
-#         if a[3] == '18ffd741':
-#             message = can.Message(arbitration_id=0x18ffa57f, data=[int(a[9], 16), 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
-#             bus1.send(message)
-#             print(i, a)
-#         i += 1
-#
+            st_whl_heat_bin = bin(int(li[8], 16))[2:].zfill(8)
+            st_whl_heat = st_whl_heat_bin[6:8]
+            self.txt_res_st_whl_heat.setText(str(int(st_whl_heat, 2)))
+
+            tpms_and_sidemirror_mani_bin = bin(int(li[10], 16))[2:].zfill(8)
+            sidemirror = tpms_and_sidemirror_mani_bin[4:6]
+            self.txt_res_side_mani.setText(str(int(sidemirror, 2)))
+
+        if li[3] == '0c0ba021':
+            aeb_bin = bin(int(li[8], 16))[2:].zfill(8)
+            aeb = aeb_bin[6:8]
+            self.txt_res_aeb.setText(str(int(aeb, 2)))
+
+        if li[3] == '18ffd841':
+            sidemirror_heat_bin = bin(int(li[15], 16))[2:].zfill(8)
+            sidemirror_heat = sidemirror_heat_bin[0:2]
+            self.txt_res_side_heat.setText(str(int(sidemirror_heat, 2)))
+
+            home_safety_light_bin = bin(int(li[11], 16))[2:].zfill(8)
+            home_safety_light = home_safety_light_bin[3:5]
+            self.txt_res_light.setText(str(int(home_safety_light, 2)))
+
+        # self.mmi_console.appendPlainText(str(li))
+        # self.mmi_hvac.appendPlainText(li[5])
+        if li[3] == "18daf141":
+            print("diag", li)
+            self.diag_console.appendPlainText(li[5])
+        # if li[3] == '18ffd741':
+        #     print("Seat_HAVC", li)
+        #     self.mmi_console.appendPlainText(str(li))
+        # for i in li:
+        #     self.mmi_hvac.append(str(i))
+        #     # self.text_box.appendPlainText(str(i))
+        # if li[3] == '18ff8621':
+        #     print("good", li)
+        #     self.mmi_console.appendPlainText(str(li))
+
+    # def reset_cont(self, l):
+    #     try:
+    #         btn_text = self.sender().objectName()
+    #         if len(btn_text) > 0:
+    #             message = can.Message(arbitration_id=0x18da41f1,
+    #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             bus1.send(message)
+    #             time.sleep(0.5)
+    #             if btn_text == "hw_reset":
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x02, 0x11, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             elif btn_text == "sw_reset":
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x02, 0x11, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             elif btn_text == "nrc_reset_12":
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x02, 0x11, 0x07, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             elif btn_text == "nrc_reset_13":
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x03, 0x11, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             elif btn_text == "nrc_reset_7f_hw":
+    #                 self.custom_signal.emit("security")
+    #                 #
+    #                 # message = can.Message(arbitration_id=0x18da41f1,
+    #                 #                       data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #                 # bus1.send(message)
+    #                 # time.sleep(0.5)
+    #                 # message = can.Message(arbitration_id=0x18da41f1,
+    #                 #                       data=[0x02, 0x11, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #             elif btn_text == "nrc_reset_7f_sw":
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #                 bus1.send(message)
+    #                 time.sleep(0.5)
+    #                 message = can.Message(arbitration_id=0x18da41f1,
+    #                                       data=[0x02, 0x11, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #
+    #             bus1.send(message)
+    #         time.sleep(0.5)
+    #         if l:
+    #             data_str = str([l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15]])
+    #             if l[9] == "51":
+    #                 print("51")
+    #                 pf_flag = "Success"
+    #                 if l[10] == "01":
+    #                     reset_name = "H/W"
+    #                     self.hw_reset_label.setText("Tested Success")
+    #                 elif l[10] == "03":
+    #                     reset_name = "S/W"
+    #                     self.sw_reset_label.setText("Tested Success")
+    #                 console_str = f'{reset_name} reset {pf_flag}'
+    #                 self.diag_console.appendPlainText(console_str)
+    #                 self.diag_console.appendPlainText(data_str)
+    #             elif l[9] == "7f":
+    #                 if l[11] == "12":
+    #                     reason = "Not Supported Subfunction"
+    #                     self.nrc_reset_12_label.setText("Tested Success")
+    #                 elif l[11] == "13":
+    #                     reason = "Data Length Error"
+    #                     self.nrc_reset_13_label.setText("Tested Success")
+    #                 elif l[11] == "7f":
+    #                     if l[10] == "01":
+    #                         reason = "Not Supported Session (for H/W reset)"
+    #                         self.nrc_reset_7f_hw_label.setText("Tested Success")
+    #                     elif l[10] == "03":
+    #                         reason = "Not Supported Session (for S/W reset)"
+    #                         self.nrc_reset_7f_sw_label.setText("Tested Success")
+    #                 console_str = f'Diagnosis Error - {reason} (NRC Code : {l[11]})'
+    #                 self.diag_console.appendPlainText(console_str)
+    #                 self.diag_console.appendPlainText(data_str)
+    #     except AttributeError:
+    #         pass
+    #
+    # # def btn_reset(self):
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mywindow = MyWindow()
+    mywindow = Main()
     mywindow.show()
-    app.exec_()
-
+    sys.exit(app.exec_())
+    # app.exec_()
