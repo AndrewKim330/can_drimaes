@@ -29,11 +29,18 @@ class Main(QMainWindow, form_class):
 
         self.setupUi(self)
 
-        # Default value of Power mode radio button
-        self.acc.setChecked(True)
+        self.gear_worker = worker.Gear(parent=self)
 
-        # Default value of Gear radio button
-        self.gear_n.setChecked(True)
+        self.btn_gear_n.setChecked(True)
+        self.btn_gear_n.clicked.connect(self.gear_worker.gear)
+        self.btn_gear_r.clicked.connect(self.gear_worker.gear)
+        self.btn_gear_d.clicked.connect(self.gear_worker.gear)
+        #
+        # # Default value of Power mode radio button
+        # self.acc.setChecked(True)
+        #
+        # # Default value of Gear radio button
+        # self.gear_n.setChecked(True)
 
         self.bus = None
         self.bus_flag = False
@@ -79,45 +86,57 @@ class Main(QMainWindow, form_class):
         # self.thread_worker.sig1.connect(self.sig1)
         # self.custom_signal.connect(self.thread_worker.)
 
-        self.btn_bus_on.clicked.connect(self.thread_start)
-        self.btn_bus_off.clicked.connect(self.thread_stop)
+        self.btn_bus_connect.clicked.connect(self.bus_connect)
+
+        self.btn_bus_start.clicked.connect(self.thread_start)
+        self.btn_bus_stop.clicked.connect(self.thread_stop)
+
+    def bus_connect(self):
+        if not self.bus_flag:
+            try:
+                self.bus = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                self.bus_flag = True
+                self.bus_console.appendPlainText("PCAN bus is connected")
+            except interfaces.pcan.pcan.PcanCanInitializationError as e1:
+                print(e1)
+                self.bus_console.appendPlainText("PCAN bus is not connected")
+                try:
+                    self.bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.bus_flag = True
+                    self.bus_console.appendPlainText("Vector bus is connected")
+                except interfaces.vector.VectorError as e2:
+                    print(e2)
+                    self.bus_console.appendPlainText("CAN device is not connected")
+        else:
+            self.bus_console.appendPlainText("CAN bus is already connected")
 
     def thread_start(self):
-        try:
-            self.bus = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-            self.bus_flag = True
-            self.bus_console.appendPlainText("PCAN bus connected")
-        except interfaces.pcan.pcan.PcanCanInitializationError as e1:
-            print(e1)
-            self.bus_console.appendPlainText("PCAN bus is not connected")
-        try:
-            self.bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
-            self.bus_flag = True
-            self.bus_console.appendPlainText("Vector bus connected")
-        except interfaces.vector.VectorError as e2:
-            print(e2)
-            self.bus_console.appendPlainText("CAN device is not connected")
-
         if self.bus_flag:
             self.thread_worker.start()
             self.tx_worker.start()
             self.hvac_worker.start()
             self.swrc_worker.start()
+            self.gear_worker.start()
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
             self.hvac_worker._isRunning = True
             self.swrc_worker._isRunning = True
+        else:
+            self.bus_console.appendPlainText("Can bus is not connected")
+
 
     def thread_stop(self):
         self.thread_worker.stop()
         self.tx_worker.stop()
         self.hvac_worker.stop()
         self.swrc_worker.stop()
+        self.gear_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
         self.hvac_worker.quit()
         self.swrc_worker.quit()
+        self.gear_worker.quit()
 
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")

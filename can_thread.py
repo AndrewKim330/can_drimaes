@@ -24,7 +24,7 @@ class TxOnlyWorker(QThread):
         flowControl = False
         temp = []
         while self._isRunning:
-            a = str(bus1.recv()).split()
+            a = str(self.parent.bus.recv()).split()
             # print(a)
             self.sig2.emit(a)
 
@@ -46,14 +46,14 @@ class Hvac(QThread):
 
     def run(self):
         while self._isRunning:
-            a = str(bus1.recv()).split()
+            a = str(self.parent.bus.recv()).split()
             if a[3] == "18ffd741":  # 100ms
                 self.seat_hvac(a[9])
 
     def seat_hvac(self, sig):
         message = can.Message(arbitration_id=0x18ffa57f,
                               data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        bus1.send(message)
+        self.parent.bus.send(message)
 
     def stop(self):
         self._isRunning = False
@@ -70,6 +70,7 @@ class Swrc(QThread):
         self.swrc()
 
     def swrc(self):
+        message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
         if self.sender():
             btn_text = self.sender().objectName()
             if btn_text == "btn_ok":
@@ -114,10 +115,72 @@ class Swrc(QThread):
             elif btn_text == "btn_vol_down_long":
                 message = can.Message(arbitration_id=0x18fa7f21,
                                       data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        else:
-            message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        bus1.send(message)
+        self.parent.bus.send(message)
         threading.Timer(0.050, self.swrc).start()
+
+    def stop(self):
+        self._isRunning = False
+
+
+class Gear(QThread):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self._isRunning = True
+
+    def run(self):
+        self.gear()
+
+    def gear(self):
+        message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0x00, 0xFC, 0xF3, 0x3F])
+        if self.sender():
+            btn_text = self.sender().objectName()
+            print(btn_text)
+        #     if btn_text == "btn_ok":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_left":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x02, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_left_long":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x04, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_right":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x08, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_right_long":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x10, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_undo":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x20, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_mode":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x40, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_mute":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x80, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_call":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_call_long":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_vol_up":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x10, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_vol_up_long":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x20, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_vol_down":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        #     elif btn_text == "btn_vol_down_long":
+        #         message = can.Message(arbitration_id=0x18fa7f21,
+        #                               data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        # self.parent.bus.send(message)
+        threading.Timer(0.050, self.gear).start()
 
     def stop(self):
         self._isRunning = False
@@ -136,7 +199,7 @@ class ThreadWorker(QThread):
         self.power_mode()
         # self.swrc()
         while self._isRunning:
-            a = str(bus1.recv()).split()
+            a = str(self.parent.bus.recv()).split()
             self.diagnosis()
             # print(a[3])
             # if a[3] == "18ffd741":  # 100ms
@@ -157,7 +220,7 @@ class ThreadWorker(QThread):
             power_sig = 0xF9
         message = can.Message(arbitration_id=0x18ff8621,
                               data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-        bus1.send(message)
+        self.parent.bus.send(message)
         threading.Timer(0.100, self.power_mode).start()
 
     def gear(self):
@@ -169,22 +232,22 @@ class ThreadWorker(QThread):
             gear_sig = 0xFC
         message = can.Message(arbitration_id=0x18faB027,
                               data=[0xCF, 0xFF, 0xFF, 0xFF, gear_sig, 0xFC, 0xF3, 0x3F])
-        bus1.send(message)
+        self.parent.bus.send(message)
 
     # def seat_hvac(self, sig):
     #     message = can.Message(arbitration_id=0x18ffa57f,
     #                           data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
+    #     self.parent.bus.send(message)
 
     def aeb(self, sig):
         if sig == "fd":
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
         elif sig == "fc":
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
 
     # need to fix
     def side_mirror(self, sig):
@@ -193,19 +256,19 @@ class ThreadWorker(QThread):
         if sidemirror == "01":
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
 
     def side_mirror_heat(self, sig):
         if sig == "fd":
             print("1")
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
         elif sig == "fc":
             print("2")
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
 
     # def swrc(self):
     #     if self.sender():
@@ -268,23 +331,23 @@ class ThreadWorker(QThread):
     #                                   data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
     #     else:
     #         message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
+    #     self.parent.bus.send(message)
     #     threading.Timer(0.050, self.swrc).start()
 
         # message = can.Message(arbitration_id=0x18fa7f21,
         #                       data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        # bus1.send(message)
+        # self.parent.bus.send(message)
 
         # self.handler = True
 
         #     message = can.Message(arbitration_id=0x0cf02fa0,
         #                           data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     bus1.send(message)
+        #     self.parent.bus.send(message)
         # elif sig == "fc":
         #     print("2")
         #     message = can.Message(arbitration_id=0x0cf02fa0,
         #                           data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     bus1.send(message)
+        #     self.parent.bus.send(message)
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.bbb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # pixmap.save("aaa.jpg")
@@ -310,7 +373,7 @@ class ThreadWorker(QThread):
             elif btn_text == "btn_sess_ext":
                 message = can.Message(arbitration_id=0x18da41f1,
                                       data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            bus1.send(message)
+            self.parent.bus.send(message)
         # try:
         #     btn_text = self.sender().objectName()
         #     if len(btn_text) > 0:
@@ -326,7 +389,7 @@ class ThreadWorker(QThread):
         #         elif btn_text == "nrc_sess_13":
         #             message = can.Message(arbitration_id=0x18da41f1,
         #                                   data=[0x03, 0x10, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         bus1.send(message)
+        #         self.parent.bus.send(message)
         #     time.sleep(0.5)
         #     if l:
         #         data_str = str([l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15]])
@@ -374,7 +437,7 @@ class ThreadWorker(QThread):
     #         # while True:
     #         #     print(good1)
     #             # message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, good1, 0xFF, 0xFF, 0xFF])
-    #             # bus1.send_periodic(message, 0.1)
+    #             # self.parent.bus.send_periodic(message, 0.1)
     #             # print(task)
     #             # time.sleep(0.1)
     #         # time.sleep(0.1)
@@ -385,11 +448,11 @@ class ThreadWorker(QThread):
     #     #     res = []
     #     #     print("10 03 service")
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     bus1.send(message)
+    #     #     self.parent.bus.send(message)
     #     #     time.sleep(1)
     #     #     print("27 01 service")
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     bus1.send(message)
+    #     #     self.parent.bus.send(message)
     #     #     time.sleep(1)
     #     #     print(self.abc)
     #     #     new = []
@@ -402,17 +465,17 @@ class ThreadWorker(QThread):
     #     #     res.append(((cal_data[0] & 0x0f) << 4) | (cal_data[2] & 0x0f))
     #     #     time.sleep(1)
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
-    #     #     bus1.send(message)
+    #     #     self.parent.bus.send(message)
     #     #     time.sleep(5)
     #     #     if good1 == "write":
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x10, 0x0B, 0x2E, 0xF1, 0x12, 0x41, 0x42, 0x43])
-    #     #         bus1.send(message)
+    #     #         self.parent.bus.send(message)
     #     #         time.sleep(0.5)
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x21, 0x44, 0x45, 0x46, 0x47, 0x48, 0xFF, 0xFF])
-    #     #         bus1.send(message)
+    #     #         self.parent.bus.send(message)
     #     #         time.sleep(0.5)
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x22, 0xF1, 0x12, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #         bus1.send(message)
+    #     #         self.parent.bus.send(message)
 
             # print(b, now - start)
             # if now - start == 0.010:
@@ -422,7 +485,7 @@ class ThreadWorker(QThread):
 
     #     while True:
     #         start = time.time()
-    #         a = str(bus1.recv()).split()
+    #         a = str(self.parent.bus.recv()).split()
     #         if self.parent.acc_off.isChecked():
     #             power_sig = 0xF8
     #         elif self.parent.acc.isChecked():
@@ -432,7 +495,7 @@ class ThreadWorker(QThread):
     #         elif self.parent.start.isChecked():
     #             power_sig = 0xFC
     #         message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-    #         bus1.send(message)
+    #         self.parent.bus.send(message)
     #         # time.sleep(0.001)
     #         self.sig1.emit(a)
     #         # # print(a)
@@ -455,7 +518,7 @@ class ThreadWorker(QThread):
     #             if a[8] == '10':
     #                 temp.append(a)
     #                 message = can.Message(arbitration_id=0x18da41f1, data=[0x30, 0x00, 0x00, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
-    #                 bus1.send(message)
+    #                 self.parent.bus.send(message)
     #                 print("flow control")
     #                 flowControl = True
     #         if len(temp) == 10:
