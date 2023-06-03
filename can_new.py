@@ -31,6 +31,9 @@ class Main(QMainWindow, form_class):
 
         self.bus = None
         self.bus_flag = False
+        self.drv_state = False
+
+        self.btn_drv_state.clicked.connect(self.set_drv_state)
 
         self.gear_worker = worker.Gear(parent=self)
 
@@ -129,7 +132,6 @@ class Main(QMainWindow, form_class):
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
-
     def thread_stop(self):
         self.thread_worker.stop()
         self.tx_worker.stop()
@@ -152,6 +154,9 @@ class Main(QMainWindow, form_class):
     #     print("19 02 service")
     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
     #     bus1.send(message)
+
+    def set_drv_state(self):
+        self.drv_state = True
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")
