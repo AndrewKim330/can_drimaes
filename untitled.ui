@@ -387,7 +387,7 @@
       <property name="title">
        <string>Power Mode</string>
       </property>
-      <widget class="QRadioButton" name="acc_off">
+      <widget class="QRadioButton" name="btn_acc_off">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -400,7 +400,7 @@
         <string>ACC OFF</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="acc">
+      <widget class="QRadioButton" name="btn_acc">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -413,7 +413,7 @@
         <string>ACC</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="ign">
+      <widget class="QRadioButton" name="btn_ign">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -426,7 +426,7 @@
         <string>ON (IGN)</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="start">
+      <widget class="QRadioButton" name="btn_start">
        <property name="geometry">
         <rect>
          <x>20</x>

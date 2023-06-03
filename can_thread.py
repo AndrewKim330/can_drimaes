@@ -133,54 +133,40 @@ class Gear(QThread):
         self.gear()
 
     def gear(self):
-        message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0x00, 0xFC, 0xF3, 0x3F])
-        if self.sender():
-            btn_text = self.sender().objectName()
-            print(btn_text)
-        #     if btn_text == "btn_ok":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_left":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x02, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_left_long":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x04, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_right":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x08, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_right_long":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x10, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_undo":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x20, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_mode":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x40, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_mute":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x80, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_call":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_call_long":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_vol_up":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x10, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_vol_up_long":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x20, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_vol_down":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     elif btn_text == "btn_vol_down_long":
-        #         message = can.Message(arbitration_id=0x18fa7f21,
-        #                               data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        # self.parent.bus.send(message)
-        threading.Timer(0.050, self.gear).start()
+        # initial value for gear N
+        message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0x7D, 0xFC, 0xF3, 0x3F])
+        if self.parent.btn_gear_r.isChecked():
+            message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0xDF, 0xFC, 0xF3, 0x3F])
+        elif self.parent.btn_gear_d.isChecked():
+            message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0xFC, 0xFC, 0xF3, 0x3F])
+        self.parent.bus.send(message)
+        threading.Timer(0.100, self.gear).start()
+
+    def stop(self):
+        self._isRunning = False
+
+
+class PowerMode(QThread):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self._isRunning = True
+
+    def run(self):
+        self.power_mode()
+
+    def power_mode(self):
+        # Initial mode for ACC (for convenience)
+        message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF9, 0xFF, 0xFF, 0xFF])
+        if self.parent.btn_acc_off.isChecked():
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF])
+        elif self.parent.btn_ign.isChecked():
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF])
+        elif self.parent.btn_start.isChecked():
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF])
+        self.parent.bus.send(message)
+        threading.Timer(0.100, self.power_mode).start()
 
     def stop(self):
         self._isRunning = False
@@ -196,7 +182,7 @@ class ThreadWorker(QThread):
         self.bbb = None
 
     def run(self):
-        self.power_mode()
+        # self.power_mode()
         # self.swrc()
         while self._isRunning:
             a = str(self.parent.bus.recv()).split()
@@ -209,30 +195,30 @@ class ThreadWorker(QThread):
                 self.aeb(a[8])
                 # self.gear()
 
-    def power_mode(self):
-        if self.parent.acc_off.isChecked():
-            power_sig = 0xF8
-        elif self.parent.ign.isChecked():
-            power_sig = 0xFA
-        elif self.parent.start.isChecked():
-            power_sig = 0xFC
-        else:
-            power_sig = 0xF9
-        message = can.Message(arbitration_id=0x18ff8621,
-                              data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-        self.parent.bus.send(message)
-        threading.Timer(0.100, self.power_mode).start()
-
-    def gear(self):
-        if self.parent.gear_n.isChecked():
-            gear_sig = 0x7D
-        if self.parent.gear_r.isChecked():
-            gear_sig = 0xDF
-        if self.parent.gear_d.isChecked():
-            gear_sig = 0xFC
-        message = can.Message(arbitration_id=0x18faB027,
-                              data=[0xCF, 0xFF, 0xFF, 0xFF, gear_sig, 0xFC, 0xF3, 0x3F])
-        self.parent.bus.send(message)
+    # def power_mode(self):
+    #     if self.parent.acc_off.isChecked():
+    #         power_sig = 0xF8
+    #     elif self.parent.ign.isChecked():
+    #         power_sig = 0xFA
+    #     elif self.parent.start.isChecked():
+    #         power_sig = 0xFC
+    #     else:
+    #         power_sig = 0xF9
+    #     message = can.Message(arbitration_id=0x18ff8621,
+    #                           data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
+    #     self.parent.bus.send(message)
+    #     threading.Timer(0.100, self.power_mode).start()
+    #
+    # def gear(self):
+    #     if self.parent.gear_n.isChecked():
+    #         gear_sig = 0x7D
+    #     if self.parent.gear_r.isChecked():
+    #         gear_sig = 0xDF
+    #     if self.parent.gear_d.isChecked():
+    #         gear_sig = 0xFC
+    #     message = can.Message(arbitration_id=0x18faB027,
+    #                           data=[0xCF, 0xFF, 0xFF, 0xFF, gear_sig, 0xFC, 0xF3, 0x3F])
+    #     self.parent.bus.send(message)
 
     # def seat_hvac(self, sig):
     #     message = can.Message(arbitration_id=0x18ffa57f,

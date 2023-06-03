@@ -29,35 +29,25 @@ class Main(QMainWindow, form_class):
 
         self.setupUi(self)
 
+        self.bus = None
+        self.bus_flag = False
+
         self.gear_worker = worker.Gear(parent=self)
 
+        # Default value of Gear radio button
         self.btn_gear_n.setChecked(True)
         self.btn_gear_n.clicked.connect(self.gear_worker.gear)
         self.btn_gear_r.clicked.connect(self.gear_worker.gear)
         self.btn_gear_d.clicked.connect(self.gear_worker.gear)
-        #
-        # # Default value of Power mode radio button
-        # self.acc.setChecked(True)
-        #
-        # # Default value of Gear radio button
-        # self.gear_n.setChecked(True)
 
-        self.bus = None
-        self.bus_flag = False
+        self.power_worker = worker.PowerMode(parent=self)
 
-        # self.nrc_sess_12.clicked.connect(self.session_cont)
-        # self.nrc_sess_13.clicked.connect(self.session_cont)
-
-        # self.hw_reset.clicked.connect(self.reset_cont)
-        # self.sw_reset.clicked.connect(self.reset_cont)
-        # self.nrc_reset_12.clicked.connect(self.reset_cont)
-        # self.nrc_reset_13.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
-        #
-        # self.clear_console.clicked.connect(self.diag_text_clear)
-
-        self.thread_worker = worker.ThreadWorker(parent=self)
+        # Default value of Power mode radio button
+        self.btn_acc.setChecked(True)
+        self.btn_acc_off.clicked.connect(self.power_worker.power_mode)
+        self.btn_acc.clicked.connect(self.power_worker.power_mode)
+        self.btn_ign.clicked.connect(self.power_worker.power_mode)
+        self.btn_start.clicked.connect(self.power_worker.power_mode)
 
         self.swrc_worker = worker.Swrc(parent=self)
 
@@ -76,6 +66,20 @@ class Main(QMainWindow, form_class):
         self.btn_vol_up_long.clicked.connect(self.swrc_worker.swrc)
         self.btn_vol_down.clicked.connect(self.swrc_worker.swrc)
         self.btn_vol_down_long.clicked.connect(self.swrc_worker.swrc)
+
+        # self.nrc_sess_12.clicked.connect(self.session_cont)
+        # self.nrc_sess_13.clicked.connect(self.session_cont)
+
+        # self.hw_reset.clicked.connect(self.reset_cont)
+        # self.sw_reset.clicked.connect(self.reset_cont)
+        # self.nrc_reset_12.clicked.connect(self.reset_cont)
+        # self.nrc_reset_13.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
+        #
+        # self.clear_console.clicked.connect(self.diag_text_clear)
+
+        self.thread_worker = worker.ThreadWorker(parent=self)
 
         self.tx_worker = worker.TxOnlyWorker(parent=self)
         self.hvac_worker = worker.Hvac(parent=self)
@@ -121,6 +125,7 @@ class Main(QMainWindow, form_class):
             self.tx_worker._isRunning = True
             self.hvac_worker._isRunning = True
             self.swrc_worker._isRunning = True
+            self.gear_worker._isRunning = True
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
