@@ -11,6 +11,7 @@ import threading
 
 import images_rc
 
+
 class TxOnlyWorker(QThread):
     sig2 = pyqtSignal(list)
 
@@ -37,41 +38,46 @@ class TxOnlyWorker(QThread):
         self._isRunning = False
 
 
-class Hvac(QThread):
-
+class NodeThread(QThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self._isRunning = True
+        self.period = 0.100
 
     def run(self):
         while self._isRunning:
-            a = str(self.parent.bus.recv()).split()
-            if a[3] == "18ffd741":  # 100ms
-                self.seat_hvac(a[9])
+            self.thread_func()
+            time.sleep(self.period)
 
-    def seat_hvac(self, sig):
-        message = can.Message(arbitration_id=0x18ffa57f,
-                              data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        self.parent.bus.send(message)
+    def thread_func(self):
+        print("override own function")
 
     def stop(self):
         self._isRunning = False
 
 
-class Swrc(QThread):
-
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self._isRunning = True
+class Hvac(NodeThread):
 
     def run(self):
         while self._isRunning:
-            self.swrc()
-            time.sleep(0.050)
+            a = str(self.parent.bus.recv()).split()
+            if a[3] == "18ffd741":  # 100ms
+                self.thread_func(a[9])
 
-    def swrc(self):
+    def thread_func(self, sig):
+        message = can.Message(arbitration_id=0x18ffa57f,
+                              data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        self.parent.bus.send(message)
+
+
+class Swrc(NodeThread):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.050
+
+    def thread_func(self):
         message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
         if self.sender():
             btn_text = self.sender().objectName()
@@ -119,23 +125,9 @@ class Swrc(QThread):
                                       data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
         self.parent.bus.send(message)
 
-    def stop(self):
-        self._isRunning = False
 
-
-class Gear(QThread):
-
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self._isRunning = True
-
-    def run(self):
-        while self._isRunning:
-            self.gear()
-            time.sleep(0.100)
-
-    def gear(self):
+class Gear(NodeThread):
+    def thread_func(self):
         # initial value for gear N
         message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0x7D, 0xFC, 0xF3, 0x3F])
         if self.parent.btn_gear_r.isChecked():
@@ -145,38 +137,21 @@ class Gear(QThread):
         self.parent.bus.send(message)
 
 
-    def stop(self):
-        self._isRunning = False
-
-
-
-class PowerMode(QThread):
-
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self._isRunning = True
-
-    def run(self):
-        self.power_mode()
-
-    def power_mode(self, drv=None):
-        if self._isRunning:
-            if self.parent.btn_acc.isChecked():
-                print("aaaaaa")
-            # Initial mode for ACC (for convenience)
+class PowerMode(NodeThread):
+    def thread_func(self):
+        # Initial mode for ACC (for convenience)
+        if self.parent.btn_acc.isChecked():
             message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF9, 0xFF, 0xFF, 0xFF])
-            if self.parent.btn_acc_off.isChecked():
-                message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF])
-            elif self.parent.btn_ign.isChecked():
-                message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF])
-            elif self.parent.btn_start.isChecked():
-                message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
-            threading.Timer(0.100, self.power_mode).start()
-
-    def stop(self):
-        self._isRunning = False
+        if self.parent.btn_acc_off.isChecked():
+            print('aaa')
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF])
+        elif self.parent.btn_ign.isChecked():
+            print('bbb')
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF])
+        elif self.parent.btn_start.isChecked():
+            print('ccc')
+            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF])
+        self.parent.bus.send(message)
 
 
 class ThreadWorker(QThread):

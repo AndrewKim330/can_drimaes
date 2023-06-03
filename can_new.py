@@ -39,36 +39,36 @@ class Main(QMainWindow, form_class):
 
         # Default value of Gear radio button
         self.btn_gear_n.setChecked(True)
-        self.btn_gear_n.clicked.connect(self.gear_worker.gear)
-        self.btn_gear_r.clicked.connect(self.gear_worker.gear)
-        self.btn_gear_d.clicked.connect(self.gear_worker.gear)
+        self.btn_gear_n.clicked.connect(self.gear_worker.thread_func)
+        self.btn_gear_r.clicked.connect(self.gear_worker.thread_func)
+        self.btn_gear_d.clicked.connect(self.gear_worker.thread_func)
 
         self.power_worker = worker.PowerMode(parent=self)
 
         # Default value of Power mode radio button
         self.btn_acc.setChecked(True)
-        self.btn_acc_off.clicked.connect(self.power_worker.power_mode)
-        self.btn_acc.clicked.connect(self.power_worker.power_mode)
-        self.btn_ign.clicked.connect(self.power_worker.power_mode)
-        self.btn_start.clicked.connect(self.power_worker.power_mode)
+        self.btn_acc_off.clicked.connect(self.power_worker.thread_func)
+        self.btn_acc.clicked.connect(self.power_worker.thread_func)
+        self.btn_ign.clicked.connect(self.power_worker.thread_func)
+        self.btn_start.clicked.connect(self.power_worker.thread_func)
 
         self.swrc_worker = worker.Swrc(parent=self)
 
-        self.btn_ok.clicked.connect(self.swrc_worker.swrc)
-        self.btn_left.clicked.connect(self.swrc_worker.swrc)
-        self.btn_left_long.clicked.connect(self.swrc_worker.swrc)
-        self.btn_right.clicked.connect(self.swrc_worker.swrc)
-        self.btn_right_long.clicked.connect(self.swrc_worker.swrc)
-        self.btn_undo.clicked.connect(self.swrc_worker.swrc)
-        self.btn_mode.clicked.connect(self.swrc_worker.swrc)
-        self.btn_mute.clicked.connect(self.swrc_worker.swrc)
+        self.btn_ok.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_left.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_left_long.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_right.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_right_long.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_undo.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_mode.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_mute.clicked.connect(self.swrc_worker.thread_func)
 
-        self.btn_call.clicked.connect(self.swrc_worker.swrc)
-        self.btn_call_long.clicked.connect(self.swrc_worker.swrc)
-        self.btn_vol_up.clicked.connect(self.swrc_worker.swrc)
-        self.btn_vol_up_long.clicked.connect(self.swrc_worker.swrc)
-        self.btn_vol_down.clicked.connect(self.swrc_worker.swrc)
-        self.btn_vol_down_long.clicked.connect(self.swrc_worker.swrc)
+        self.btn_call.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_call_long.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_vol_up.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_vol_up_long.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_vol_down.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_vol_down_long.clicked.connect(self.swrc_worker.thread_func)
 
         # self.nrc_sess_12.clicked.connect(self.session_cont)
         # self.nrc_sess_13.clicked.connect(self.session_cont)
@@ -124,11 +124,14 @@ class Main(QMainWindow, form_class):
             self.hvac_worker.start()
             self.swrc_worker.start()
             self.gear_worker.start()
+            self.power_worker.start()
+
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
             self.hvac_worker._isRunning = True
             self.swrc_worker._isRunning = True
             self.gear_worker._isRunning = True
+            self.power_worker._isRunning = True
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -138,12 +141,14 @@ class Main(QMainWindow, form_class):
         self.hvac_worker.stop()
         self.swrc_worker.stop()
         self.gear_worker.stop()
+        self.power_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
         self.hvac_worker.quit()
         self.swrc_worker.quit()
         self.gear_worker.quit()
+        self.power_worker.quit()
 
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")
