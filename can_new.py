@@ -34,13 +34,13 @@ class Main(QMainWindow, form_class):
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
-        self.gear_worker = worker.Gear(parent=self)
+        self.power_train_worker = worker.PowerTrain(parent=self)
 
         # Default value of Gear radio button
         self.btn_gear_n.setChecked(True)
-        self.btn_gear_n.clicked.connect(self.gear_worker.thread_func)
-        self.btn_gear_r.clicked.connect(self.gear_worker.thread_func)
-        self.btn_gear_d.clicked.connect(self.gear_worker.thread_func)
+        self.btn_gear_n.clicked.connect(self.power_train_worker.thread_func)
+        self.btn_gear_r.clicked.connect(self.power_train_worker.thread_func)
+        self.btn_gear_d.clicked.connect(self.power_train_worker.thread_func)
 
         self.power_worker = worker.PowerMode(parent=self)
 
@@ -50,6 +50,8 @@ class Main(QMainWindow, form_class):
         self.btn_acc.clicked.connect(self.power_worker.thread_func)
         self.btn_ign.clicked.connect(self.power_worker.thread_func)
         self.btn_start.clicked.connect(self.power_worker.thread_func)
+
+        self.btn_pt_ready.clicked.connect(self.power_worker.thread_func)
 
         # self.slider_speed.sliderReleased.connect(self.slider_speed_func)
 
@@ -134,7 +136,7 @@ class Main(QMainWindow, form_class):
             self.tx_worker.start()
             self.hvac_worker.start()
             self.swrc_worker.start()
-            self.gear_worker.start()
+            self.power_train_worker.start()
             self.power_worker.start()
             self.speed_worker.start()
 
@@ -142,7 +144,7 @@ class Main(QMainWindow, form_class):
             self.tx_worker._isRunning = True
             self.hvac_worker._isRunning = True
             self.swrc_worker._isRunning = True
-            self.gear_worker._isRunning = True
+            self.power_train_worker._isRunning = True
             self.power_worker._isRunning = True
             self.speed_worker._isRunning = True
 
@@ -155,7 +157,7 @@ class Main(QMainWindow, form_class):
         self.tx_worker.stop()
         self.hvac_worker.stop()
         self.swrc_worker.stop()
-        self.gear_worker.stop()
+        self.power_train_worker.stop()
         self.power_worker.stop()
         self.speed_worker.stop()
 
@@ -163,7 +165,7 @@ class Main(QMainWindow, form_class):
         self.tx_worker.quit()
         self.hvac_worker.quit()
         self.swrc_worker.quit()
-        self.gear_worker.quit()
+        self.power_train_worker.quit()
         self.power_worker.quit()
         self.speed_worker.quit()
 

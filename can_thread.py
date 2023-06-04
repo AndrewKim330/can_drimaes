@@ -119,7 +119,7 @@ class Swrc(NodeThread):
         self.parent.bus.send(message)
 
 
-class Gear(NodeThread):
+class PowerTrain(NodeThread):
     def thread_func(self):
         self.data[0] = 0xCF
         self.data[5] = 0xFC
@@ -132,6 +132,8 @@ class Gear(NodeThread):
             self.data[4] = 0xDF
         elif self.parent.btn_gear_d.isChecked():
             self.data[4] = 0xFC
+        if self.parent.btn_pt_ready.isChecked():
+            self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
         self.parent.bus.send(message)
 
