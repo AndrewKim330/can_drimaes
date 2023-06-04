@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1150</width>
-    <height>878</height>
+    <width>1152</width>
+    <height>885</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -347,6 +347,9 @@
        <property name="text">
         <string>N</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QRadioButton" name="btn_gear_r">
        <property name="geometry">
@@ -660,49 +663,10 @@
       <property name="title">
        <string>Driving</string>
       </property>
-      <widget class="QCheckBox" name="chk_40_km">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>70</y>
-         <width>81</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>40km/h</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="chk_05_km">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>70</y>
-         <width>81</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>5km/h</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="chk_02_km">
-       <property name="geometry">
-        <rect>
-         <x>220</x>
-         <y>70</y>
-         <width>81</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>2km/h</string>
-       </property>
-      </widget>
       <widget class="QPushButton" name="btn_drv_state">
        <property name="geometry">
         <rect>
-         <x>70</x>
+         <x>10</x>
          <y>20</y>
          <width>181</width>
          <height>31</height>
@@ -710,6 +674,92 @@
        </property>
        <property name="text">
         <string>Driving State</string>
+       </property>
+      </widget>
+      <widget class="QSlider" name="slider_speed">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>70</y>
+         <width>271</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="maximum">
+        <number>250</number>
+       </property>
+       <property name="singleStep">
+        <number>5</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::TicksBelow</enum>
+       </property>
+       <property name="tickInterval">
+        <number>20</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tick_0">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>90</y>
+         <width>21</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tick_240">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>90</y>
+         <width>21</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>240</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="tick_120">
+       <property name="geometry">
+        <rect>
+         <x>135</x>
+         <y>90</y>
+         <width>21</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>120</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_speed">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>25</y>
+         <width>111</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Speed : 0 km/h</string>
        </property>
       </widget>
      </widget>
@@ -1823,7 +1873,7 @@ Session - S/W Reset</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1150</width>
+     <width>1152</width>
      <height>18</height>
     </rect>
    </property>

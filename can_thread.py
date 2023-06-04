@@ -77,7 +77,6 @@ class Hvac(NodeThread):
 
 
 class Swrc(NodeThread):
-
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -156,6 +155,18 @@ class PowerMode(NodeThread):
         self.parent.bus.send(message)
 
 
+class TachoSpeed(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.050
+        self.value = '0000'
+
+    def thread_func(self):
+        message = can.Message(arbitration_id=0x0cfe6c17, data=[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, int(self.value[2:4], 16), int(self.value[0:2], 16)])
+        print(message)
+        self.parent.bus.send(message)
+
+
 class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
@@ -164,54 +175,25 @@ class ThreadWorker(NodeThread):
         self.handler = None
         self._isRunning = True
 
-    def run(self):
-        while self._isRunning:
-            if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.btn_pt_ready.isChecked():
-                self.parent.btn_drv_state.setText("On driving")
-            else:
-                self.parent.btn_drv_state.setText("Set Driving State")
-            a = str(self.parent.bus.recv()).split()
-
-            self.diagnosis()
-            # print(a[3])
-            # if a[3] == "18ffd741":  # 100ms
-            #     self.seat_hvac(a[9])
-            #     self.side_mirror(a[10])
-            if a[3] == "0c0ba021":  # 50ms
-                self.aeb(a[8])
-                # self.gear()
-    # def power_mode(self):
-    #     if self.parent.acc_off.isChecked():
-    #         power_sig = 0xF8
-    #     elif self.parent.ign.isChecked():
-    #         power_sig = 0xFA
-    #     elif self.parent.start.isChecked():
-    #         power_sig = 0xFC
-    #     else:
-    #         power_sig = 0xF9
-    #     message = can.Message(arbitration_id=0x18ff8621,
-    #                           data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-    #     self.parent.bus.send(message)
-    #     threading.Timer(0.100, self.power_mode).start()
-    #
-    # def gear(self):
-    #     if self.parent.gear_n.isChecked():
-    #         gear_sig = 0x7D
-    #     if self.parent.gear_r.isChecked():
-    #         gear_sig = 0xDF
-    #     if self.parent.gear_d.isChecked():
-    #         gear_sig = 0xFC
-    #     message = can.Message(arbitration_id=0x18faB027,
-    #                           data=[0xCF, 0xFF, 0xFF, 0xFF, gear_sig, 0xFC, 0xF3, 0x3F])
-    #     self.parent.bus.send(message)
-
-    # def seat_hvac(self, sig):
-    #     message = can.Message(arbitration_id=0x18ffa57f,
-    #                           data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     self.parent.bus.send(message)
-
     def thread_func(self):
-        pass
+        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.btn_pt_ready.isChecked():
+            self.parent.btn_drv_state.setText("On driving")
+        else:
+            self.parent.btn_drv_state.setText("Set Driving State")
+        a = str(self.parent.bus.recv()).split()
+
+        self.diagnosis()
+        # print(a[3])
+        # if a[3] == "18ffd741":  # 100ms
+        #     self.seat_hvac(a[9])
+        #     self.side_mirror(a[10])
+        if a[3] == "0c0ba021":  # 50ms
+            self.aeb(a[8])
+
+    def slider_speed_func(self, value):
+        speed = f'Speed : {value} km/h'
+        self.parent.label_speed.setText(speed)
+        self.parent.speed_worker.value = hex(value * 256)[2:].zfill(4)
 
     def aeb(self, sig):
         if sig == "fd":

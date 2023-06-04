@@ -51,6 +51,8 @@ class Main(QMainWindow, form_class):
         self.btn_ign.clicked.connect(self.power_worker.thread_func)
         self.btn_start.clicked.connect(self.power_worker.thread_func)
 
+        # self.slider_speed.sliderReleased.connect(self.slider_speed_func)
+
         self.swrc_worker = worker.Swrc(parent=self)
 
         self.btn_ok.clicked.connect(self.swrc_worker.thread_func)
@@ -83,6 +85,11 @@ class Main(QMainWindow, form_class):
 
         self.thread_worker = worker.ThreadWorker(parent=self)
 
+        self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
+        self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
+
+        self.speed_worker = worker.TachoSpeed(parent=self)
+
         self.tx_worker = worker.TxOnlyWorker(parent=self)
         self.hvac_worker = worker.Hvac(parent=self)
 
@@ -96,6 +103,8 @@ class Main(QMainWindow, form_class):
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
+
+        self.set_entire_basic_btns_enable(False)
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -127,6 +136,7 @@ class Main(QMainWindow, form_class):
             self.swrc_worker.start()
             self.gear_worker.start()
             self.power_worker.start()
+            self.speed_worker.start()
 
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
@@ -134,8 +144,9 @@ class Main(QMainWindow, form_class):
             self.swrc_worker._isRunning = True
             self.gear_worker._isRunning = True
             self.power_worker._isRunning = True
+            self.speed_worker._isRunning = True
 
-            self.basic_btn_set_disable_all(True)
+            self.set_entire_basic_btns_enable(True)
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -146,6 +157,7 @@ class Main(QMainWindow, form_class):
         self.swrc_worker.stop()
         self.gear_worker.stop()
         self.power_worker.stop()
+        self.speed_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
@@ -153,8 +165,9 @@ class Main(QMainWindow, form_class):
         self.swrc_worker.quit()
         self.gear_worker.quit()
         self.power_worker.quit()
+        self.speed_worker.quit()
 
-        self.basic_btn_set_disable_all(False)
+        self.set_entire_basic_btns_enable(False)
 
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")
@@ -176,7 +189,7 @@ class Main(QMainWindow, form_class):
             self.btn_start.setChecked(True)
             self.btn_pt_ready.setChecked(True)
 
-    def basic_btn_set_disable_all(self, flag):
+    def set_entire_basic_btns_enable(self, flag):
         self.btn_gear_n.setEnabled(flag)
         self.btn_gear_r.setEnabled(flag)
         self.btn_gear_d.setEnabled(flag)
@@ -185,6 +198,10 @@ class Main(QMainWindow, form_class):
         self.btn_acc.setEnabled(flag)
         self.btn_ign.setEnabled(flag)
         self.btn_start.setEnabled(flag)
+
+        self.btn_pt_ready.setEnabled(flag)
+
+        self.btn_drv_state.setEnabled(flag)
 
         self.btn_ok.setEnabled(flag)
         self.btn_left.setEnabled(flag)
