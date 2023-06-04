@@ -115,6 +115,9 @@ class Swrc(NodeThread):
                 self.data[1] = 0x40
             elif btn_text == "btn_vol_down_long":
                 self.data[1] = 0x80
+            elif btn_text == "btn_reset":
+                self.data[0] = 0x04
+                self.data[1] = 0x80
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
         self.parent.bus.send(message)
 
@@ -169,6 +172,23 @@ class TachoSpeed(NodeThread):
         self.parent.bus.send(message)
 
 
+class TirePressure(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.010
+
+    def thread_func(self):
+        self.data[7] = 0xCF
+        if self.sender():
+            btn_text = self.sender().objectName()
+            if btn_text == "btn_tpms_success":
+                self.data[7] = 0xDF
+            elif btn_text == "btn_tpms_fail":
+                self.data[7] = 0xEF
+        message = can.Message(arbitration_id=0x18f0120B, data=self.data)
+        self.parent.bus.send(message)
+
+
 class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
@@ -198,8 +218,6 @@ class ThreadWorker(NodeThread):
         # if a[3] == "18ffd741":  # 100ms
         #     self.seat_hvac(a[9])
         #     self.side_mirror(a[10])
-        if a[3] == "0c0ba021":  # 50ms
-            self.aeb(a[8])
 
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
@@ -237,84 +255,7 @@ class ThreadWorker(NodeThread):
                                   data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
             self.parent.bus.send(message)
 
-    # def swrc(self):
-    #     if self.sender():
-    #         btn_text = self.sender().objectName()
-    #         if btn_text == "btn_ok":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_left":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x02, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_left_long":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x04, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_right":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x08, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_right_long":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x10, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_undo":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x20, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_mode":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x40, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_mute":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x80, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_call":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_call_long":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_vol_up":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x10, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_vol_up_long":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x20, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_vol_down":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_vol_down_long":
-    #             print(btn_text)
-    #             message = can.Message(arbitration_id=0x18fa7f21,
-    #                                   data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     else:
-    #         message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     self.parent.bus.send(message)
-    #     threading.Timer(0.050, self.swrc).start()
 
-        # message = can.Message(arbitration_id=0x18fa7f21,
-        #                       data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        # self.parent.bus.send(message)
-
-        # self.handler = True
-
-        #     message = can.Message(arbitration_id=0x0cf02fa0,
-        #                           data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     self.parent.bus.send(message)
-        # elif sig == "fc":
-        #     print("2")
-        #     message = can.Message(arbitration_id=0x0cf02fa0,
-        #                           data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #     self.parent.bus.send(message)
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.bbb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # pixmap.save("aaa.jpg")

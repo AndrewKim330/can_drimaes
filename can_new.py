@@ -7,6 +7,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from can import interfaces
+
+# from can.interfaces.pcan.pcan import
+
 import can_thread as worker
 
 form_class = uic.loadUiType("untitled.ui")[0]
@@ -32,6 +35,8 @@ class Main(QMainWindow, form_class):
         self.bus = None
         self.bus_flag = False
 
+        self.hvac_worker = worker.Hvac(parent=self)
+
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
         self.power_train_worker = worker.PowerTrain(parent=self)
@@ -56,7 +61,7 @@ class Main(QMainWindow, form_class):
         self.swrc_worker = worker.Swrc(parent=self)
 
         self.btn_ok.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_left.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_left.pressed.connect(self.swrc_worker.thread_func)
         self.btn_left_long.clicked.connect(self.swrc_worker.thread_func)
         self.btn_right.clicked.connect(self.swrc_worker.thread_func)
         self.btn_right_long.clicked.connect(self.swrc_worker.thread_func)
@@ -71,6 +76,8 @@ class Main(QMainWindow, form_class):
         self.btn_vol_down.clicked.connect(self.swrc_worker.thread_func)
         self.btn_vol_down_long.clicked.connect(self.swrc_worker.thread_func)
 
+        self.btn_reset.clicked.connect(self.swrc_worker.thread_func)
+
         # self.nrc_sess_12.clicked.connect(self.session_cont)
         # self.nrc_sess_13.clicked.connect(self.session_cont)
 
@@ -80,20 +87,21 @@ class Main(QMainWindow, form_class):
         # self.nrc_reset_13.clicked.connect(self.reset_cont)
         # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
         # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
-        #
+
         # self.clear_console.clicked.connect(self.diag_text_clear)
-
-        self.thread_worker = worker.ThreadWorker(parent=self)
-
-        self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
-        self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
 
         self.speed_worker = worker.TachoSpeed(parent=self)
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
+        self.tire_worker = worker.TirePressure(parent=self)
+
+        self.btn_tpms_success.clicked.connect(self.tire_worker.thread_func)
+        self.btn_tpms_fail.clicked.connect(self.tire_worker.thread_func)
+
+        self.thread_worker = worker.ThreadWorker(parent=self)
+
         self.tx_worker = worker.TxOnlyWorker(parent=self)
-        self.hvac_worker = worker.Hvac(parent=self)
 
         self.tx_worker.sig2.connect(self.sig2)
         # self.custom_signal.connect(self.tx_worker.good2)
@@ -139,6 +147,7 @@ class Main(QMainWindow, form_class):
             self.power_train_worker.start()
             self.power_worker.start()
             self.speed_worker.start()
+            self.tire_worker.start()
 
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
@@ -147,8 +156,10 @@ class Main(QMainWindow, form_class):
             self.power_train_worker._isRunning = True
             self.power_worker._isRunning = True
             self.speed_worker._isRunning = True
+            self.tire_worker._isRunning = True
 
             self.set_entire_basic_btns_enable(True)
+
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -160,6 +171,7 @@ class Main(QMainWindow, form_class):
         self.power_train_worker.stop()
         self.power_worker.stop()
         self.speed_worker.stop()
+        self.tire_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
@@ -168,8 +180,10 @@ class Main(QMainWindow, form_class):
         self.power_train_worker.quit()
         self.power_worker.quit()
         self.speed_worker.quit()
+        self.tire_worker.quit()
 
         self.set_entire_basic_btns_enable(False)
+
 
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")
@@ -230,6 +244,18 @@ class Main(QMainWindow, form_class):
         self.btn_vol_down_long.setEnabled(flag)
 
         self.btn_reset.setEnabled(flag)
+
+        self.btn_ota_cond.setEnabled(flag)
+
+        self.chkbox_h_brake.setEnabled(flag)
+
+        if flag:
+            self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
+            self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
+        else:
+            self.slider_speed.sliderMoved
+            self.slider_speed.valueChanged
+
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")

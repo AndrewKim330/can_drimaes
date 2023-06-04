@@ -506,6 +506,12 @@
        <property name="text">
         <string>Vol. Up</string>
        </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="autoRepeat">
+        <bool>false</bool>
+       </property>
       </widget>
       <widget class="QPushButton" name="btn_ok">
        <property name="geometry">
@@ -532,6 +538,9 @@
        <property name="text">
         <string>Left (Long)</string>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QPushButton" name="btn_left">
        <property name="geometry">
@@ -544,6 +553,12 @@
        </property>
        <property name="text">
         <string>Left</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="autoRepeat">
+        <bool>true</bool>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_right">
@@ -656,7 +671,7 @@
        <rect>
         <x>20</x>
         <y>480</y>
-        <width>321</width>
+        <width>381</width>
         <height>111</height>
        </rect>
       </property>
@@ -681,7 +696,7 @@
         <rect>
          <x>15</x>
          <y>70</y>
-         <width>271</width>
+         <width>331</width>
          <height>16</height>
         </rect>
        </property>
@@ -720,9 +735,9 @@
       <widget class="QLabel" name="tick_240">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>315</x>
          <y>90</y>
-         <width>21</width>
+         <width>31</width>
          <height>16</height>
         </rect>
        </property>
@@ -736,9 +751,9 @@
       <widget class="QLabel" name="tick_120">
        <property name="geometry">
         <rect>
-         <x>135</x>
+         <x>160</x>
          <y>90</y>
-         <width>21</width>
+         <width>31</width>
          <height>16</height>
         </rect>
        </property>
@@ -754,7 +769,7 @@
         <rect>
          <x>200</x>
          <y>25</y>
-         <width>111</width>
+         <width>171</width>
          <height>21</height>
         </rect>
        </property>
@@ -766,48 +781,35 @@
      <widget class="QGroupBox" name="tpms_group">
       <property name="geometry">
        <rect>
-        <x>370</x>
+        <x>440</x>
         <y>480</y>
-        <width>301</width>
+        <width>231</width>
         <height>111</height>
        </rect>
       </property>
       <property name="title">
        <string>TPMS</string>
       </property>
-      <widget class="QRadioButton" name="radioButton_10">
+      <widget class="QPushButton" name="btn_tpms_success">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>30</y>
+         <x>50</x>
+         <y>20</y>
          <width>121</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>On Going</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="radioButton_11">
-       <property name="geometry">
-        <rect>
-         <x>60</x>
-         <y>70</y>
-         <width>101</width>
-         <height>21</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="text">
         <string>Success</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="radioButton_12">
+      <widget class="QPushButton" name="btn_tpms_fail">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>50</x>
          <y>70</y>
-         <width>81</width>
-         <height>21</height>
+         <width>121</width>
+         <height>31</height>
         </rect>
        </property>
        <property name="text">
@@ -858,9 +860,9 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>620</y>
+        <y>610</y>
         <width>321</width>
-        <height>71</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="title">
@@ -869,9 +871,9 @@
       <widget class="QCheckBox" name="chkbox_h_brake">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>25</y>
-         <width>121</width>
+         <x>210</x>
+         <y>35</y>
+         <width>111</width>
          <height>21</height>
         </rect>
        </property>
@@ -883,7 +885,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
+         <y>30</y>
          <width>181</width>
          <height>31</height>
         </rect>
@@ -897,9 +899,9 @@
       <property name="geometry">
        <rect>
         <x>370</x>
-        <y>620</y>
+        <y>610</y>
         <width>301</width>
-        <height>71</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="title">
