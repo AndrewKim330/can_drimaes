@@ -31,7 +31,6 @@ class Main(QMainWindow, form_class):
 
         self.bus = None
         self.bus_flag = False
-        self.drv_state = False
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
@@ -135,6 +134,8 @@ class Main(QMainWindow, form_class):
             self.swrc_worker._isRunning = True
             self.gear_worker._isRunning = True
             self.power_worker._isRunning = True
+
+            self.basic_btn_set_disable_all(True)
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -153,6 +154,8 @@ class Main(QMainWindow, form_class):
         self.gear_worker.quit()
         self.power_worker.quit()
 
+        self.basic_btn_set_disable_all(False)
+
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")
     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
@@ -164,10 +167,42 @@ class Main(QMainWindow, form_class):
     #     bus1.send(message)
 
     def set_drv_state(self):
-        self.drv_state = True
-        self.btn_gear_d.setChecked(True)
-        self.btn_start.setChecked(True)
+        if self.btn_drv_state.text() == 'On driving':
+            self.btn_gear_n.setChecked(True)
+            self.btn_ign.setChecked(True)
+            self.btn_pt_ready.setChecked(False)
+        else:
+            self.btn_gear_d.setChecked(True)
+            self.btn_start.setChecked(True)
+            self.btn_pt_ready.setChecked(True)
 
+    def basic_btn_set_disable_all(self, flag):
+        self.btn_gear_n.setEnabled(flag)
+        self.btn_gear_r.setEnabled(flag)
+        self.btn_gear_d.setEnabled(flag)
+
+        self.btn_acc_off.setEnabled(flag)
+        self.btn_acc.setEnabled(flag)
+        self.btn_ign.setEnabled(flag)
+        self.btn_start.setEnabled(flag)
+
+        self.btn_ok.setEnabled(flag)
+        self.btn_left.setEnabled(flag)
+        self.btn_left_long.setEnabled(flag)
+        self.btn_right.setEnabled(flag)
+        self.btn_right_long.setEnabled(flag)
+        self.btn_undo.setEnabled(flag)
+        self.btn_mode.setEnabled(flag)
+        self.btn_mute.setEnabled(flag)
+
+        self.btn_call.setEnabled(flag)
+        self.btn_call_long.setEnabled(flag)
+        self.btn_vol_up.setEnabled(flag)
+        self.btn_vol_up_long.setEnabled(flag)
+        self.btn_vol_down.setEnabled(flag)
+        self.btn_vol_down_long.setEnabled(flag)
+
+        self.btn_reset.setEnabled(flag)
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")

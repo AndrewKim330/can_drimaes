@@ -165,10 +165,13 @@ class ThreadWorker(NodeThread):
         self._isRunning = True
 
     def run(self):
-        # self.power_mode()
-        # self.swrc()
         while self._isRunning:
+            if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.btn_pt_ready.isChecked():
+                self.parent.btn_drv_state.setText("On driving")
+            else:
+                self.parent.btn_drv_state.setText("Set Driving State")
             a = str(self.parent.bus.recv()).split()
+
             self.diagnosis()
             # print(a[3])
             # if a[3] == "18ffd741":  # 100ms
