@@ -12,6 +12,25 @@ import threading
 import images_rc
 
 
+class NodeThread(QThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self._isRunning = True
+        self.period = 0.100
+
+    def run(self):
+        while self._isRunning:
+            self.thread_func()
+            time.sleep(self.period)
+
+    def thread_func(self):
+        print("override own function")
+
+    def stop(self):
+        self._isRunning = False
+
+
 class TxOnlyWorker(QThread):
     sig2 = pyqtSignal(list)
 
@@ -33,25 +52,6 @@ class TxOnlyWorker(QThread):
     # def good2(self, good2):
     #     pass
     #     print(good2)
-
-    def stop(self):
-        self._isRunning = False
-
-
-class NodeThread(QThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self._isRunning = True
-        self.period = 0.100
-
-    def run(self):
-        while self._isRunning:
-            self.thread_func()
-            time.sleep(self.period)
-
-    def thread_func(self):
-        print("override own function")
 
     def stop(self):
         self._isRunning = False
@@ -143,25 +143,21 @@ class PowerMode(NodeThread):
         if self.parent.btn_acc.isChecked():
             message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF9, 0xFF, 0xFF, 0xFF])
         if self.parent.btn_acc_off.isChecked():
-            print('aaa')
             message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF])
         elif self.parent.btn_ign.isChecked():
-            print('bbb')
             message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF])
         elif self.parent.btn_start.isChecked():
-            print('ccc')
             message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF])
         self.parent.bus.send(message)
 
 
-class ThreadWorker(QThread):
+class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self.sidemirror = 0x01
         self.handler = None
         self._isRunning = True
-        self.bbb = None
 
     def run(self):
         # self.power_mode()
@@ -205,6 +201,9 @@ class ThreadWorker(QThread):
     #     message = can.Message(arbitration_id=0x18ffa57f,
     #                           data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
     #     self.parent.bus.send(message)
+
+    def thread_func(self):
+        pass
 
     def aeb(self, sig):
         if sig == "fd":
@@ -382,12 +381,6 @@ class ThreadWorker(QThread):
         #         self.diag_console.appendPlainText(data_str)
         # except AttributeError:
         #     pass
-
-    def stop(self):
-        self._isRunning = False
-
-
-
 
 
 # ************************************

@@ -114,6 +114,9 @@ class Main(QMainWindow, form_class):
                 except interfaces.vector.VectorError as e2:
                     print(e2)
                     self.bus_console.appendPlainText("CAN device is not connected")
+                except can.exceptions.CanInterfaceNotImplementedError as e3:
+                    print(e3)
+                    self.bus_console.appendPlainText("CAN device is not connected")
         else:
             self.bus_console.appendPlainText("CAN bus is already connected")
 
