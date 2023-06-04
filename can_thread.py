@@ -18,6 +18,7 @@ class NodeThread(QThread):
         self.parent = parent
         self._isRunning = True
         self.period = 0.100
+        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
     def run(self):
         while self._isRunning:
@@ -71,8 +72,8 @@ class Hvac(NodeThread):
                 self.thread_func()
 
     def thread_func(self):
-        message = can.Message(arbitration_id=0x18ffa57f,
-                              data=[int(self.sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        self.data[0] = int(self.sig, 16)
+        message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.bus.send(message)
 
 
@@ -82,76 +83,74 @@ class Swrc(NodeThread):
         self.period = 0.050
 
     def thread_func(self):
-        message = can.Message(arbitration_id=0x18fa7f21, data=[0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        self.data[0] = 0x00
+        self.data[1] = 0x00
         if self.sender():
             btn_text = self.sender().objectName()
             if btn_text == "btn_ok":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x01
             elif btn_text == "btn_left":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x02, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x02
             elif btn_text == "btn_left_long":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x04, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x04
             elif btn_text == "btn_right":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x08, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x08
             elif btn_text == "btn_right_long":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x10, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x10
             elif btn_text == "btn_undo":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x20, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x20
             elif btn_text == "btn_mode":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x40, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x40
             elif btn_text == "btn_mute":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x80, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[0] = 0x80
             elif btn_text == "btn_call":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x01
             elif btn_text == "btn_call_long":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x02
             elif btn_text == "btn_vol_up":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x10, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x10
             elif btn_text == "btn_vol_up_long":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x20, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x20
             elif btn_text == "btn_vol_down":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x40, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x40
             elif btn_text == "btn_vol_down_long":
-                message = can.Message(arbitration_id=0x18fa7f21,
-                                      data=[0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                self.data[1] = 0x80
+        message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
         self.parent.bus.send(message)
 
 
 class Gear(NodeThread):
     def thread_func(self):
+        self.data[0] = 0xCF
+        self.data[5] = 0xFC
+        self.data[6] = 0xF3
+        self.data[7] = 0x3F
         # initial value for gear N
-        message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0x7D, 0xFC, 0xF3, 0x3F])
-        if self.parent.btn_gear_r.isChecked():
-            message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0xDF, 0xFC, 0xF3, 0x3F])
+        if self.parent.btn_gear_n.isChecked():
+            self.data[4] = 0x7D
+        elif self.parent.btn_gear_r.isChecked():
+            self.data[4] = 0xDF
         elif self.parent.btn_gear_d.isChecked():
-            message = can.Message(arbitration_id=0x18fab027, data=[0xCF, 0xFF, 0xFF, 0xFF, 0xFC, 0xFC, 0xF3, 0x3F])
+            self.data[4] = 0xFC
+        message = can.Message(arbitration_id=0x18fab027, data=self.data)
         self.parent.bus.send(message)
 
 
 class PowerMode(NodeThread):
     def thread_func(self):
+        self.data[0] = 0x97
+        self.data[1] = 0x7A
+        self.data[2] = 0xDF
         # Initial mode for ACC (for convenience)
         if self.parent.btn_acc.isChecked():
-            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF9, 0xFF, 0xFF, 0xFF])
+            self.data[4] = 0xF9
         if self.parent.btn_acc_off.isChecked():
-            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xF8, 0xFF, 0xFF, 0xFF])
+            self.data[4] = 0xF8
         elif self.parent.btn_ign.isChecked():
-            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFA, 0xFF, 0xFF, 0xFF])
+            self.data[4] = 0xFA
         elif self.parent.btn_start.isChecked():
-            message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, 0xFC, 0xFF, 0xFF, 0xFF])
+            self.data[4] = 0xFC
+        message = can.Message(arbitration_id=0x18ff8621, data=self.data)
         self.parent.bus.send(message)
 
 
@@ -162,8 +161,9 @@ class TachoSpeed(NodeThread):
         self.value = '0000'
 
     def thread_func(self):
-        message = can.Message(arbitration_id=0x0cfe6c17, data=[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, int(self.value[2:4], 16), int(self.value[0:2], 16)])
-        print(message)
+        self.data[6] = int(self.value[2:4], 16)
+        self.data[7] = int(self.value[0:2], 16)
+        message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
         self.parent.bus.send(message)
 
 
