@@ -51,9 +51,7 @@ class Main(QMainWindow, form_class):
         self.btn_ign.clicked.connect(self.power_worker.thread_func)
         self.btn_start.clicked.connect(self.power_worker.thread_func)
 
-        self.btn_pt_ready.clicked.connect(self.power_worker.thread_func)
-
-        # self.slider_speed.sliderReleased.connect(self.slider_speed_func)
+        self.chkbox_pt_ready.clicked.connect(self.power_worker.thread_func)
 
         self.swrc_worker = worker.Swrc(parent=self)
 
@@ -91,6 +89,8 @@ class Main(QMainWindow, form_class):
         self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
 
         self.speed_worker = worker.TachoSpeed(parent=self)
+
+        self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
         self.tx_worker = worker.TxOnlyWorker(parent=self)
         self.hvac_worker = worker.Hvac(parent=self)
@@ -182,14 +182,22 @@ class Main(QMainWindow, form_class):
     #     bus1.send(message)
 
     def set_drv_state(self):
-        if self.btn_drv_state.text() == 'On driving':
+        if self.btn_drv_state.text() == 'On Driving State':
             self.btn_gear_n.setChecked(True)
             self.btn_ign.setChecked(True)
-            self.btn_pt_ready.setChecked(False)
+            self.chkbox_pt_ready.setChecked(False)
         else:
             self.btn_gear_d.setChecked(True)
             self.btn_start.setChecked(True)
-            self.btn_pt_ready.setChecked(True)
+            self.chkbox_pt_ready.setChecked(True)
+
+    def set_ota_cond(self):
+        # **need to add battery condition**
+        if self.btn_ota_cond.text() == 'On OTA Condition':
+            self.chkbox_h_brake.setChecked(False)
+        else:
+            self.btn_gear_n.setChecked(True)
+            self.chkbox_h_brake.setChecked(True)
 
     def set_entire_basic_btns_enable(self, flag):
         self.btn_gear_n.setEnabled(flag)
@@ -201,7 +209,7 @@ class Main(QMainWindow, form_class):
         self.btn_ign.setEnabled(flag)
         self.btn_start.setEnabled(flag)
 
-        self.btn_pt_ready.setEnabled(flag)
+        self.chkbox_pt_ready.setEnabled(flag)
 
         self.btn_drv_state.setEnabled(flag)
 

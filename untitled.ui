@@ -866,11 +866,11 @@
       <property name="title">
        <string>OTA Status</string>
       </property>
-      <widget class="QCheckBox" name="checkBox_10">
+      <widget class="QCheckBox" name="chkbox_h_brake">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>30</y>
+         <x>200</x>
+         <y>25</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -879,30 +879,17 @@
         <string>Handbrake</string>
        </property>
       </widget>
-      <widget class="QRadioButton" name="radioButton_15">
+      <widget class="QPushButton" name="btn_ota_cond">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>30</y>
-         <width>90</width>
-         <height>21</height>
+         <x>10</x>
+         <y>20</y>
+         <width>181</width>
+         <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>N</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="checkBox_11">
-       <property name="geometry">
-        <rect>
-         <x>210</x>
-         <y>30</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Batt 60%</string>
+        <string>OTA Condition</string>
        </property>
       </widget>
      </widget>
@@ -957,7 +944,7 @@
       <property name="title">
        <string>Power Train</string>
       </property>
-      <widget class="QCheckBox" name="btn_pt_ready">
+      <widget class="QCheckBox" name="chkbox_pt_ready">
        <property name="geometry">
         <rect>
          <x>20</x>

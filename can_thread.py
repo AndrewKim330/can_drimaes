@@ -125,14 +125,14 @@ class PowerTrain(NodeThread):
         self.data[5] = 0xFC
         self.data[6] = 0xF3
         self.data[7] = 0x3F
-        # initial value for gear N
+        # initial value for gear N (for convenience)
         if self.parent.btn_gear_n.isChecked():
             self.data[4] = 0x7D
         elif self.parent.btn_gear_r.isChecked():
             self.data[4] = 0xDF
         elif self.parent.btn_gear_d.isChecked():
             self.data[4] = 0xFC
-        if self.parent.btn_pt_ready.isChecked():
+        if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
         self.parent.bus.send(message)
@@ -178,10 +178,19 @@ class ThreadWorker(NodeThread):
         self._isRunning = True
 
     def thread_func(self):
-        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.btn_pt_ready.isChecked():
-            self.parent.btn_drv_state.setText("On driving")
+        # driving state check
+        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
+            self.parent.btn_drv_state.setText("On Driving State")
         else:
             self.parent.btn_drv_state.setText("Set Driving State")
+
+        # OTA condition check
+        # **need to add battery condition**
+        if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
+            self.parent.btn_ota_cond.setText("On OTA Condition")
+        else:
+            self.parent.btn_ota_cond.setText("Set OTA Condition")
+
         a = str(self.parent.bus.recv()).split()
 
         self.diagnosis()
