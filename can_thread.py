@@ -141,11 +141,10 @@ class PowerTrain(NodeThread):
         self.parent.bus.send(message)
 
 
-class PowerMode(NodeThread):
+class BCMState(NodeThread):
     def thread_func(self):
         self.data[0] = 0x97
         self.data[1] = 0x7A
-        self.data[2] = 0xDF
         # Initial mode for ACC (for convenience)
         if self.parent.btn_acc.isChecked():
             self.data[4] = 0xF9
@@ -155,6 +154,10 @@ class PowerMode(NodeThread):
             self.data[4] = 0xFA
         elif self.parent.btn_start.isChecked():
             self.data[4] = 0xFC
+        if self.parent.btn_bright_afternoon.isChecked():
+            self.data[2] = 0xDF
+        elif self.parent.btn_bright_night.isChecked():
+            self.data[2] = 0xFF
         message = can.Message(arbitration_id=0x18ff8621, data=self.data)
         self.parent.bus.send(message)
 
@@ -194,8 +197,10 @@ class ThreadWorker(NodeThread):
         super().__init__(parent)
         self.parent = parent
         self.sidemirror = 0x01
-        self.handler = None
-        self._isRunning = True
+
+    def run(self):
+        while self._isRunning:
+            self.thread_func()
 
     def thread_func(self):
         # driving state check

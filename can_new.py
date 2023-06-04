@@ -43,20 +43,11 @@ class Main(QMainWindow, form_class):
 
         # Default value of Gear radio button
         self.btn_gear_n.setChecked(True)
-        self.btn_gear_n.clicked.connect(self.power_train_worker.thread_func)
-        self.btn_gear_r.clicked.connect(self.power_train_worker.thread_func)
-        self.btn_gear_d.clicked.connect(self.power_train_worker.thread_func)
 
-        self.power_worker = worker.PowerMode(parent=self)
+        self.bcm_state_worker = worker.BCMState(parent=self)
 
         # Default value of Power mode radio button
         self.btn_acc.setChecked(True)
-        self.btn_acc_off.clicked.connect(self.power_worker.thread_func)
-        self.btn_acc.clicked.connect(self.power_worker.thread_func)
-        self.btn_ign.clicked.connect(self.power_worker.thread_func)
-        self.btn_start.clicked.connect(self.power_worker.thread_func)
-
-        self.chkbox_pt_ready.clicked.connect(self.power_worker.thread_func)
 
         self.swrc_worker = worker.Swrc(parent=self)
 
@@ -98,6 +89,11 @@ class Main(QMainWindow, form_class):
 
         self.btn_tpms_success.clicked.connect(self.tire_worker.thread_func)
         self.btn_tpms_fail.clicked.connect(self.tire_worker.thread_func)
+
+        self.btn_bright_afternoon.setChecked(True)
+
+        # self.btn_bright_afternoon
+        # self.btn_bright_night
 
         self.thread_worker = worker.ThreadWorker(parent=self)
 
@@ -145,7 +141,7 @@ class Main(QMainWindow, form_class):
             self.hvac_worker.start()
             self.swrc_worker.start()
             self.power_train_worker.start()
-            self.power_worker.start()
+            self.bcm_state_worker.start()
             self.speed_worker.start()
             self.tire_worker.start()
 
@@ -154,7 +150,7 @@ class Main(QMainWindow, form_class):
             self.hvac_worker._isRunning = True
             self.swrc_worker._isRunning = True
             self.power_train_worker._isRunning = True
-            self.power_worker._isRunning = True
+            self.bcm_state_worker._isRunning = True
             self.speed_worker._isRunning = True
             self.tire_worker._isRunning = True
 
@@ -169,7 +165,7 @@ class Main(QMainWindow, form_class):
         self.hvac_worker.stop()
         self.swrc_worker.stop()
         self.power_train_worker.stop()
-        self.power_worker.stop()
+        self.bcm_state_worker.stop()
         self.speed_worker.stop()
         self.tire_worker.stop()
 
@@ -178,7 +174,7 @@ class Main(QMainWindow, form_class):
         self.hvac_worker.quit()
         self.swrc_worker.quit()
         self.power_train_worker.quit()
-        self.power_worker.quit()
+        self.bcm_state_worker.quit()
         self.speed_worker.quit()
         self.tire_worker.quit()
 
