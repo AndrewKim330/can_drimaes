@@ -165,6 +165,9 @@ class Main(QMainWindow, form_class):
 
     def set_drv_state(self):
         self.drv_state = True
+        self.btn_gear_d.setChecked(True)
+        self.btn_start.setChecked(True)
+
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")

@@ -25,7 +25,7 @@ class NodeThread(QThread):
             time.sleep(self.period)
 
     def thread_func(self):
-        print("override own function")
+        pass
 
     def stop(self):
         self._isRunning = False
@@ -59,15 +59,20 @@ class TxOnlyWorker(QThread):
 
 class Hvac(NodeThread):
 
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.sig = '0x00'
+
     def run(self):
         while self._isRunning:
             a = str(self.parent.bus.recv()).split()
             if a[3] == "18ffd741":  # 100ms
-                self.thread_func(a[9])
+                self.sig = a[9]
+                self.thread_func()
 
-    def thread_func(self, sig):
+    def thread_func(self):
         message = can.Message(arbitration_id=0x18ffa57f,
-                              data=[int(sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+                              data=[int(self.sig, 16), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
         self.parent.bus.send(message)
 
 
