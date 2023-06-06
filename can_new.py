@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from can import interfaces
+import select
 
 # from can.interfaces.pcan.pcan import
 
@@ -19,7 +20,7 @@ form_class = uic.loadUiType("untitled.ui")[0]
 # try:
 #     # bus2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
 # except:
-#     # bus1 = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+#     # bus1 = can.interface.Bus(bustype='vector', ch annel=0, bitrate='500000')
 #     # bus2 = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
 #     print("No good")
 
@@ -33,6 +34,7 @@ class Main(QMainWindow, form_class):
         self.setupUi(self)
 
         self.bus = None
+        self.bus2 = None
         self.bus_flag = False
 
         self.hvac_worker = worker.Hvac(parent=self)
@@ -92,8 +94,7 @@ class Main(QMainWindow, form_class):
 
         self.btn_bright_afternoon.setChecked(True)
 
-        # self.btn_bright_afternoon
-        # self.btn_bright_night
+
 
         self.thread_worker = worker.ThreadWorker(parent=self)
 
@@ -115,7 +116,23 @@ class Main(QMainWindow, form_class):
     def bus_connect(self):
         if not self.bus_flag:
             try:
-                self.bus = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                try:
+                    temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+                    if temp1.recv(1):
+                        self.bus = temp1
+                        self.bus2 = temp2
+                    else:
+                        self.bus = temp2
+                        self.bus2 = temp1
+                    self.bus_console.appendPlainText("2 Channel is connected")
+                except:
+                    self.bus_console.appendPlainText("1 Channel is connected")
+                    if temp1.recv(1):
+                        self.bus = temp1
+                    else:
+                        self.bus2 = temp1
+
                 self.bus_flag = True
                 self.bus_console.appendPlainText("PCAN bus is connected")
             except interfaces.pcan.pcan.PcanCanInitializationError as e1:
@@ -136,8 +153,8 @@ class Main(QMainWindow, form_class):
 
     def thread_start(self):
         if self.bus_flag:
-            self.thread_worker.start()
-            self.tx_worker.start()
+            # self.thread_worker.start()
+            # self.tx_worker.start()
             self.hvac_worker.start()
             self.swrc_worker.start()
             self.power_train_worker.start()
@@ -245,19 +262,26 @@ class Main(QMainWindow, form_class):
 
         self.chkbox_h_brake.setEnabled(flag)
 
+        self.btn_tpms_success.setEnabled(flag)
+        self.btn_tpms_fail.setEnabled(flag)
+
+        self.btn_bright_afternoon.setEnabled(flag)
+        self.btn_bright_night.setEnabled(flag)
+
         if flag:
             self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
             self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
-        else:
-            self.slider_speed.sliderMoved
-            self.slider_speed.valueChanged
 
+    def blank_func(self):
+        pass
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")
 
     def btn_clicked_write(self):
         self.custom_signal.emit("write")
+
+
 
     # def btn_clicked5(self):
     #     print("2E - ECU date")

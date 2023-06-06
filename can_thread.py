@@ -45,9 +45,13 @@ class TxOnlyWorker(QThread):
         flowControl = False
         temp = []
         while self._isRunning:
-            a = str(self.parent.bus.recv()).split()
-            # print(a)
-            self.sig2.emit(a)
+            if self.parent.bus:
+                a = str(self.parent.bus.recv()).split()
+                # print(a)
+                self.sig2.emit(a)
+            else:
+                print("no good")
+                self._isRunning = False
 
     # @pyqtSlot("PyQt_PyObject")
     # def good2(self, good2):
@@ -66,10 +70,14 @@ class Hvac(NodeThread):
 
     def run(self):
         while self._isRunning:
-            a = str(self.parent.bus.recv()).split()
-            if a[3] == "18ffd741":  # 100ms
-                self.sig = a[9]
-                self.thread_func()
+            if self.parent.bus:
+                a = str(self.parent.bus.recv()).split()
+                if a[3] == "18ffd741":  # 100ms
+                    self.sig = a[9]
+                    self.thread_func()
+            else:
+                print("no good hvac")
+                self._isRunning = False
 
     def thread_func(self):
         self.data[0] = int(self.sig, 16)
@@ -119,7 +127,11 @@ class Swrc(NodeThread):
                 self.data[0] = 0x04
                 self.data[1] = 0x80
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-        self.parent.bus.send(message)
+        if self.parent.bus:
+            self.parent.bus.send(message)
+        else:
+            print("no good swrc")
+            self._isRunning = False
 
 
 class PowerTrain(NodeThread):
@@ -138,7 +150,11 @@ class PowerTrain(NodeThread):
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
-        self.parent.bus.send(message)
+        if self.parent.bus:
+            self.parent.bus.send(message)
+        else:
+            print("no good powertrain")
+            self._isRunning = False
 
 
 class BCMState(NodeThread):
@@ -159,87 +175,19 @@ class BCMState(NodeThread):
         elif self.parent.btn_bright_night.isChecked():
             self.data[2] = 0xFF
         message = can.Message(arbitration_id=0x18ff8621, data=self.data)
-        self.parent.bus.send(message)
-
-
-class TachoSpeed(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.period = 0.050
-        self.value = '0000'
-
-    def thread_func(self):
-        self.data[6] = int(self.value[2:4], 16)
-        self.data[7] = int(self.value[0:2], 16)
-        message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
-        self.parent.bus.send(message)
-
-
-class TirePressure(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.period = 0.010
-
-    def thread_func(self):
-        self.data[7] = 0xCF
-        if self.sender():
-            btn_text = self.sender().objectName()
-            if btn_text == "btn_tpms_success":
-                self.data[7] = 0xDF
-            elif btn_text == "btn_tpms_fail":
-                self.data[7] = 0xEF
-        message = can.Message(arbitration_id=0x18f0120B, data=self.data)
-        self.parent.bus.send(message)
-
-
-class ThreadWorker(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self.sidemirror = 0x01
-
-    def run(self):
-        while self._isRunning:
-            self.thread_func()
-
-    def thread_func(self):
-        # driving state check
-        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
-            self.parent.btn_drv_state.setText("On Driving State")
+        if self.parent.bus:
+            self.parent.bus.send(message)
         else:
-            self.parent.btn_drv_state.setText("Set Driving State")
+            print("no good bcmstate")
+            self._isRunning = False
 
-        # OTA condition check
-        # **need to add battery condition**
-        if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
-            self.parent.btn_ota_cond.setText("On OTA Condition")
-        else:
-            self.parent.btn_ota_cond.setText("Set OTA Condition")
 
+class BCMMMI(NodeThread):
+    def thread_func(self):
         a = str(self.parent.bus.recv()).split()
+        if a[3] == "18ffd741":  # 100ms
+            print(a)
 
-        self.diagnosis()
-        # print(a[3])
-        # if a[3] == "18ffd741":  # 100ms
-        #     self.seat_hvac(a[9])
-        #     self.side_mirror(a[10])
-
-    def slider_speed_func(self, value):
-        speed = f'Speed : {value} km/h'
-        self.parent.label_speed.setText(speed)
-        self.parent.speed_worker.value = hex(value * 256)[2:].zfill(4)
-
-    def aeb(self, sig):
-        if sig == "fd":
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
-        elif sig == "fc":
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
-
-    # need to fix
     def side_mirror(self, sig):
         tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
         sidemirror = tpms_and_sidemirror_mani_bin[4:6]
@@ -261,6 +209,107 @@ class ThreadWorker(NodeThread):
             self.parent.bus.send(message)
 
 
+class TachoSpeed(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.050
+        self.value = '0000'
+
+    def thread_func(self):
+        self.data[6] = int(self.value[2:4], 16)
+        self.data[7] = int(self.value[0:2], 16)
+        message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
+        if self.parent.bus:
+            self.parent.bus.send(message)
+        else:
+            print("no good tachospeed")
+            self._isRunning = False
+
+
+class TirePressure(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.010
+
+    def thread_func(self):
+        self.data[7] = 0xCF
+        if self.sender():
+            btn_text = self.sender().objectName()
+            if btn_text == "btn_tpms_success":
+                self.data[7] = 0xDF
+            elif btn_text == "btn_tpms_fail":
+                self.data[7] = 0xEF
+        message = can.Message(arbitration_id=0x18f0120B, data=self.data)
+        if self.parent.bus:
+            self.parent.bus.send(message)
+        else:
+            print("no good tirepressure")
+            self._isRunning = False
+
+
+class BatteryManage(NodeThread):
+    def thread_func(self):
+        self.data[2] = 0x00
+        self.data[3] = 0x7D
+        self.data[4] = 0x7D
+        self.data[5] = 0x7D
+        message = can.Message(arbitration_id=0x18fa40f4, data=self.data)
+        self.parent.bus2.send(message)
+
+
+class ThreadWorker(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.sidemirror = 0x01
+
+    def run(self):
+        while self._isRunning:
+            self.thread_func()
+
+    def thread_func(self):
+        # print("aaa")
+        # a1 = str(self.parent.bus.recv()).split()
+        # print("bbb", a1)
+        # a2 = str(self.parent.bus2.recv()).split()
+        # print("ccc", a2)
+        # driving state check
+        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
+            self.parent.btn_drv_state.setText("On Driving State")
+        else:
+            self.parent.btn_drv_state.setText("Set Driving State")
+
+        # OTA condition check
+        # **need to add battery condition**
+        if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
+            self.parent.btn_ota_cond.setText("On OTA Condition")
+        else:
+            self.parent.btn_ota_cond.setText("Set OTA Condition")
+
+        a = str(self.parent.bus.recv()).split()
+
+        # self.diagnosis()
+        # print(a[3])
+        # if a[3] == "18ffd741":  # 100ms
+        #     self.seat_hvac(a[9])
+        #     self.side_mirror(a[10])
+
+    def slider_speed_func(self, value):
+        speed = f'Speed : {value} km/h'
+        if self._isRunning:
+            self.parent.label_speed.setText(speed)
+        self.parent.speed_worker.value = hex(value * 256)[2:].zfill(4)
+
+    def aeb(self, sig):
+        if sig == "fd":
+            message = can.Message(arbitration_id=0x0cf02fa0,
+                                  data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+            self.parent.bus.send(message)
+        elif sig == "fc":
+            message = can.Message(arbitration_id=0x0cf02fa0,
+                                  data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+            self.parent.bus.send(message)
+
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.bbb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # pixmap.save("aaa.jpg")
@@ -272,21 +321,21 @@ class ThreadWorker(NodeThread):
         # self.parent.test_label.setPixmap(self.bbb)
         # self.parent.test_label.setText("Aaaaa")
 
-    def diagnosis(self):
-        # session control
-        self.parent.btn_sess_default.clicked.connect(self.session_cont)
-        self.parent.btn_sess_ext.clicked.connect(self.session_cont)
-
-    def session_cont(self):
-        btn_text = self.sender().objectName()
-        if len(btn_text) > 0:
-            if btn_text == "btn_sess_default":
-                message = can.Message(arbitration_id=0x18da41f1,
-                                      data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            elif btn_text == "btn_sess_ext":
-                message = can.Message(arbitration_id=0x18da41f1,
-                                      data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
+    # def diagnosis(self):
+    #     # session control
+    #     self.parent.btn_sess_default.clicked.connect(self.session_cont)
+    #     self.parent.btn_sess_ext.clicked.connect(self.session_cont)
+    #
+    # def session_cont(self):
+    #     btn_text = self.sender().objectName()
+    #     if len(btn_text) > 0:
+    #         if btn_text == "btn_sess_default":
+    #             message = can.Message(arbitration_id=0x18da41f1,
+    #                                   data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #         elif btn_text == "btn_sess_ext":
+    #             message = can.Message(arbitration_id=0x18da41f1,
+    #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    #         self.parent.bus.send(message)
         # try:
         #     btn_text = self.sender().objectName()
         #     if len(btn_text) > 0:
