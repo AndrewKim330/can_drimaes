@@ -185,8 +185,27 @@ class BCMState(NodeThread):
 class BCMMMI(NodeThread):
     def thread_func(self):
         a = str(self.parent.c_can_bus.recv()).split()
-        if a[3] == "18ffd741":  # 100ms
-            print(a)
+        if a[3] == "18ffd741":
+            # print(a)
+            pass
+        if a[3] == "18ffd841":
+            print(a[11], a[15])
+            if a[11] == "c7":
+                self.data[1] = 0xE3
+            elif a[11] == "cf":
+                self.data[1] = 0xE7
+            elif a[11] == "d7":
+                self.data[1] = 0xEB
+            elif a[11] == "df":
+                self.data[1] = 0xEF
+        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
+        else:
+            print("no good bcm mmi")
+            self._isRunning = False
+
+            # if a[15] == "":
 
     def side_mirror(self, sig):
         tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
@@ -251,13 +270,12 @@ class AEB(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
-        self.value = None
 
     def thread_func(self):
-        print(self.value)
-        if self.value == "fd":
+        a = str(self.parent.c_can_bus.recv()).split()
+        if a[8] == "fd":
             self.data[0] = 0xF1
-        elif self.value == "fc":
+        elif a[8] == "fc":
             self.data[0] = 0xF2
         message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
         if self.parent.c_can_bus:
@@ -270,7 +288,6 @@ class AEB(NodeThread):
 class BatteryManage(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
-        self.period = 0.050
         self.value = '7D'
 
     def thread_func(self):
@@ -324,7 +341,6 @@ class ThreadWorker(NodeThread):
             self.parent.btn_drv_state.setText("Set Driving State")
 
         # OTA condition check
-        # **need to add battery condition**
         if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
             self.parent.btn_ota_cond.setText("On OTA Condition")
         else:

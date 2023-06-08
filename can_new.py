@@ -93,6 +93,8 @@ class Main(QMainWindow, form_class):
 
         self.aeb_worker = worker.AEB(parent=self)
 
+        self.bcm_mmi_worker = worker.BCMMMI(parent=self)
+
         self.battery_worker = worker.BatteryManage(parent=self)
         self.charge_worker = worker.ChargingState(parent=self)
 
@@ -165,6 +167,7 @@ class Main(QMainWindow, form_class):
             self.battery_worker.start()
             self.charge_worker.start()
             self.aeb_worker.start()
+            self.bcm_mmi_worker.start()
 
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
@@ -177,6 +180,7 @@ class Main(QMainWindow, form_class):
             self.battery_worker._isRunning = True
             self.charge_worker._isRunning = True
             self.aeb_worker._isRunning = True
+            self.bcm_mmi_worker._isRunning = True
 
             self.set_entire_basic_btns_enable(True)
 
@@ -195,6 +199,7 @@ class Main(QMainWindow, form_class):
         self.battery_worker.stop()
         self.charge_worker.stop()
         self.aeb_worker.stop()
+        self.bcm_mmi_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
@@ -207,6 +212,7 @@ class Main(QMainWindow, form_class):
         self.battery_worker.quit()
         self.charge_worker.quit()
         self.aeb_worker.quit()
+        self.bcm_mmi_worker.quit()
 
         self.set_entire_basic_btns_enable(False)
 
