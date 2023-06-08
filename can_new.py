@@ -7,9 +7,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from can import interfaces
-import select
-
-# from can.interfaces.pcan.pcan import
 
 import can_thread as worker
 
@@ -33,8 +30,8 @@ class Main(QMainWindow, form_class):
 
         self.setupUi(self)
 
-        self.bus = None
-        self.bus2 = None
+        self.c_can_bus = None
+        self.p_can_bus = None
         self.bus_flag = False
 
         self.hvac_worker = worker.Hvac(parent=self)
@@ -94,7 +91,10 @@ class Main(QMainWindow, form_class):
 
         self.btn_bright_afternoon.setChecked(True)
 
+        self.aeb_worker = worker.AEB(parent=self)
 
+        self.battery_worker = worker.BatteryManage(parent=self)
+        self.charge_worker = worker.ChargingState(parent=self)
 
         self.thread_worker = worker.ThreadWorker(parent=self)
 
@@ -117,21 +117,21 @@ class Main(QMainWindow, form_class):
         if not self.bus_flag:
             try:
                 temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                self.bus_console.appendPlainText("1 Channel is connected")
                 try:
                     temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
                     if temp1.recv(1):
-                        self.bus = temp1
-                        self.bus2 = temp2
+                        self.c_can_bus = temp1
+                        self.p_can_bus = temp2
                     else:
-                        self.bus = temp2
-                        self.bus2 = temp1
+                        self.c_can_bus = temp2
+                        self.p_can_bus = temp1
                     self.bus_console.appendPlainText("2 Channel is connected")
                 except:
-                    self.bus_console.appendPlainText("1 Channel is connected")
                     if temp1.recv(1):
-                        self.bus = temp1
+                        self.c_can_bus = temp1
                     else:
-                        self.bus2 = temp1
+                        self.p_can_bus = temp1
 
                 self.bus_flag = True
                 self.bus_console.appendPlainText("PCAN bus is connected")
@@ -139,7 +139,8 @@ class Main(QMainWindow, form_class):
                 print(e1)
                 self.bus_console.appendPlainText("PCAN bus is not connected")
                 try:
-                    self.bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
                     self.bus_flag = True
                     self.bus_console.appendPlainText("Vector bus is connected")
                 except interfaces.vector.VectorError as e2:
@@ -153,14 +154,17 @@ class Main(QMainWindow, form_class):
 
     def thread_start(self):
         if self.bus_flag:
-            # self.thread_worker.start()
-            # self.tx_worker.start()
+            self.thread_worker.start()
+            self.tx_worker.start()
             self.hvac_worker.start()
             self.swrc_worker.start()
             self.power_train_worker.start()
             self.bcm_state_worker.start()
             self.speed_worker.start()
             self.tire_worker.start()
+            self.battery_worker.start()
+            self.charge_worker.start()
+            self.aeb_worker.start()
 
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
@@ -170,6 +174,9 @@ class Main(QMainWindow, form_class):
             self.bcm_state_worker._isRunning = True
             self.speed_worker._isRunning = True
             self.tire_worker._isRunning = True
+            self.battery_worker._isRunning = True
+            self.charge_worker._isRunning = True
+            self.aeb_worker._isRunning = True
 
             self.set_entire_basic_btns_enable(True)
 
@@ -185,6 +192,9 @@ class Main(QMainWindow, form_class):
         self.bcm_state_worker.stop()
         self.speed_worker.stop()
         self.tire_worker.stop()
+        self.battery_worker.stop()
+        self.charge_worker.stop()
+        self.aeb_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
@@ -194,6 +204,9 @@ class Main(QMainWindow, form_class):
         self.bcm_state_worker.quit()
         self.speed_worker.quit()
         self.tire_worker.quit()
+        self.battery_worker.quit()
+        self.charge_worker.quit()
+        self.aeb_worker.quit()
 
         self.set_entire_basic_btns_enable(False)
 
@@ -268,20 +281,44 @@ class Main(QMainWindow, form_class):
         self.btn_bright_afternoon.setEnabled(flag)
         self.btn_bright_night.setEnabled(flag)
 
+        self.slider_battery.setEnabled(flag)
+        self.chkbox_charge.setEnabled(flag)
+
+        self.tick_0_speed.setStyleSheet("color: gray")
+        self.tick_120.setStyleSheet("color: gray")
+        self.tick_240.setStyleSheet("color: gray")
+        self.label_speed.setStyleSheet("color: gray")
+
+        self.tick_0_batt.setStyleSheet("color: gray")
+        self.tick_50.setStyleSheet("color: gray")
+        self.tick_100.setStyleSheet("color: gray")
+        self.label_battery.setStyleSheet("color: gray")
+
+        self.chkbox_drv_invalid.setEnabled(flag)
+        self.chkbox_pass_invalid.setEnabled(flag)
+
         if flag:
             self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
             self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
 
-    def blank_func(self):
-        pass
+            self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
+            self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
+
+            self.tick_0_speed.setStyleSheet("color: black")
+            self.tick_120.setStyleSheet("color: black")
+            self.tick_240.setStyleSheet("color: black")
+            self.label_speed.setStyleSheet("color: black")
+
+            self.tick_0_batt.setStyleSheet("color: black")
+            self.tick_50.setStyleSheet("color: black")
+            self.tick_100.setStyleSheet("color: black")
+            self.label_battery.setStyleSheet("color: black")
 
     def btn_clicked_security(self):
         self.custom_signal.emit("security")
 
     def btn_clicked_write(self):
         self.custom_signal.emit("write")
-
-
 
     # def btn_clicked5(self):
     #     print("2E - ECU date")

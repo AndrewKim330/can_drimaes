@@ -45,8 +45,8 @@ class TxOnlyWorker(QThread):
         flowControl = False
         temp = []
         while self._isRunning:
-            if self.parent.bus:
-                a = str(self.parent.bus.recv()).split()
+            if self.parent.c_can_bus:
+                a = str(self.parent.c_can_bus.recv()).split()
                 # print(a)
                 self.sig2.emit(a)
             else:
@@ -70,8 +70,8 @@ class Hvac(NodeThread):
 
     def run(self):
         while self._isRunning:
-            if self.parent.bus:
-                a = str(self.parent.bus.recv()).split()
+            if self.parent.c_can_bus:
+                a = str(self.parent.c_can_bus.recv()).split()
                 if a[3] == "18ffd741":  # 100ms
                     self.sig = a[9]
                     self.thread_func()
@@ -82,7 +82,7 @@ class Hvac(NodeThread):
     def thread_func(self):
         self.data[0] = int(self.sig, 16)
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
-        self.parent.bus.send(message)
+        self.parent.c_can_bus.send(message)
 
 
 class Swrc(NodeThread):
@@ -127,8 +127,8 @@ class Swrc(NodeThread):
                 self.data[0] = 0x04
                 self.data[1] = 0x80
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-        if self.parent.bus:
-            self.parent.bus.send(message)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
         else:
             print("no good swrc")
             self._isRunning = False
@@ -150,8 +150,8 @@ class PowerTrain(NodeThread):
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
-        if self.parent.bus:
-            self.parent.bus.send(message)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
         else:
             print("no good powertrain")
             self._isRunning = False
@@ -175,8 +175,8 @@ class BCMState(NodeThread):
         elif self.parent.btn_bright_night.isChecked():
             self.data[2] = 0xFF
         message = can.Message(arbitration_id=0x18ff8621, data=self.data)
-        if self.parent.bus:
-            self.parent.bus.send(message)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
         else:
             print("no good bcmstate")
             self._isRunning = False
@@ -184,7 +184,7 @@ class BCMState(NodeThread):
 
 class BCMMMI(NodeThread):
     def thread_func(self):
-        a = str(self.parent.bus.recv()).split()
+        a = str(self.parent.c_can_bus.recv()).split()
         if a[3] == "18ffd741":  # 100ms
             print(a)
 
@@ -194,19 +194,19 @@ class BCMMMI(NodeThread):
         if sidemirror == "01":
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
+            self.parent.c_can_bus.send(message)
 
     def side_mirror_heat(self, sig):
         if sig == "fd":
             print("1")
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
+            self.parent.c_can_bus.send(message)
         elif sig == "fc":
             print("2")
             message = can.Message(arbitration_id=0x0cf02fa0,
                                   data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
+            self.parent.c_can_bus.send(message)
 
 
 class TachoSpeed(NodeThread):
@@ -219,8 +219,8 @@ class TachoSpeed(NodeThread):
         self.data[6] = int(self.value[2:4], 16)
         self.data[7] = int(self.value[0:2], 16)
         message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
-        if self.parent.bus:
-            self.parent.bus.send(message)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
         else:
             print("no good tachospeed")
             self._isRunning = False
@@ -240,21 +240,64 @@ class TirePressure(NodeThread):
             elif btn_text == "btn_tpms_fail":
                 self.data[7] = 0xEF
         message = can.Message(arbitration_id=0x18f0120B, data=self.data)
-        if self.parent.bus:
-            self.parent.bus.send(message)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
         else:
             print("no good tirepressure")
             self._isRunning = False
 
 
+class AEB(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.050
+        self.value = None
+
+    def thread_func(self):
+        print(self.value)
+        if self.value == "fd":
+            self.data[0] = 0xF1
+        elif self.value == "fc":
+            self.data[0] = 0xF2
+        message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
+        else:
+            print("no good AEB")
+            self._isRunning = False
+
+
 class BatteryManage(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.050
+        self.value = '7D'
+
     def thread_func(self):
         self.data[2] = 0x00
         self.data[3] = 0x7D
-        self.data[4] = 0x7D
+        self.data[4] = int(self.value, 16)
         self.data[5] = 0x7D
         message = can.Message(arbitration_id=0x18fa40f4, data=self.data)
-        self.parent.bus2.send(message)
+        if self.parent.p_can_bus:
+            self.parent.p_can_bus.send(message)
+        else:
+            print("no good battery")
+            self._isRunning = False
+
+
+class ChargingState(NodeThread):
+    def thread_func(self):
+        self.data[0] = 0x0F
+        self.data[1] = 0xFC
+        if self.parent.chkbox_charge.isChecked():
+            self.data[0] = 0x1F
+        message = can.Message(arbitration_id=0x18fa3ef4, data=self.data)
+        if self.parent.p_can_bus:
+            self.parent.p_can_bus.send(message)
+        else:
+            print("no good charge")
+            self._isRunning = False
 
 
 class ThreadWorker(NodeThread):
@@ -268,10 +311,11 @@ class ThreadWorker(NodeThread):
             self.thread_func()
 
     def thread_func(self):
+        a = str(self.parent.c_can_bus.recv()).split()
         # print("aaa")
-        # a1 = str(self.parent.bus.recv()).split()
+        # a1 = str(self.parent.c_can_bus.recv()).split()
         # print("bbb", a1)
-        # a2 = str(self.parent.bus2.recv()).split()
+        # a2 = str(self.parent.p_can_bus.recv()).split()
         # print("ccc", a2)
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
@@ -286,7 +330,9 @@ class ThreadWorker(NodeThread):
         else:
             self.parent.btn_ota_cond.setText("Set OTA Condition")
 
-        a = str(self.parent.bus.recv()).split()
+        if a[3] == "0c0ba021":
+            self.parent.aeb_worker.value = a[8]
+
 
         # self.diagnosis()
         # print(a[3])
@@ -298,17 +344,20 @@ class ThreadWorker(NodeThread):
         speed = f'Speed : {value} km/h'
         if self._isRunning:
             self.parent.label_speed.setText(speed)
-        self.parent.speed_worker.value = hex(value * 256)[2:].zfill(4)
+            self.parent.speed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
 
-    def aeb(self, sig):
-        if sig == "fd":
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
-        elif sig == "fc":
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.bus.send(message)
+    def slider_battery_func(self, value):
+        if self._isRunning:
+            if value % 2 == 1 and value != 0:
+                new_value = value + 1
+            else:
+                new_value = value
+            battery = f'Battery : {new_value} %'
+            self.parent.slider_battery.setValue(new_value)
+            self.parent.label_battery.setText(battery)
+            self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
+
+
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.bbb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
@@ -335,7 +384,7 @@ class ThreadWorker(NodeThread):
     #         elif btn_text == "btn_sess_ext":
     #             message = can.Message(arbitration_id=0x18da41f1,
     #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         self.parent.bus.send(message)
+    #         self.parent.c_can_bus1.send(message)
         # try:
         #     btn_text = self.sender().objectName()
         #     if len(btn_text) > 0:
@@ -351,7 +400,7 @@ class ThreadWorker(NodeThread):
         #         elif btn_text == "nrc_sess_13":
         #             message = can.Message(arbitration_id=0x18da41f1,
         #                                   data=[0x03, 0x10, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         self.parent.bus.send(message)
+        #         self.parent.c_can_bus.send(message)
         #     time.sleep(0.5)
         #     if l:
         #         data_str = str([l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15]])
@@ -396,7 +445,7 @@ class ThreadWorker(NodeThread):
     #         # while True:
     #         #     print(good1)
     #             # message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, good1, 0xFF, 0xFF, 0xFF])
-    #             # self.parent.bus.send_periodic(message, 0.1)
+    #             # self.parent.c_can_bus.send_periodic(message, 0.1)
     #             # print(task)
     #             # time.sleep(0.1)
     #         # time.sleep(0.1)
@@ -407,11 +456,11 @@ class ThreadWorker(NodeThread):
     #     #     res = []
     #     #     print("10 03 service")
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     self.parent.bus.send(message)
+    #     #     self.parent.c_can_bus.send(message)
     #     #     time.sleep(1)
     #     #     print("27 01 service")
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     self.parent.bus.send(message)
+    #     #     self.parent.c_can_bus.send(message)
     #     #     time.sleep(1)
     #     #     print(self.abc)
     #     #     new = []
@@ -424,17 +473,17 @@ class ThreadWorker(NodeThread):
     #     #     res.append(((cal_data[0] & 0x0f) << 4) | (cal_data[2] & 0x0f))
     #     #     time.sleep(1)
     #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
-    #     #     self.parent.bus.send(message)
+    #     #     self.parent.c_can_bus.send(message)
     #     #     time.sleep(5)
     #     #     if good1 == "write":
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x10, 0x0B, 0x2E, 0xF1, 0x12, 0x41, 0x42, 0x43])
-    #     #         self.parent.bus.send(message)
+    #     #         self.parent.c_can_bus.send(message)
     #     #         time.sleep(0.5)
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x21, 0x44, 0x45, 0x46, 0x47, 0x48, 0xFF, 0xFF])
-    #     #         self.parent.bus.send(message)
+    #     #         self.parent.c_can_bus.send(message)
     #     #         time.sleep(0.5)
     #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x22, 0xF1, 0x12, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #         self.parent.bus.send(message)
+    #     #         self.parent.c_can_bus.send(message)
 
             # print(b, now - start)
             # if now - start == 0.010:
@@ -444,7 +493,7 @@ class ThreadWorker(NodeThread):
 
     #     while True:
     #         start = time.time()
-    #         a = str(self.parent.bus.recv()).split()
+    #         a = str(self.parent.c_can_bus.recv()).split()
     #         if self.parent.acc_off.isChecked():
     #             power_sig = 0xF8
     #         elif self.parent.acc.isChecked():
@@ -454,7 +503,7 @@ class ThreadWorker(NodeThread):
     #         elif self.parent.start.isChecked():
     #             power_sig = 0xFC
     #         message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-    #         self.parent.bus.send(message)
+    #         self.parent.c_can_bus.send(message)
     #         # time.sleep(0.001)
     #         self.sig1.emit(a)
     #         # # print(a)
@@ -477,7 +526,7 @@ class ThreadWorker(NodeThread):
     #             if a[8] == '10':
     #                 temp.append(a)
     #                 message = can.Message(arbitration_id=0x18da41f1, data=[0x30, 0x00, 0x00, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
-    #                 self.parent.bus.send(message)
+    #                 self.parent.c_can_bus.send(message)
     #                 print("flow control")
     #                 flowControl = True
     #         if len(temp) == 10:

@@ -18,13 +18,15 @@ def print_hi(name):
     # # print(a)
     # # print(hex(int(b, 2)))
     #
-    # value = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "1", "2", "3", "4"]
-    # list = [hex(ord(ch)) for ch in value]
-    # print(list)
-
-    network = canopen.Network()
-
-    network.connect(ustype='pcan', channel='PCAN_USBBUS1', bitrate=500000)
+    value1 = [0x49, 0x56, 0x49, 0x30, 0x58, 0x30]
+    list1 = [chr(asc) for asc in value1]
+    value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
+    list2 = [hex(ord(ch)) for ch in value2]
+    print(list2)
+    #
+    # network = canopen.Network()
+    #
+    # network.connect(ustype='pcan', channel='PCAN_USBBUS1', bitrate=500000)
 
 
 
