@@ -5,9 +5,9 @@
 # import canopen
 
 # ****need to fix to the bit length
-def example(hex_val, pos, val):
+def example(hex_val, pos, bit_len, val):
     a = bin(hex_val)[2:].zfill(8)
-    val_bin = bin(val)[2:]
+    val_bin = bin(val)[2:].zfill(bit_len)
     if pos > 0:
         temp = a[pos - 1] + val_bin + a[pos + len(val_bin):]
     else:
@@ -36,8 +36,10 @@ def print_hi(name):
     # temp = a[0]+'1'+a[2:]
     # a[0] = '1'
     # print(temp)
-    a = example(0x01, 0, 2)
+    a = example(0x01, 0, 2, 1)
     print(a)
+    b = example(int(a, 16), 2, 2, 2)
+    print(b, type(b))
 
     # tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
     # print(list2)

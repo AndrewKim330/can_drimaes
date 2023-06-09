@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1158</width>
-    <height>930</height>
+    <width>1176</width>
+    <height>1041</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>20</x>
       <y>20</y>
       <width>921</width>
-      <height>721</height>
+      <height>811</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -328,7 +328,7 @@
        <rect>
         <x>250</x>
         <y>130</y>
-        <width>171</width>
+        <width>181</width>
         <height>141</height>
        </rect>
       </property>
@@ -448,7 +448,7 @@
        <rect>
         <x>460</x>
         <y>30</y>
-        <width>401</width>
+        <width>421</width>
         <height>401</height>
        </rect>
       </property>
@@ -458,7 +458,7 @@
       <widget class="QPushButton" name="btn_vol_down">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>160</x>
          <y>260</y>
          <width>101</width>
          <height>51</height>
@@ -471,7 +471,7 @@
       <widget class="QPushButton" name="btn_vol_down_long">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>160</x>
          <y>320</y>
          <width>101</width>
          <height>51</height>
@@ -485,7 +485,7 @@
       <widget class="QPushButton" name="btn_vol_up_long">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>160</x>
          <y>80</y>
          <width>101</width>
          <height>51</height>
@@ -499,7 +499,7 @@
       <widget class="QPushButton" name="btn_vol_up">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>160</x>
          <y>20</y>
          <width>101</width>
          <height>51</height>
@@ -518,7 +518,7 @@
       <widget class="QPushButton" name="btn_ok">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>160</x>
          <y>170</y>
          <width>101</width>
          <height>51</height>
@@ -531,7 +531,7 @@
       <widget class="QPushButton" name="btn_left_long">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>40</x>
          <y>200</y>
          <width>101</width>
          <height>51</height>
@@ -548,7 +548,7 @@
       <widget class="QPushButton" name="btn_left">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>40</x>
          <y>140</y>
          <width>101</width>
          <height>51</height>
@@ -567,7 +567,7 @@
       <widget class="QPushButton" name="btn_right">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>280</x>
          <y>140</y>
          <width>101</width>
          <height>51</height>
@@ -580,7 +580,7 @@
       <widget class="QPushButton" name="btn_right_long">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>280</x>
          <y>200</y>
          <width>101</width>
          <height>51</height>
@@ -594,7 +594,7 @@
       <widget class="QPushButton" name="btn_undo">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>40</x>
          <y>50</y>
          <width>101</width>
          <height>51</height>
@@ -607,7 +607,7 @@
       <widget class="QPushButton" name="btn_mute">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>280</x>
          <y>50</y>
          <width>101</width>
          <height>51</height>
@@ -620,7 +620,7 @@
       <widget class="QPushButton" name="btn_mode">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>40</x>
          <y>260</y>
          <width>101</width>
          <height>51</height>
@@ -633,7 +633,7 @@
       <widget class="QPushButton" name="btn_call_long">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>280</x>
          <y>320</y>
          <width>101</width>
          <height>51</height>
@@ -647,7 +647,7 @@
       <widget class="QPushButton" name="btn_call">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>280</x>
          <y>260</y>
          <width>101</width>
          <height>51</height>
@@ -660,7 +660,7 @@
       <widget class="QPushButton" name="btn_reset">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>40</x>
          <y>320</y>
          <width>101</width>
          <height>51</height>
@@ -788,7 +788,7 @@
        <rect>
         <x>30</x>
         <y>450</y>
-        <width>321</width>
+        <width>331</width>
         <height>131</height>
        </rect>
       </property>
@@ -811,7 +811,7 @@
       <widget class="QLabel" name="label_battery">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>170</x>
          <y>90</y>
          <width>141</width>
          <height>20</height>
@@ -829,7 +829,7 @@
         <rect>
          <x>30</x>
          <y>30</y>
-         <width>261</width>
+         <width>271</width>
          <height>20</height>
         </rect>
        </property>
@@ -874,7 +874,7 @@
       <widget class="QLabel" name="tick_50">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>157</x>
          <y>55</y>
          <width>21</width>
          <height>16</height>
@@ -890,7 +890,7 @@
       <widget class="QLabel" name="tick_100">
        <property name="geometry">
         <rect>
-         <x>270</x>
+         <x>278</x>
          <y>55</y>
          <width>31</width>
          <height>16</height>
@@ -909,7 +909,7 @@
        <rect>
         <x>250</x>
         <y>30</y>
-        <width>171</width>
+        <width>181</width>
         <height>81</height>
        </rect>
       </property>
@@ -930,52 +930,13 @@
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="mscs_group">
-      <property name="geometry">
-       <rect>
-        <x>510</x>
-        <y>570</y>
-        <width>351</width>
-        <height>111</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>MSCS</string>
-      </property>
-      <widget class="QCheckBox" name="chkbox_drv_invalid">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>40</y>
-         <width>231</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Drv_Seatbelt_Invalid</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="chkbox_pass_invalid">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>70</y>
-         <width>231</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Pass_Seatbelt_Invalid</string>
-       </property>
-      </widget>
-     </widget>
      <widget class="QGroupBox" name="ota_group">
       <property name="geometry">
        <rect>
-        <x>510</x>
-        <y>450</y>
-        <width>351</width>
-        <height>101</height>
+        <x>630</x>
+        <y>620</y>
+        <width>251</width>
+        <height>131</height>
        </rect>
       </property>
       <property name="title">
@@ -984,8 +945,8 @@
       <widget class="QCheckBox" name="chkbox_h_brake">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>40</y>
+         <x>50</x>
+         <y>90</y>
          <width>141</width>
          <height>21</height>
         </rect>
@@ -997,7 +958,7 @@
       <widget class="QPushButton" name="btn_ota_cond">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>40</x>
          <y>30</y>
          <width>171</width>
          <height>41</height>
@@ -1013,8 +974,8 @@
        <rect>
         <x>30</x>
         <y>590</y>
-        <width>321</width>
-        <height>91</height>
+        <width>161</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -1024,7 +985,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>30</y>
+         <y>40</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1036,8 +997,8 @@
       <widget class="QPushButton" name="btn_tpms_fail">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>30</y>
+         <x>20</x>
+         <y>100</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1050,10 +1011,10 @@
      <widget class="QGroupBox" name="brightness_group">
       <property name="geometry">
        <rect>
-        <x>360</x>
-        <y>450</y>
-        <width>141</width>
-        <height>231</height>
+        <x>210</x>
+        <y>590</y>
+        <width>151</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -1063,7 +1024,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>70</y>
+         <y>50</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1076,13 +1037,169 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>150</y>
+         <y>100</y>
          <width>81</width>
          <height>20</height>
         </rect>
        </property>
        <property name="text">
         <string>Night</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="mscs_StWhl_diag_group">
+      <property name="geometry">
+       <rect>
+        <x>390</x>
+        <y>450</y>
+        <width>211</width>
+        <height>301</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>MSCS_StrWhl_Diag</string>
+      </property>
+      <widget class="QRadioButton" name="btn_mscs_NotEdgePress">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>100</y>
+         <width>181</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>NotEdgePress</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_EdgeSho">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>130</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>EdgeSho</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_SnsrFltT">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>160</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SnsrFltT</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_FltPwrSplyErr">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>190</y>
+         <width>191</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>FltPwrSplyErr</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_FltSwtHiSide">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>220</y>
+         <width>191</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>FltSwtHiSide</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_SigFailr">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>250</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SigFailr</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_CmnFail">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>70</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CmnFail</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="btn_mscs_ok">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>40</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>OK</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="mscs_seatbelt_group">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>450</y>
+        <width>251</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>MSCS_Seatbelt</string>
+      </property>
+      <widget class="QCheckBox" name="chkbox_drv_invalid">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>50</y>
+         <width>231</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Drv_Seatbelt_Invalid</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkbox_pass_invalid">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>90</y>
+         <width>231</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Pass_Seatbelt_Invalid</string>
        </property>
       </widget>
      </widget>
@@ -1927,7 +2044,7 @@ Session - S/W Reset</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>750</y>
+      <y>850</y>
       <width>1121</width>
       <height>141</height>
      </rect>
@@ -1988,7 +2105,7 @@ Session - S/W Reset</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1158</width>
+     <width>1176</width>
      <height>18</height>
     </rect>
    </property>

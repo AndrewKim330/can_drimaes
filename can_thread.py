@@ -12,15 +12,14 @@ import threading
 import images_rc
 
 
-def sig_generator(hex_val, pos, val):
-    a = bin(hex_val)[2:].zfill(8)
-    val_bin = bin(val)[2:]
+def sig_generator(hex_val, pos, bit_len, val):
+    tt = bin(hex_val)[2:].zfill(8)
+    val_bin = bin(val)[2:].zfill(bit_len)
     if pos > 0:
-        temp = a[pos - 1] + val_bin + a[pos + len(val_bin):]
+        temp = tt[pos - 1] + val_bin + tt[pos + len(val_bin):]
     else:
-        temp = val_bin + a[pos + len(val_bin):]
-    return hex(int(temp, 2))
-
+        temp = val_bin + tt[pos + len(val_bin):]
+    return int(temp, 2)
 
 class NodeThread(QThread):
     def __init__(self, parent):
@@ -193,19 +192,15 @@ class BCMState(NodeThread):
 
 
 class BCMMMI(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.bb = 0x01
-        self.side_off = None
-        self.side_defrost = None
-
     def thread_func(self):
+        self.data[3] = 0x01
         a = str(self.parent.c_can_bus.recv()).split()
         if a[3] == "18ffd741":
             if a[10] == 'f4':
-                self.bb = sig_generator(self.bb, 0, 2)
+                # print("aaa")
+                self.data[3] = sig_generator(self.data[3], 0, 2, 1)
             elif a[10] == 'f8':
-                self.bb = sig_generator(self.bb, 0, 1)
+                self.data[3] = sig_generator(self.data[3], 0, 2, 2)
         if a[3] == "18ffd841":
             if a[11] == "c7":
                 self.data[1] = 0xE3
@@ -217,28 +212,34 @@ class BCMMMI(NodeThread):
                 self.data[1] = 0xEF
 
             if a[15] == "7f":
-                self.bb = sig_generator(self.bb, 2, 1)
+                self.data[3] = sig_generator(self.data[3], 2, 2, 1)
             elif a[15] == "bf":
-                self.bb = sig_generator(self.bb, 2, 2)
+                self.data[3] = sig_generator(self.data[3], 2, 2, 2)
 
-        # if self.side_off:
-        #     if self.side_defrost:
-        #         self.data[3] = 0x61
-        #     else:
-        #         self.data[3] = 0x51
-        # else:
-        #     if self.side_defrost:
-        #         self.data[3] = 0xA1
-        #     else:
-        #         self.data[3] = 0x91
-        # message = can.Message(arbitration_id=0x18ffd521, data=self.data)
-        # if self.parent.c_can_bus:
-        #     self.parent.c_can_bus.send(message)
-        # else:
-        #     print("no good bcm mmi")
-        #     self._isRunning = False
+        if self.parent.btn_mscs_ok.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 0)
+        elif self.parent.btn_mscs_CmnFail.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 1)
+        elif self.parent.btn_mscs_NotEdgePress.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 2)
+        elif self.parent.btn_mscs_EdgeSho.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 3)
+        elif self.parent.btn_mscs_SnsrFltT.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 4)
+        elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 5)
+        elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 6)
+        elif self.parent.btn_mscs_SigFailr.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 7)
 
+        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
 
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
+        else:
+            print("no good bcm mmi")
+            self._isRunning = False
 
 
 class TachoSpeed(NodeThread):
@@ -334,7 +335,6 @@ class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.sidemirror = 0x01
 
     def run(self):
         while self._isRunning:
@@ -389,14 +389,14 @@ class ThreadWorker(NodeThread):
 
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
-        # self.bbb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
+        # self.sig_side_mirrorb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # pixmap.save("aaa.jpg")
         # pixmap2 = QPixmap()
         # pixmap2.load('./OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # print(pixmap)
         # self.parent.test_label.setPixmap(pixmap)
         # self.parent.test_label.setPixmap(pixmap2)
-        # self.parent.test_label.setPixmap(self.bbb)
+        # self.parent.test_label.setPixmap(self.sig_side_mirrorb)
         # self.parent.test_label.setText("Aaaaa")
 
     # def diagnosis(self):

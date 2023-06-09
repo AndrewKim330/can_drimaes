@@ -68,6 +68,7 @@ class Main(QMainWindow, form_class):
 
         self.btn_reset.clicked.connect(self.swrc_worker.thread_func)
 
+
         # self.nrc_sess_12.clicked.connect(self.session_cont)
         # self.nrc_sess_13.clicked.connect(self.session_cont)
 
@@ -94,6 +95,17 @@ class Main(QMainWindow, form_class):
         self.aeb_worker = worker.AEB(parent=self)
 
         self.bcm_mmi_worker = worker.BCMMMI(parent=self)
+
+        self.btn_mscs_ok.setChecked(True)
+
+        self.btn_mscs_ok.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_CmnFail.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_NotEdgePress.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_EdgeSho.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_SnsrFltT.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_FltPwrSplyErr.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
 
         self.battery_worker = worker.BatteryManage(parent=self)
         self.charge_worker = worker.ChargingState(parent=self)
@@ -286,6 +298,15 @@ class Main(QMainWindow, form_class):
 
         self.btn_bright_afternoon.setEnabled(flag)
         self.btn_bright_night.setEnabled(flag)
+
+        self.btn_mscs_ok.setEnabled(flag)
+        self.btn_mscs_CmnFail.setEnabled(flag)
+        self.btn_mscs_NotEdgePress.setEnabled(flag)
+        self.btn_mscs_EdgeSho.setEnabled(flag)
+        self.btn_mscs_SnsrFltT.setEnabled(flag)
+        self.btn_mscs_FltPwrSplyErr.setEnabled(flag)
+        self.btn_mscs_FltSwtHiSide.setEnabled(flag)
+        self.btn_mscs_SigFailr.setEnabled(flag)
 
         self.slider_battery.setEnabled(flag)
         self.chkbox_charge.setEnabled(flag)
