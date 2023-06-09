@@ -183,13 +183,19 @@ class BCMState(NodeThread):
 
 
 class BCMMMI(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.side_off = None
+        self.side_defrost = None
+
     def thread_func(self):
         a = str(self.parent.c_can_bus.recv()).split()
         if a[3] == "18ffd741":
-            # print(a)
-            pass
+            if a[10] == 'f4':
+                self.side_off = True
+            elif a[10] == 'f8':
+                self.side_off = False
         if a[3] == "18ffd841":
-            print(a[11], a[15])
             if a[11] == "c7":
                 self.data[1] = 0xE3
             elif a[11] == "cf":
@@ -198,34 +204,32 @@ class BCMMMI(NodeThread):
                 self.data[1] = 0xEB
             elif a[11] == "df":
                 self.data[1] = 0xEF
-        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good bcm mmi")
-            self._isRunning = False
 
-            # if a[15] == "":
+            if a[15] == "7f":
+                self.side_defrost = False
+            elif a[15] == "bf":
+                self.side_defrost = True
 
-    def side_mirror(self, sig):
         tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
-        sidemirror = tpms_and_sidemirror_mani_bin[4:6]
-        if sidemirror == "01":
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.c_can_bus.send(message)
 
-    def side_mirror_heat(self, sig):
-        if sig == "fd":
-            print("1")
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.c_can_bus.send(message)
-        elif sig == "fc":
-            print("2")
-            message = can.Message(arbitration_id=0x0cf02fa0,
-                                  data=[0xF2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-            self.parent.c_can_bus.send(message)
+        # if self.side_off:
+        #     if self.side_defrost:
+        #         self.data[3] = 0x61
+        #     else:
+        #         self.data[3] = 0x51
+        # else:
+        #     if self.side_defrost:
+        #         self.data[3] = 0xA1
+        #     else:
+        #         self.data[3] = 0x91
+        # message = can.Message(arbitration_id=0x18ffd521, data=self.data)
+        # if self.parent.c_can_bus:
+        #     self.parent.c_can_bus.send(message)
+        # else:
+        #     print("no good bcm mmi")
+        #     self._isRunning = False
+
+
 
 
 class TachoSpeed(NodeThread):
