@@ -299,6 +299,32 @@ class AEB(NodeThread):
             self._isRunning = False
 
 
+class ACU(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.200
+
+    def thread_func(self):
+        message = can.Message(arbitration_id=0x18fac490, data=self.data)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
+        else:
+            print("no good ACU")
+            self._isRunning = False
+
+    def drv_invalid(self):
+        if self.parent.chkbox_drv_invalid.isChecked():
+            self.data[1] = sig_generator(self.data[1], 7, 1, 1)
+        else:
+            self.data[1] = sig_generator(self.data[1], 7, 1, 0)
+
+    def pass_invalid(self):
+        if self.parent.chkbox_pass_invalid.isChecked():
+            self.data[1] = sig_generator(self.data[1], 6, 1, 1)
+        else:
+            self.data[1] = sig_generator(self.data[1], 6, 1, 0)
+
+
 class BatteryManage(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1176</width>
-    <height>1041</height>
+    <width>1178</width>
+    <height>1048</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1188,6 +1188,9 @@
        <property name="text">
         <string>Drv_Seatbelt_Invalid</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QCheckBox" name="chkbox_pass_invalid">
        <property name="geometry">
@@ -1200,6 +1203,9 @@
        </property>
        <property name="text">
         <string>Pass_Seatbelt_Invalid</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </widget>
@@ -2105,7 +2111,7 @@ Session - S/W Reset</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1176</width>
+     <width>1178</width>
      <height>18</height>
     </rect>
    </property>

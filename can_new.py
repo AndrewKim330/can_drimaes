@@ -107,6 +107,11 @@ class Main(QMainWindow, form_class):
         self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
 
+        self.acu_worker = worker.ACU(parent=self)
+
+        self.chkbox_drv_invalid.stateChanged.connect(self.acu_worker.drv_invalid)
+        self.chkbox_pass_invalid.stateChanged.connect(self.acu_worker.pass_invalid)
+
         self.battery_worker = worker.BatteryManage(parent=self)
         self.charge_worker = worker.ChargingState(parent=self)
 
@@ -176,10 +181,12 @@ class Main(QMainWindow, form_class):
             self.bcm_state_worker.start()
             self.speed_worker.start()
             self.tire_worker.start()
-            self.battery_worker.start()
-            self.charge_worker.start()
             self.aeb_worker.start()
             self.bcm_mmi_worker.start()
+            self.acu_worker.start()
+
+            self.battery_worker.start()
+            self.charge_worker.start()
 
             self.thread_worker._isRunning = True
             self.tx_worker._isRunning = True
@@ -189,10 +196,12 @@ class Main(QMainWindow, form_class):
             self.bcm_state_worker._isRunning = True
             self.speed_worker._isRunning = True
             self.tire_worker._isRunning = True
-            self.battery_worker._isRunning = True
-            self.charge_worker._isRunning = True
             self.aeb_worker._isRunning = True
             self.bcm_mmi_worker._isRunning = True
+            self.acu_worker._isRunning = True
+
+            self.battery_worker._isRunning = True
+            self.charge_worker._isRunning = True
 
             self.set_entire_basic_btns_enable(True)
 
@@ -208,10 +217,11 @@ class Main(QMainWindow, form_class):
         self.bcm_state_worker.stop()
         self.speed_worker.stop()
         self.tire_worker.stop()
-        self.battery_worker.stop()
-        self.charge_worker.stop()
         self.aeb_worker.stop()
         self.bcm_mmi_worker.stop()
+        self.acu_worker.stop()
+        self.battery_worker.stop()
+        self.charge_worker.stop()
 
         self.thread_worker.quit()
         self.tx_worker.quit()
@@ -221,10 +231,11 @@ class Main(QMainWindow, form_class):
         self.bcm_state_worker.quit()
         self.speed_worker.quit()
         self.tire_worker.quit()
-        self.battery_worker.quit()
-        self.charge_worker.quit()
         self.aeb_worker.quit()
         self.bcm_mmi_worker.quit()
+        self.acu_worker.quit()
+        self.battery_worker.quit()
+        self.charge_worker.quit()
 
         self.set_entire_basic_btns_enable(False)
 
