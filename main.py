@@ -2,7 +2,18 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-import canopen
+# import canopen
+
+# ****need to fix to the bit length
+def example(hex_val, pos, val):
+    a = bin(hex_val)[2:].zfill(8)
+    val_bin = bin(val)[2:]
+    if pos > 0:
+        temp = a[pos - 1] + val_bin + a[pos + len(val_bin):]
+    else:
+        temp = val_bin + a[pos + len(val_bin):]
+    print(int(temp, 2))
+    return hex(int(temp, 2))
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -22,7 +33,14 @@ def print_hi(name):
     list1 = [chr(asc) for asc in value1]
     value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
     list2 = [hex(ord(ch)) for ch in value2]
-    print(list2)
+    # temp = a[0]+'1'+a[2:]
+    # a[0] = '1'
+    # print(temp)
+    a = example(0x01, 0, 2)
+    print(a)
+
+    # tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
+    # print(list2)
     #
     # network = canopen.Network()
     #
