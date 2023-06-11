@@ -51,13 +51,12 @@ class TxOnlyWorker(QThread):
         self._isRunning = True
 
     def run(self):
-        flowControl = False
-        temp = []
         while self._isRunning:
             if self.parent.c_can_bus:
                 a = str(self.parent.c_can_bus.recv()).split()
-                # print(a)
-                self.sig2.emit(a)
+                # print(self.parent.c_can_bus.recv())
+                self.parent.mmi_console.appendPlainText(str(self.parent.c_can_bus.recv()))
+                # self.sig2.emit(a)
             else:
                 print("no good")
                 self._isRunning = False
@@ -395,6 +394,9 @@ class ThreadWorker(NodeThread):
         #     self.seat_hvac(a[9])
         #     self.side_mirror(a[10])
 
+        if a[3] == "18daf141":
+            self.parent.diag_console.appendPlainText(a[8])
+
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
         if self._isRunning:
@@ -412,6 +414,12 @@ class ThreadWorker(NodeThread):
             self.parent.label_battery.setText(battery)
             self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
+
+    def diag_func(self):
+        if self.parent.btn_sess_default.isChecked():
+            print("aaa")
+
+        message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
 
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')

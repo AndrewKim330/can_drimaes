@@ -68,19 +68,6 @@ class Main(QMainWindow, form_class):
 
         self.btn_reset.clicked.connect(self.swrc_worker.thread_func)
 
-
-        # self.nrc_sess_12.clicked.connect(self.session_cont)
-        # self.nrc_sess_13.clicked.connect(self.session_cont)
-
-        # self.hw_reset.clicked.connect(self.reset_cont)
-        # self.sw_reset.clicked.connect(self.reset_cont)
-        # self.nrc_reset_12.clicked.connect(self.reset_cont)
-        # self.nrc_reset_13.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
-
-        # self.clear_console.clicked.connect(self.diag_text_clear)
-
         self.speed_worker = worker.TachoSpeed(parent=self)
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
@@ -119,16 +106,26 @@ class Main(QMainWindow, form_class):
 
         self.tx_worker = worker.TxOnlyWorker(parent=self)
 
-        self.tx_worker.sig2.connect(self.sig2)
-        # self.custom_signal.connect(self.tx_worker.good2)
+        # self.tx_worker.sig2.connect(self.sig2)
 
-        # self.thread_worker.sig1.connect(self.sig1)
-        # self.custom_signal.connect(self.thread_worker.)
+        self.btn_sess_default.clicked.connect(self.thread_worker.diag_func)
+        # self.nrc_sess_13.clicked.connect(self.thread_worker.diag_func)
+
+        # self.hw_reset.clicked.connect(self.reset_cont)
+        # self.sw_reset.clicked.connect(self.reset_cont)
+        # self.nrc_reset_12.clicked.connect(self.reset_cont)
+        # self.nrc_reset_13.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
+        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
+
+        # self.clear_console.clicked.connect(self.diag_text_clear)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
+
+        self.btn_mmi_console_clear.clicked.connect(self.mmi_text_clear)
 
         self.set_entire_basic_btns_enable(False)
 
@@ -239,17 +236,6 @@ class Main(QMainWindow, form_class):
 
         self.set_entire_basic_btns_enable(False)
 
-
-    # def btn_clicked_dtc_num(self):
-    #     print("19 01 service")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
-    #
-    # def btn_clicked_dtc_list(self):
-    #     print("19 02 service")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
-
     def set_drv_state(self):
         if self.btn_drv_state.text() == 'On Driving State':
             self.btn_gear_n.setChecked(True)
@@ -352,11 +338,15 @@ class Main(QMainWindow, form_class):
             self.tick_100.setStyleSheet("color: black")
             self.label_battery.setStyleSheet("color: black")
 
-    def btn_clicked_security(self):
-        self.custom_signal.emit("security")
-
-    def btn_clicked_write(self):
-        self.custom_signal.emit("write")
+    # def btn_clicked_dtc_num(self):
+    #     print("19 01 service")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
+    #
+    # def btn_clicked_dtc_list(self):
+    #     print("19 02 service")
+    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
+    #     bus1.send(message)
 
     # def btn_clicked5(self):
     #     print("2E - ECU date")
@@ -394,57 +384,6 @@ class Main(QMainWindow, form_class):
         # if li[3] == '18ff8621':
             # print("good", li)
             # self.mmi_console.appendPlainText(str(li))
-
-    @pyqtSlot(list)
-    def sig2(self, li):
-        self.mmi_console.appendPlainText(str(li))
-        if li[3] == '18ffd741':
-            seat_hvac_bin = bin(int(li[9], 16))[2:].zfill(8)
-            drv_heat = seat_hvac_bin[6:8]
-            self.txt_res_drv_heat.setText(str(int(drv_heat, 2)))
-            pass_heat = seat_hvac_bin[4:6]
-            self.txt_res_pass_heat.setText(str(int(pass_heat, 2)))
-            drv_vent = seat_hvac_bin[2:4]
-            self.txt_res_drv_vent.setText(str(int(drv_vent, 2)))
-            pass_vent = seat_hvac_bin[0:2]
-            self.txt_res_pass_vent.setText(str(int(pass_vent, 2)))
-
-            st_whl_heat_bin = bin(int(li[8], 16))[2:].zfill(8)
-            st_whl_heat = st_whl_heat_bin[6:8]
-            self.txt_res_st_whl_heat.setText(str(int(st_whl_heat, 2)))
-
-            tpms_and_sidemirror_mani_bin = bin(int(li[10], 16))[2:].zfill(8)
-            sidemirror = tpms_and_sidemirror_mani_bin[4:6]
-            self.txt_res_side_mani.setText(str(int(sidemirror, 2)))
-
-        if li[3] == '0c0ba021':
-            aeb_bin = bin(int(li[8], 16))[2:].zfill(8)
-            aeb = aeb_bin[6:8]
-            self.txt_res_aeb.setText(str(int(aeb, 2)))
-
-        if li[3] == '18ffd841':
-            sidemirror_heat_bin = bin(int(li[15], 16))[2:].zfill(8)
-            sidemirror_heat = sidemirror_heat_bin[0:2]
-            self.txt_res_side_heat.setText(str(int(sidemirror_heat, 2)))
-
-            home_safety_light_bin = bin(int(li[11], 16))[2:].zfill(8)
-            home_safety_light = home_safety_light_bin[3:5]
-            self.txt_res_light.setText(str(int(home_safety_light, 2)))
-
-        # self.mmi_console.appendPlainText(str(li))
-        # self.mmi_hvac.appendPlainText(li[5])
-        if li[3] == "18daf141":
-            print("diag", li)
-            self.diag_console.appendPlainText(li[5])
-        # if li[3] == '18ffd741':
-        #     print("Seat_HAVC", li)
-        #     self.mmi_console.appendPlainText(str(li))
-        # for i in li:
-        #     self.mmi_hvac.append(str(i))
-        #     # self.text_box.appendPlainText(str(i))
-        # if li[3] == '18ff8621':
-        #     print("good", li)
-        #     self.mmi_console.appendPlainText(str(li))
 
     # def reset_cont(self, l):
     #     try:
@@ -520,6 +459,64 @@ class Main(QMainWindow, form_class):
     #         pass
     #
     # # def btn_reset(self):
+
+    # def btn_clicked_security(self):
+    #     self.custom_signal.emit("security")
+    #
+    # def btn_clicked_write(self):
+    #     self.custom_signal.emit("write")
+
+
+# @pyqtSlot(list)
+#     def sig2(self, li):
+#         self.mmi_console.appendPlainText(str(li))
+#         if li[3] == '18ffd741':
+#             seat_hvac_bin = bin(int(li[9], 16))[2:].zfill(8)
+#             drv_heat = seat_hvac_bin[6:8]
+#             self.txt_res_drv_heat.setText(str(int(drv_heat, 2)))
+#             pass_heat = seat_hvac_bin[4:6]
+#             self.txt_res_pass_heat.setText(str(int(pass_heat, 2)))
+#             drv_vent = seat_hvac_bin[2:4]
+#             self.txt_res_drv_vent.setText(str(int(drv_vent, 2)))
+#             pass_vent = seat_hvac_bin[0:2]
+#             self.txt_res_pass_vent.setText(str(int(pass_vent, 2)))
+#
+#             st_whl_heat_bin = bin(int(li[8], 16))[2:].zfill(8)
+#             st_whl_heat = st_whl_heat_bin[6:8]
+#             self.txt_res_st_whl_heat.setText(str(int(st_whl_heat, 2)))
+#
+#             tpms_and_sidemirror_mani_bin = bin(int(li[10], 16))[2:].zfill(8)
+#             sidemirror = tpms_and_sidemirror_mani_bin[4:6]
+#             self.txt_res_side_mani.setText(str(int(sidemirror, 2)))
+#
+#         if li[3] == '0c0ba021':
+#             aeb_bin = bin(int(li[8], 16))[2:].zfill(8)
+#             aeb = aeb_bin[6:8]
+#             self.txt_res_aeb.setText(str(int(aeb, 2)))
+#
+#         if li[3] == '18ffd841':
+#             sidemirror_heat_bin = bin(int(li[15], 16))[2:].zfill(8)
+#             sidemirror_heat = sidemirror_heat_bin[0:2]
+#             self.txt_res_side_heat.setText(str(int(sidemirror_heat, 2)))
+#
+#             home_safety_light_bin = bin(int(li[11], 16))[2:].zfill(8)
+#             home_safety_light = home_safety_light_bin[3:5]
+#             self.txt_res_light.setText(str(int(home_safety_light, 2)))
+#
+#         # self.mmi_console.appendPlainText(str(li))
+#         # self.mmi_hvac.appendPlainText(li[5])
+#         if li[3] == "18daf141":
+#             print("diag", li)
+#             self.diag_console.appendPlainText(li[5])
+#         # if li[3] == '18ffd741':
+#         #     print("Seat_HAVC", li)
+#         #     self.mmi_console.appendPlainText(str(li))
+#         # for i in li:
+#         #     self.mmi_hvac.append(str(i))
+#         #     # self.text_box.appendPlainText(str(i))
+#         # if li[3] == '18ff8621':
+#         #     print("good", li)
+#         #     self.mmi_console.appendPlainText(str(li))
 
 
 if __name__ == '__main__':
