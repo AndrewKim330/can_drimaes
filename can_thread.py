@@ -1,3 +1,4 @@
+import copy
 import time
 import uptime
 
@@ -55,8 +56,8 @@ class TxOnlyWorker(QThread):
             if self.parent.c_can_bus:
                 a = str(self.parent.c_can_bus.recv()).split()
                 # print(self.parent.c_can_bus.recv())
-                self.parent.mmi_console.appendPlainText(str(self.parent.c_can_bus.recv()))
-                # self.sig2.emit(a)
+                # self.parent.mmi_console.appendPlainText(str(a))
+                self.sig2.emit(a)
             else:
                 print("no good")
                 self._isRunning = False
@@ -360,6 +361,10 @@ class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
+        self.diag_state = None
+        self.diag_btn_text = None
+        self.diag_success_byte = None
+        self.diag_failure_byte = "7f"
 
     def run(self):
         while self._isRunning:
@@ -367,11 +372,12 @@ class ThreadWorker(NodeThread):
 
     def thread_func(self):
         a = str(self.parent.c_can_bus.recv()).split()
-        # print("aaa")
-        # a1 = str(self.parent.c_can_bus.recv()).split()
-        # print("bbb", a1)
-        # a2 = str(self.parent.p_can_bus.recv()).split()
-        # print("ccc", a2)
+        if a[3] == "18daf141":
+            self.parent.diag_console.appendPlainText(str(a))
+            if self.diag_state == "sess_cont":
+                self.diag_sess(self.diag_btn_text, a)
+
+
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
             self.parent.btn_drv_state.setText("On Driving State")
@@ -386,16 +392,6 @@ class ThreadWorker(NodeThread):
 
         if a[3] == "0c0ba021":
             self.parent.aeb_worker.value = a[8]
-
-
-        # self.diagnosis()
-        # print(a[3])
-        # if a[3] == "18ffd741":  # 100ms
-        #     self.seat_hvac(a[9])
-        #     self.side_mirror(a[10])
-
-        if a[3] == "18daf141":
-            self.parent.diag_console.appendPlainText(a[8])
 
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
@@ -414,12 +410,67 @@ class ThreadWorker(NodeThread):
             self.parent.label_battery.setText(battery)
             self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
-
     def diag_func(self):
-        if self.parent.btn_sess_default.isChecked():
-            print("aaa")
+        if self.sender():
+            self.diag_btn_text = self.sender().objectName()
+            if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" or self.diag_btn_text == "btn_nrc_sess_12" or self.diag_btn_text == "btn_nrc_sess_13":
+                self.diag_state = "sess_cont"
+                self.diag_success_byte = "50"
+                self.diag_sess(self.diag_btn_text)
 
-        message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
+    def diag_sess(self, txt=None, res=None):
+        if txt:
+            if txt == "btn_sess_default":
+                if res:
+                    if res[9] == self.diag_success_byte:
+                        if res[10] == "01":
+                            self.parent.btn_sess_default.setEnabled(False)
+                            self.parent.label_sess_default.setText("Success")
+                else:
+                    self.data[0] = 0x02
+                    self.data[1] = 0x10
+                    self.data[2] = 0x01
+            elif txt == "btn_sess_extended":
+                if res:
+                    if res[9] == self.diag_success_byte:
+                        if res[10] == "03":
+                            self.parent.btn_sess_extended.setEnabled(False)
+                            self.parent.label_sess_extended.setText("Success")
+                else:
+                    self.data[0] = 0x02
+                    self.data[1] = 0x10
+                    self.data[2] = 0x03
+            elif txt == "btn_nrc_sess_12":
+                print("aaa")
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "12":
+                            self.parent.btn_nrc_sess_12.setEnabled(False)
+                            self.parent.label_nrc_sess_12.setText("Success")
+                else:
+                    self.data[0] = 0x02
+                    self.data[1] = 0x10
+                    self.data[2] = 0xFF
+            elif txt == "btn_nrc_sess_13":
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "13":
+                            self.parent.btn_nrc_sess_13.setEnabled(False)
+                            self.parent.label_nrc_sess_13.setText("Success")
+                else:
+                    self.data[0] = 0x03
+                    self.data[1] = 0x10
+                    self.data[2] = 0x01
+                    self.data[3] = 0x01
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.parent.c_can_bus.send(message)
+
+
+        # if res[9] == "50":
+
+
+
+        # message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
 
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')

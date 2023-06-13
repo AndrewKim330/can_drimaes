@@ -106,10 +106,13 @@ class Main(QMainWindow, form_class):
 
         self.tx_worker = worker.TxOnlyWorker(parent=self)
 
-        # self.tx_worker.sig2.connect(self.sig2)
+        self.tx_worker.sig2.connect(self.sig2)
 
         self.btn_sess_default.clicked.connect(self.thread_worker.diag_func)
-        # self.nrc_sess_13.clicked.connect(self.thread_worker.diag_func)
+        self.btn_sess_extended.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_sess_12.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_sess_13.clicked.connect(self.thread_worker.diag_func)
+
 
         # self.hw_reset.clicked.connect(self.reset_cont)
         # self.sw_reset.clicked.connect(self.reset_cont)
@@ -126,8 +129,12 @@ class Main(QMainWindow, form_class):
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
         self.btn_mmi_console_clear.clicked.connect(self.mmi_text_clear)
+        self.btn_diag_console_clear.clicked.connect(self.diag_text_clear)
 
-        self.set_entire_basic_btns_enable(False)
+        self.btn_diag_reset_1.clicked.connect(self.set_diag_btns_enable)
+        self.btn_diag_reset_2.clicked.connect(self.set_diag_btns_enable)
+
+        self.set_basic_btns_enable(False)
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -136,7 +143,7 @@ class Main(QMainWindow, form_class):
                 self.bus_console.appendPlainText("1 Channel is connected")
                 try:
                     temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                    if temp1.recv(1):
+                    if temp1.recv(0.3):
                         self.c_can_bus = temp1
                         self.p_can_bus = temp2
                     else:
@@ -144,7 +151,7 @@ class Main(QMainWindow, form_class):
                         self.p_can_bus = temp1
                     self.bus_console.appendPlainText("2 Channel is connected")
                 except:
-                    if temp1.recv(1):
+                    if temp1.recv(0.3):
                         self.c_can_bus = temp1
                     else:
                         self.p_can_bus = temp1
@@ -200,7 +207,7 @@ class Main(QMainWindow, form_class):
             self.battery_worker._isRunning = True
             self.charge_worker._isRunning = True
 
-            self.set_entire_basic_btns_enable(True)
+            self.set_basic_btns_enable(True)
 
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
@@ -234,7 +241,7 @@ class Main(QMainWindow, form_class):
         self.battery_worker.quit()
         self.charge_worker.quit()
 
-        self.set_entire_basic_btns_enable(False)
+        self.set_basic_btns_enable(False)
 
     def set_drv_state(self):
         if self.btn_drv_state.text() == 'On Driving State':
@@ -247,14 +254,23 @@ class Main(QMainWindow, form_class):
             self.chkbox_pt_ready.setChecked(True)
 
     def set_ota_cond(self):
-        # **need to add battery condition**
         if self.btn_ota_cond.text() == 'On OTA Condition':
             self.chkbox_h_brake.setChecked(False)
         else:
             self.btn_gear_n.setChecked(True)
             self.chkbox_h_brake.setChecked(True)
 
-    def set_entire_basic_btns_enable(self, flag):
+    def set_basic_btns_enable(self, flag):
+        if flag:
+            color = "black"
+            self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
+            self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
+
+            self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
+            self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
+        else:
+            color = "gray"
+
         self.btn_gear_n.setEnabled(flag)
         self.btn_gear_r.setEnabled(flag)
         self.btn_gear_d.setEnabled(flag)
@@ -308,35 +324,30 @@ class Main(QMainWindow, form_class):
         self.slider_battery.setEnabled(flag)
         self.chkbox_charge.setEnabled(flag)
 
-        self.tick_0_speed.setStyleSheet("color: gray")
-        self.tick_120.setStyleSheet("color: gray")
-        self.tick_240.setStyleSheet("color: gray")
-        self.label_speed.setStyleSheet("color: gray")
+        self.tick_0_speed.setStyleSheet(f"color: {color}")
+        self.tick_120.setStyleSheet(f"color: {color}")
+        self.tick_240.setStyleSheet(f"color: {color}")
+        self.label_speed.setStyleSheet(f"color: {color}")
 
-        self.tick_0_batt.setStyleSheet("color: gray")
-        self.tick_50.setStyleSheet("color: gray")
-        self.tick_100.setStyleSheet("color: gray")
-        self.label_battery.setStyleSheet("color: gray")
+        self.tick_0_batt.setStyleSheet(f"color: {color}")
+        self.tick_50.setStyleSheet(f"color: {color}")
+        self.tick_100.setStyleSheet(f"color: {color}")
+        self.label_battery.setStyleSheet(f"color: {color}")
 
         self.chkbox_drv_invalid.setEnabled(flag)
         self.chkbox_pass_invalid.setEnabled(flag)
 
+    def set_diag_btns_enable(self, flag):
         if flag:
-            self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
-            self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
+            color = "black"
+        else:
+            color = "gray"
 
-            self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
-            self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
+        self.btn_sess_default.setEnabled(flag)
+        self.label_sess_default.setStyleSheet(f"color: {color}")
+        self.btn_sess_extended.setEnabled(flag)
+        self.label_sess_extended.setStyleSheet(f"color: {color}")
 
-            self.tick_0_speed.setStyleSheet("color: black")
-            self.tick_120.setStyleSheet("color: black")
-            self.tick_240.setStyleSheet("color: black")
-            self.label_speed.setStyleSheet("color: black")
-
-            self.tick_0_batt.setStyleSheet("color: black")
-            self.tick_50.setStyleSheet("color: black")
-            self.tick_100.setStyleSheet("color: black")
-            self.label_battery.setStyleSheet("color: black")
 
     # def btn_clicked_dtc_num(self):
     #     print("19 01 service")
@@ -365,14 +376,8 @@ class Main(QMainWindow, form_class):
         self.mmi_console.clear()
 
     @pyqtSlot(list)
-    def sig1(self, li):
-        # print("good1", li)
-        # print('emit success')
-        # scr.scr(li)
-        # print("good1", li)
-        # self.mmi_hvac.appendPlainText(li[5])
-        if li[3] == "18daf141":
-            self.diag_console.appendPlainText(li[5])
+    def sig2(self, li):
+        self.mmi_console.appendPlainText(str(li))
         #     print("diag", li)
         #     self.session_cont(li)
         # if li[3] == '18ffd741':

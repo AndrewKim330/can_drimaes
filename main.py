@@ -41,6 +41,9 @@ def print_hi(name):
     b = example(int(a, 16), 2, 2, 2)
     print(b, type(b))
 
+    # color_str = f"\"color : {color}\""
+    # print(color_str)
+
     # tpms_and_sidemirror_mani_bin = bin(int(sig, 16))[2:].zfill(8)
     # print(list2)
     #

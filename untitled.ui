@@ -26,7 +26,7 @@
     <property name="currentIndex">
      <number>2</number>
     </property>
-    <widget class="QWidget" name="Tx">
+    <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
       <string>MMI Messages</string>
      </attribute>
@@ -1210,15 +1210,15 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="can_diagnosis">
+    <widget class="QWidget" name="diagnosis_1">
      <attribute name="title">
-      <string>CAN Diagnosis</string>
+      <string>CAN Diagnosis 1</string>
      </attribute>
      <widget class="QGroupBox" name="session_box">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>20</y>
+        <y>110</y>
         <width>391</width>
         <height>341</height>
        </rect>
@@ -1367,7 +1367,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="clear_console">
+     <widget class="QPushButton" name="btn_diag_console_clear">
       <property name="geometry">
        <rect>
         <x>800</x>
@@ -1384,7 +1384,7 @@
       <property name="geometry">
        <rect>
         <x>430</x>
-        <y>20</y>
+        <y>110</y>
         <width>461</width>
         <height>341</height>
        </rect>
@@ -1473,8 +1473,8 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not supported 
- Sess (S/W Reset)</string>
+         <string>Session Error 
+ (S/W Reset)</string>
         </property>
        </widget>
        <widget class="QLabel" name="nrc_sess_12_label_5">
@@ -1519,8 +1519,8 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not supported 
- Session - H/W Reset</string>
+         <string>Session Error 
+ (H/W Reset)</string>
         </property>
        </widget>
       </widget>
@@ -1583,11 +1583,29 @@
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="read_did_box">
+     <widget class="QPushButton" name="btn_diag_reset_1">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>380</y>
+        <x>710</x>
+        <y>30</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="diagnosis_2">
+     <attribute name="title">
+      <string>CAN Diagnosis 2</string>
+     </attribute>
+     <widget class="QGroupBox" name="read_did_box_3">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>100</y>
         <width>751</width>
         <height>241</height>
        </rect>
@@ -1595,7 +1613,7 @@
       <property name="title">
        <string>Read Data By Identifier</string>
       </property>
-      <widget class="QPushButton" name="read_ecu_supplier">
+      <widget class="QPushButton" name="read_ecu_supplier_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1608,7 +1626,7 @@
         <string>ECU Supplier</string>
        </property>
       </widget>
-      <widget class="QGroupBox" name="reset_nrc_box_2">
+      <widget class="QGroupBox" name="reset_nrc_box_5">
        <property name="geometry">
         <rect>
          <x>610</x>
@@ -1620,7 +1638,7 @@
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QLabel" name="nrc_read_13_label">
+       <widget class="QLabel" name="nrc_read_13_label_3">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1636,7 +1654,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="nrc_read_31_label">
+       <widget class="QLabel" name="nrc_read_31_label_3">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1652,7 +1670,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_read_13">
+       <widget class="QPushButton" name="nrc_read_15">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1665,7 +1683,7 @@
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_read_31">
+       <widget class="QPushButton" name="nrc_read_33">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1679,7 +1697,7 @@
         </property>
        </widget>
       </widget>
-      <widget class="QLabel" name="read_ecu_num_label">
+      <widget class="QLabel" name="read_ecu_num_label_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1695,7 +1713,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="read_ecu_supplier_label">
+      <widget class="QLabel" name="read_ecu_supplier_label_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1711,7 +1729,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="read_vin_num_label">
+      <widget class="QLabel" name="read_vin_num_label_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1727,7 +1745,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_vin_num">
+      <widget class="QPushButton" name="read_vin_num_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1740,7 +1758,7 @@
         <string>VIN Num.</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_ecu_install_date">
+      <widget class="QPushButton" name="read_ecu_install_date_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1753,7 +1771,7 @@
         <string>ECU Install Date</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_ecu_install_date_label">
+      <widget class="QLabel" name="read_ecu_install_date_label_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1769,7 +1787,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="read_hw_ver_label">
+      <widget class="QLabel" name="read_hw_ver_label_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1785,7 +1803,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="read_sw_ver_label">
+      <widget class="QLabel" name="read_sw_ver_label_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1801,7 +1819,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_sw_ver">
+      <widget class="QPushButton" name="read_sw_ver_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1814,7 +1832,7 @@
         <string>S/W Ver.</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_vehi_name_label">
+      <widget class="QLabel" name="read_vehi_name_label_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1830,7 +1848,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_vehi_name">
+      <widget class="QPushButton" name="read_vehi_name_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1843,7 +1861,7 @@
         <string>Vehicle Name</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_sys_name_label">
+      <widget class="QLabel" name="read_sys_name_label_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1859,7 +1877,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_sys_name">
+      <widget class="QPushButton" name="read_sys_name_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1872,7 +1890,7 @@
         <string>System Name</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_diag_ver_label">
+      <widget class="QLabel" name="read_diag_ver_label_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1888,7 +1906,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="read_act_sess_label">
+      <widget class="QLabel" name="read_act_sess_label_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1904,7 +1922,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_act_sess">
+      <widget class="QPushButton" name="read_act_sess_3">
        <property name="geometry">
         <rect>
          <x>320</x>
@@ -1917,7 +1935,7 @@
         <string>Active Session</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_ecu_num">
+      <widget class="QPushButton" name="read_ecu_num_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1930,7 +1948,7 @@
         <string>ECU Supplier</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_hw_ver">
+      <widget class="QPushButton" name="read_hw_ver_3">
        <property name="geometry">
         <rect>
          <x>170</x>
@@ -1943,7 +1961,7 @@
         <string>H/W Ver.</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_diag_ver">
+      <widget class="QPushButton" name="read_diag_ver_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1956,7 +1974,7 @@
         <string>Diag. Ver.</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_manu_date_label">
+      <widget class="QLabel" name="read_manu_date_label_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1972,7 +1990,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_manu_date">
+      <widget class="QPushButton" name="read_manu_date_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -1985,7 +2003,7 @@
         <string>ECU Manu. date</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_ecu_serial_num_label">
+      <widget class="QLabel" name="read_ecu_serial_num_label_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2001,7 +2019,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_ecu_serial_num">
+      <widget class="QPushButton" name="read_ecu_serial_num_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2014,7 +2032,7 @@
         <string>ECU Serial Num.</string>
        </property>
       </widget>
-      <widget class="QLabel" name="read_manu_part_num_label">
+      <widget class="QLabel" name="read_manu_part_num_label_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2030,7 +2048,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_manu_part_num">
+      <widget class="QPushButton" name="read_manu_part_num_3">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2043,6 +2061,19 @@
         <string>Manu. Part Num.</string>
        </property>
       </widget>
+     </widget>
+     <widget class="QPushButton" name="btn_diag_reset_2">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>30</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
      </widget>
     </widget>
    </widget>
