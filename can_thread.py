@@ -194,48 +194,48 @@ class BCMState(NodeThread):
 class BCMMMI(NodeThread):
     def thread_func(self):
         self.data[3] = 0x01
-        a = str(self.parent.c_can_bus.recv()).split()
-        if a[3] == "18ffd741":
-            if a[10] == 'f4':
-                # print("aaa")
-                self.data[3] = sig_generator(self.data[3], 0, 2, 1)
-            elif a[10] == 'f8':
-                self.data[3] = sig_generator(self.data[3], 0, 2, 2)
-        if a[3] == "18ffd841":
-            if a[11] == "c7":
-                self.data[1] = 0xE3
-            elif a[11] == "cf":
-                self.data[1] = 0xE7
-            elif a[11] == "d7":
-                self.data[1] = 0xEB
-            elif a[11] == "df":
-                self.data[1] = 0xEF
-
-            if a[15] == "7f":
-                self.data[3] = sig_generator(self.data[3], 2, 2, 1)
-            elif a[15] == "bf":
-                self.data[3] = sig_generator(self.data[3], 2, 2, 2)
-
-        if self.parent.btn_mscs_ok.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 0)
-        elif self.parent.btn_mscs_CmnFail.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 1)
-        elif self.parent.btn_mscs_NotEdgePress.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 2)
-        elif self.parent.btn_mscs_EdgeSho.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 3)
-        elif self.parent.btn_mscs_SnsrFltT.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 4)
-        elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 5)
-        elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 6)
-        elif self.parent.btn_mscs_SigFailr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 7)
-
-        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
-
         if self.parent.c_can_bus:
+            a = str(self.parent.c_can_bus.recv()).split()
+            if a[3] == "18ffd741":
+                if a[10] == 'f4':
+                    # print("aaa")
+                    self.data[3] = sig_generator(self.data[3], 0, 2, 1)
+                elif a[10] == 'f8':
+                    self.data[3] = sig_generator(self.data[3], 0, 2, 2)
+            if a[3] == "18ffd841":
+                if a[11] == "c7":
+                    self.data[1] = 0xE3
+                elif a[11] == "cf":
+                    self.data[1] = 0xE7
+                elif a[11] == "d7":
+                    self.data[1] = 0xEB
+                elif a[11] == "df":
+                    self.data[1] = 0xEF
+
+                if a[15] == "7f":
+                    self.data[3] = sig_generator(self.data[3], 2, 2, 1)
+                elif a[15] == "bf":
+                    self.data[3] = sig_generator(self.data[3], 2, 2, 2)
+
+            if self.parent.btn_mscs_ok.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 0)
+            elif self.parent.btn_mscs_CmnFail.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 1)
+            elif self.parent.btn_mscs_NotEdgePress.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 2)
+            elif self.parent.btn_mscs_EdgeSho.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 3)
+            elif self.parent.btn_mscs_SnsrFltT.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 4)
+            elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 5)
+            elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 6)
+            elif self.parent.btn_mscs_SigFailr.isChecked():
+                self.data[3] = sig_generator(self.data[3], 4, 3, 7)
+
+            message = can.Message(arbitration_id=0x18ffd521, data=self.data)
+
             self.parent.c_can_bus.send(message)
         else:
             print("no good bcm mmi")
@@ -276,7 +276,7 @@ class TirePressure(NodeThread):
         if self.parent.c_can_bus:
             self.parent.c_can_bus.send(message)
         else:
-            print("no good tirepressure")
+            print("no good tire pressure")
             self._isRunning = False
 
 
@@ -286,13 +286,13 @@ class AEB(NodeThread):
         self.period = 0.050
 
     def thread_func(self):
-        a = str(self.parent.c_can_bus.recv()).split()
-        if a[8] == "fd":
-            self.data[0] = 0xF1
-        elif a[8] == "fc":
-            self.data[0] = 0xF2
-        message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
         if self.parent.c_can_bus:
+            a = str(self.parent.c_can_bus.recv()).split()
+            if a[8] == "fd":
+                self.data[0] = 0xF1
+            elif a[8] == "fc":
+                self.data[0] = 0xF2
+            message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
             self.parent.c_can_bus.send(message)
         else:
             print("no good AEB")
@@ -365,18 +365,20 @@ class ThreadWorker(NodeThread):
         self.diag_btn_text = None
         self.diag_success_byte = None
         self.diag_failure_byte = "7f"
+        self.drv_state = False
+        self.diag_list = []
 
     def run(self):
         while self._isRunning:
             self.thread_func()
 
     def thread_func(self):
-        a = str(self.parent.c_can_bus.recv()).split()
-        if a[3] == "18daf141":
-            self.parent.diag_console.appendPlainText(str(a))
-            if self.diag_state == "sess_cont":
-                self.diag_sess(self.diag_btn_text, a)
-
+        if self.parent.c_can_bus:
+            a = str(self.parent.c_can_bus.recv()).split()
+            if a[3] == "18daf141":
+                self.diag_list.append(a)
+            if a[3] == "0c0ba021":
+                self.parent.aeb_worker.value = a[8]
 
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
@@ -389,9 +391,6 @@ class ThreadWorker(NodeThread):
             self.parent.btn_ota_cond.setText("On OTA Condition")
         else:
             self.parent.btn_ota_cond.setText("Set OTA Condition")
-
-        if a[3] == "0c0ba021":
-            self.parent.aeb_worker.value = a[8]
 
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
@@ -417,51 +416,189 @@ class ThreadWorker(NodeThread):
                 self.diag_state = "sess_cont"
                 self.diag_success_byte = "50"
                 self.diag_sess(self.diag_btn_text)
+            elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" or self.diag_btn_text == "btn_nrc_reset_12" or self.diag_btn_text == "btn_nrc_reset_13" or self.diag_btn_text == "btn_nrc_reset_7f_sw" or self.diag_btn_text == "btn_nrc_reset_7f_hw":
+                self.diag_state = "reset"
+                self.diag_success_byte = "51"
+                self.diag_reset(self.diag_btn_text)
 
-    def diag_sess(self, txt=None, res=None):
-        if txt:
+    def diag_sess(self, txt):
+        while self.diag_state:
             if txt == "btn_sess_default":
-                if res:
-                    if res[9] == self.diag_success_byte:
-                        if res[10] == "01":
-                            self.parent.btn_sess_default.setEnabled(False)
-                            self.parent.label_sess_default.setText("Success")
-                else:
+                if len(self.diag_list) == 0:
                     self.data[0] = 0x02
                     self.data[1] = 0x10
                     self.data[2] = 0x01
-            elif txt == "btn_sess_extended":
+                else:
+                    li_len = len(self.diag_list)
+                    temp = self.diag_list[li_len - 1]
+                    if temp[9] == self.diag_success_byte:
+                        if temp[10] == "01":
+                            self.parent.btn_sess_default.setEnabled(False)
+                            self.parent.label_sess_default.setText("Success")
+                        for tt in self.diag_list:
+                            self.parent.diag_console.appendPlainText(str(tt))
+                        self.diag_list = []
+                        self.diag_state = False
+                    else:
+                        self.parent.label_sess_default.setText("Test Failed")
+            # elif txt == "btn_sess_extended":
+            #     if res:
+            #         if res[9] == self.diag_success_byte:
+            #             if res[10] == "03":
+            #                 self.parent.btn_sess_extended.setEnabled(False)
+            #                 self.parent.label_sess_extended.setText("Success")
+            #             else:
+            #                 self.parent.label_sess_extended.setText("Test Failed")
+            #     else:
+            #         self.data[0] = 0x02
+            #         self.data[1] = 0x10
+            #         self.data[2] = 0x03
+            # elif txt == "btn_nrc_sess_12":
+            #     if res:
+            #         if res[9] == self.diag_failure_byte:
+            #             if res[10] == "10" and res[11] == "12":
+            #                 self.parent.btn_nrc_sess_12.setEnabled(False)
+            #                 self.parent.label_nrc_sess_12.setText("Success")
+            #             else:
+            #                 self.parent.label_nrc_sess_12.setText("Success")
+            #     else:
+            #         self.data[0] = 0x02
+            #         self.data[1] = 0x10
+            #         self.data[2] = 0xFF
+            # elif txt == "btn_nrc_sess_13":
+            #     if res:
+            #         if res[9] == self.diag_failure_byte:
+            #             if res[10] == "10" and res[11] == "13":
+            #                 self.parent.btn_nrc_sess_13.setEnabled(False)
+            #                 self.parent.label_nrc_sess_13.setText("Success")
+            #             else:
+            #                 self.parent.label_nrc_sess_13.setText("Test Failed")
+            #     else:
+            #         self.data[0] = 0x03
+            #         self.data[1] = 0x10
+            #         self.data[2] = 0x01
+            #         self.data[3] = 0x01
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.parent.c_can_bus.send(message)
+
+    def diag_reset(self, txt=None, res=None):
+        if txt:
+            if txt == "btn_reset_sw":
+                if res:
+                    if res[9] == self.diag_success_byte:
+                        if res[10] == "01":
+                            print("aaa")
+                            self.parent.btn_reset_sw.setEnabled(False)
+                            self.parent.label_reset_sw.setText("Success")
+                        else:
+                            self.parent.label_reset_sw.setText("Test Failed")
+                else:
+                    self.diag_sess("btn_sess_extended")
+                    time.sleep(0.3)
+                    self.data[0] = 0x02
+                    self.data[1] = 0x11
+                    self.data[2] = 0x03
+            elif txt == "btn_reset_hw":
                 if res:
                     if res[9] == self.diag_success_byte:
                         if res[10] == "03":
-                            self.parent.btn_sess_extended.setEnabled(False)
-                            self.parent.label_sess_extended.setText("Success")
+                            self.parent.btn_reset_hw.setEnabled(False)
+                            self.parent.label_reset_hw.setText("Success")
+                        else:
+                            self.parent.label_reset_hw.setText("Test Failed")
                 else:
+                    self.diag_sess("btn_sess_extended")
+                    time.sleep(0.5)
                     self.data[0] = 0x02
-                    self.data[1] = 0x10
-                    self.data[2] = 0x03
-            elif txt == "btn_nrc_sess_12":
-                print("aaa")
+                    self.data[1] = 0x11
+                    self.data[2] = 0x01
+            elif txt == "btn_nrc_reset_12":
                 if res:
                     if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "12":
-                            self.parent.btn_nrc_sess_12.setEnabled(False)
-                            self.parent.label_nrc_sess_12.setText("Success")
+                        if res[10] == "11" and res[11] == "12":
+                            self.parent.btn_nrc_reset_12.setEnabled(False)
+                            self.parent.label_nrc_reset_12.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_12.setText("Test Failed")
                 else:
+                    self.diag_sess("btn_sess_extended")
+                    time.sleep(0.5)
                     self.data[0] = 0x02
-                    self.data[1] = 0x10
+                    self.data[1] = 0x11
                     self.data[2] = 0xFF
-            elif txt == "btn_nrc_sess_13":
+            elif txt == "btn_nrc_reset_13":
                 if res:
                     if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "13":
-                            self.parent.btn_nrc_sess_13.setEnabled(False)
-                            self.parent.label_nrc_sess_13.setText("Success")
+                        if res[10] == "11" and res[11] == "13":
+                            self.parent.btn_nrc_reset_13.setEnabled(False)
+                            self.parent.label_nrc_reset_13.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_12.setText("Test Failed")
                 else:
+                    self.diag_sess("btn_sess_extended")
+                    time.sleep(0.3)
                     self.data[0] = 0x03
                     self.data[1] = 0x10
                     self.data[2] = 0x01
                     self.data[3] = 0x01
+            elif txt == "btn_nrc_reset_7f_sw":
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "13":
+                            self.parent.btn_nrc_reset_7f_sw.setEnabled(False)
+                            self.parent.label_nrc_reset_7f_sw.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_7f_sw.setText("Test Failed")
+                else:
+                    self.diag_sess("btn_sess_default")
+                    time.sleep(0.3)
+                    self.data[0] = 0x02
+                    self.data[1] = 0x11
+                    self.data[2] = 0x03
+            elif txt == "btn_nrc_reset_7f_hw":
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "13":
+                            self.parent.btn_nrc_reset_7f_hw.setEnabled(False)
+                            self.parent.label_nrc_reset_7f_hw.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_7f_hw.setText("Test Failed")
+                else:
+                    self.diag_sess("btn_sess_default")
+                    time.sleep(0.3)
+                    self.data[0] = 0x02
+                    self.data[1] = 0x11
+                    self.data[2] = 0x01
+            elif txt == "btn_nrc_reset_22_sw":
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "22":
+                            self.parent.btn_nrc_reset_22_sw.setEnabled(False)
+                            self.parent.label_nrc_reset_22_sw.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_22_sw.setText("Test Failed")
+                else:
+                    self.diag_sess("btn_sess_extended")
+                    time.sleep(0.3)
+                    self.drv_state = True
+                    self.parent.set_drv_state()
+                    self.data[0] = 0x02
+                    self.data[1] = 0x11
+                    self.data[2] = 0x03
+            elif txt == "btn_nrc_reset_22_hw":
+                if res:
+                    if res[9] == self.diag_failure_byte:
+                        if res[10] == "10" and res[11] == "22":
+                            self.parent.btn_nrc_reset_7f_hw.setEnabled(False)
+                            self.parent.label_nrc_reset_7f_hw.setText("Success")
+                        else:
+                            self.parent.label_nrc_reset_7f_hw.setText("Test Failed")
+                else:
+                    self.diag_sess("btn_sess_default")
+                    time.sleep(0.3)
+                    self.data[0] = 0x02
+                    self.data[1] = 0x11
+                    self.data[2] = 0x01
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.parent.c_can_bus.send(message)
 

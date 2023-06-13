@@ -3,10 +3,12 @@ import scrapping3 as scr
 
 import sys
 import can
+import time
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic
 from can import interfaces
+
 
 import can_thread as worker
 
@@ -113,6 +115,12 @@ class Main(QMainWindow, form_class):
         self.btn_nrc_sess_12.clicked.connect(self.thread_worker.diag_func)
         self.btn_nrc_sess_13.clicked.connect(self.thread_worker.diag_func)
 
+        self.btn_reset_sw.clicked.connect(self.thread_worker.diag_func)
+        self.btn_reset_hw.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_reset_12.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_reset_13.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_reset_7f_sw.clicked.connect(self.thread_worker.diag_func)
+        self.btn_nrc_reset_7f_hw.clicked.connect(self.thread_worker.diag_func)
 
         # self.hw_reset.clicked.connect(self.reset_cont)
         # self.sw_reset.clicked.connect(self.reset_cont)
@@ -143,7 +151,7 @@ class Main(QMainWindow, form_class):
                 self.bus_console.appendPlainText("1 Channel is connected")
                 try:
                     temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                    if temp1.recv(0.3):
+                    if temp1.recv(1):
                         self.c_can_bus = temp1
                         self.p_can_bus = temp2
                     else:
@@ -151,7 +159,7 @@ class Main(QMainWindow, form_class):
                         self.p_can_bus = temp1
                     self.bus_console.appendPlainText("2 Channel is connected")
                 except:
-                    if temp1.recv(0.3):
+                    if temp1.recv(1):
                         self.c_can_bus = temp1
                     else:
                         self.p_can_bus = temp1
@@ -176,6 +184,7 @@ class Main(QMainWindow, form_class):
             self.bus_console.appendPlainText("CAN bus is already connected")
 
     def thread_start(self):
+        time.sleep(0.5)
         if self.bus_flag:
             self.thread_worker.start()
             self.tx_worker.start()
@@ -244,14 +253,14 @@ class Main(QMainWindow, form_class):
         self.set_basic_btns_enable(False)
 
     def set_drv_state(self):
-        if self.btn_drv_state.text() == 'On Driving State':
-            self.btn_gear_n.setChecked(True)
-            self.btn_ign.setChecked(True)
-            self.chkbox_pt_ready.setChecked(False)
-        else:
+        if self.btn_drv_state.text() == 'Set Driving State' or self.thread_worker.drv_state:
             self.btn_gear_d.setChecked(True)
             self.btn_start.setChecked(True)
             self.chkbox_pt_ready.setChecked(True)
+        else:
+            self.btn_gear_n.setChecked(True)
+            self.btn_ign.setChecked(True)
+            self.chkbox_pt_ready.setChecked(False)
 
     def set_ota_cond(self):
         if self.btn_ota_cond.text() == 'On OTA Condition':

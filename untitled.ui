@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1176</width>
-    <height>1041</height>
+    <width>1178</width>
+    <height>1048</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1217,10 +1217,10 @@
      <widget class="QGroupBox" name="session_box">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>110</y>
-        <width>391</width>
-        <height>341</height>
+        <x>40</x>
+        <y>100</y>
+        <width>831</width>
+        <height>211</height>
        </rect>
       </property>
       <property name="title">
@@ -1229,7 +1229,7 @@
       <widget class="QPushButton" name="btn_sess_default">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>30</x>
          <y>80</y>
          <width>121</width>
          <height>41</height>
@@ -1242,10 +1242,10 @@
       <widget class="QGroupBox" name="session_nrc_box">
        <property name="geometry">
         <rect>
-         <x>150</x>
-         <y>20</y>
-         <width>221</width>
-         <height>311</height>
+         <x>370</x>
+         <y>30</y>
+         <width>421</width>
+         <height>151</height>
         </rect>
        </property>
        <property name="title">
@@ -1284,8 +1284,8 @@
        <widget class="QPushButton" name="btn_nrc_sess_13">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>180</y>
+          <x>220</x>
+          <y>40</y>
           <width>181</width>
           <height>61</height>
          </rect>
@@ -1297,8 +1297,8 @@
        <widget class="QLabel" name="label_nrc_sess_13">
         <property name="geometry">
          <rect>
-          <x>50</x>
-          <y>250</y>
+          <x>250</x>
+          <y>110</y>
           <width>121</width>
           <height>20</height>
          </rect>
@@ -1314,8 +1314,8 @@
       <widget class="QPushButton" name="btn_sess_extended">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>180</y>
+         <x>200</x>
+         <y>80</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1327,8 +1327,8 @@
       <widget class="QLabel" name="label_sess_extended">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>230</y>
+         <x>210</x>
+         <y>130</y>
          <width>101</width>
          <height>20</height>
         </rect>
@@ -1343,7 +1343,7 @@
       <widget class="QLabel" name="label_sess_default">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>40</x>
          <y>130</y>
          <width>101</width>
          <height>20</height>
@@ -1383,10 +1383,10 @@
      <widget class="QGroupBox" name="reset_box">
       <property name="geometry">
        <rect>
-        <x>430</x>
-        <y>110</y>
-        <width>461</width>
-        <height>341</height>
+        <x>40</x>
+        <y>340</y>
+        <width>831</width>
+        <height>301</height>
        </rect>
       </property>
       <property name="title">
@@ -1395,16 +1395,16 @@
       <widget class="QGroupBox" name="reset_nrc_box">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>100</y>
-         <width>421</width>
-         <height>231</height>
+         <x>190</x>
+         <y>30</y>
+         <width>621</width>
+         <height>241</height>
         </rect>
        </property>
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QLabel" name="nrc_sess_12_label_3">
+       <widget class="QLabel" name="label_nrc_reset_12">
         <property name="geometry">
          <rect>
           <x>50</x>
@@ -1420,7 +1420,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_sess_13">
+       <widget class="QPushButton" name="btn_nrc_reset_12">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -1434,7 +1434,7 @@
  Subfunction</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_sess_15">
+       <widget class="QPushButton" name="btn_nrc_reset_13">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -1447,7 +1447,7 @@
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QLabel" name="nrc_sess_12_label_4">
+       <widget class="QLabel" name="label_nrc_reset_13">
         <property name="geometry">
          <rect>
           <x>50</x>
@@ -1463,7 +1463,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_sess_16">
+       <widget class="QPushButton" name="btn_nrc_reset_7f_sw">
         <property name="geometry">
          <rect>
           <x>220</x>
@@ -1477,7 +1477,7 @@
  (S/W Reset)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="nrc_sess_12_label_5">
+       <widget class="QLabel" name="label_nrc_reset_7f_sw">
         <property name="geometry">
          <rect>
           <x>250</x>
@@ -1493,7 +1493,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="nrc_sess_12_label_6">
+       <widget class="QLabel" name="label_nrc_reset_7f_hw">
         <property name="geometry">
          <rect>
           <x>250</x>
@@ -1509,7 +1509,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_sess_17">
+       <widget class="QPushButton" name="btn_nrc_reset_7f_hw">
         <property name="geometry">
          <rect>
           <x>220</x>
@@ -1523,12 +1523,72 @@
  (H/W Reset)</string>
         </property>
        </widget>
+       <widget class="QLabel" name="label_nrc_reset_22_hw">
+        <property name="geometry">
+         <rect>
+          <x>450</x>
+          <y>100</y>
+          <width>121</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_nrc_reset_22hw">
+        <property name="geometry">
+         <rect>
+          <x>450</x>
+          <y>200</y>
+          <width>121</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_nrc_reset_22_hw">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>130</y>
+          <width>181</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (H/W Reset)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_nrc_reset_22_sw">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>30</y>
+          <width>181</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (S/W Reset)</string>
+        </property>
+       </widget>
       </widget>
-      <widget class="QPushButton" name="btn_sess_default_2">
+      <widget class="QPushButton" name="btn_reset_sw">
        <property name="geometry">
         <rect>
-         <x>70</x>
-         <y>20</y>
+         <x>40</x>
+         <y>60</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1537,11 +1597,11 @@
         <string>S/W Reset</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_sess_default_2">
+      <widget class="QLabel" name="label_reset_sw">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>70</y>
+         <x>50</x>
+         <y>110</y>
          <width>101</width>
          <height>20</height>
         </rect>
@@ -1553,11 +1613,11 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="label_sess_default_3">
+      <widget class="QLabel" name="label_reset_hw">
        <property name="geometry">
         <rect>
-         <x>270</x>
-         <y>70</y>
+         <x>50</x>
+         <y>230</y>
          <width>101</width>
          <height>20</height>
         </rect>
@@ -1569,11 +1629,11 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="btn_sess_default_3">
+      <widget class="QPushButton" name="btn_reset_hw">
        <property name="geometry">
         <rect>
-         <x>260</x>
-         <y>20</y>
+         <x>40</x>
+         <y>180</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -2155,7 +2215,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1176</width>
+     <width>1178</width>
      <height>18</height>
     </rect>
    </property>
