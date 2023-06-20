@@ -17,7 +17,7 @@ def sig_generator(hex_val, pos, bit_len, val):
     tt = bin(hex_val)[2:].zfill(8)
     val_bin = bin(val)[2:].zfill(bit_len)
     if pos > 0:
-        temp = tt[pos - 1] + val_bin + tt[pos + len(val_bin):]
+        temp = tt[:pos] + val_bin + tt[pos + len(val_bin):]
     else:
         temp = val_bin + tt[pos + len(val_bin):]
     return int(temp, 2)
@@ -98,22 +98,62 @@ class Swrc(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
+        self.long_count = 0
+        self.long_threshold = 40
+
 
     def thread_func(self):
         self.data[0] = 0x00
         self.data[1] = 0x00
+        if self.parent.btn_left_long.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[0] = 0x02
+                self.long_count += 1
+            else:
+                self.data[0] = 0x04
+        elif self.parent.btn_right_long.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[0] = 0x08
+                self.long_count += 1
+            else:
+                self.data[0] = 0x10
+        elif self.parent.btn_call_long.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[1] = 0x01
+                self.long_count += 1
+            else:
+                self.data[1] = 0x02
+        elif self.parent.btn_vol_up_long.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[1] = 0x10
+                self.long_count += 1
+            else:
+                self.data[1] = 0x20
+        elif self.parent.btn_vol_down_long.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[1] = 0x40
+                self.long_count += 1
+            else:
+                self.data[1] = 0x80
+        elif self.parent.btn_reset.isChecked():
+            if self.long_count < self.long_threshold:
+                self.data[0] = 0x02
+                self.data[1] = 0x40
+                self.long_count += 1
+            else:
+                self.data[0] = 0x04
+                self.data[1] = 0x80
+        else:
+            self.long_count = 0
+
         if self.sender():
             btn_text = self.sender().objectName()
             if btn_text == "btn_ok":
                 self.data[0] = 0x01
             elif btn_text == "btn_left":
                 self.data[0] = 0x02
-            elif btn_text == "btn_left_long":
-                self.data[0] = 0x04
             elif btn_text == "btn_right":
                 self.data[0] = 0x08
-            elif btn_text == "btn_right_long":
-                self.data[0] = 0x10
             elif btn_text == "btn_undo":
                 self.data[0] = 0x20
             elif btn_text == "btn_mode":
@@ -122,20 +162,12 @@ class Swrc(NodeThread):
                 self.data[0] = 0x80
             elif btn_text == "btn_call":
                 self.data[1] = 0x01
-            elif btn_text == "btn_call_long":
-                self.data[1] = 0x02
             elif btn_text == "btn_vol_up":
                 self.data[1] = 0x10
-            elif btn_text == "btn_vol_up_long":
-                self.data[1] = 0x20
             elif btn_text == "btn_vol_down":
                 self.data[1] = 0x40
-            elif btn_text == "btn_vol_down_long":
-                self.data[1] = 0x80
-            elif btn_text == "btn_reset":
-                self.data[0] = 0x04
-                self.data[1] = 0x80
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
+        print(message)
         if self.parent.c_can_bus:
             self.parent.c_can_bus.send(message)
         else:
@@ -193,24 +225,25 @@ class BCMState(NodeThread):
 
 class BCMMMI(NodeThread):
     def thread_func(self):
-        self.data[3] = 0x01
+        if self.data[3] == 0xFF:
+            self.data[3] = 0x01
         if self.parent.c_can_bus:
             a = str(self.parent.c_can_bus.recv()).split()
             if a[3] == "18ffd741":
+                # print(a)
                 if a[10] == 'f4':
-                    # print("aaa")
                     self.data[3] = sig_generator(self.data[3], 0, 2, 1)
                 elif a[10] == 'f8':
                     self.data[3] = sig_generator(self.data[3], 0, 2, 2)
             if a[3] == "18ffd841":
-                if a[11] == "c7":
-                    self.data[1] = 0xE3
-                elif a[11] == "cf":
+                if a[11] == "cf":
                     self.data[1] = 0xE7
                 elif a[11] == "d7":
                     self.data[1] = 0xEB
                 elif a[11] == "df":
                     self.data[1] = 0xEF
+                else:
+                    self.data[1] = 0xE3
 
                 if a[15] == "7f":
                     self.data[3] = sig_generator(self.data[3], 2, 2, 1)
@@ -288,10 +321,11 @@ class AEB(NodeThread):
     def thread_func(self):
         if self.parent.c_can_bus:
             a = str(self.parent.c_can_bus.recv()).split()
-            if a[8] == "fd":
-                self.data[0] = 0xF1
-            elif a[8] == "fc":
-                self.data[0] = 0xF2
+            if a[3] == "0c0ba021":
+                if a[8] == "fd":
+                    self.data[0] = 0xF1
+                elif a[8] == "fc":
+                    self.data[0] = 0xF2
             message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
             self.parent.c_can_bus.send(message)
         else:
@@ -373,12 +407,13 @@ class ThreadWorker(NodeThread):
             self.thread_func()
 
     def thread_func(self):
+        # print(self.diag_list)
         if self.parent.c_can_bus:
             a = str(self.parent.c_can_bus.recv()).split()
+            # print(a)
             if a[3] == "18daf141":
+                print(a)
                 self.diag_list.append(a)
-            if a[3] == "0c0ba021":
-                self.parent.aeb_worker.value = a[8]
 
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
@@ -420,6 +455,10 @@ class ThreadWorker(NodeThread):
                 self.diag_state = "reset"
                 self.diag_success_byte = "51"
                 self.diag_reset(self.diag_btn_text)
+            elif self.diag_btn_text == "btn_memory_fault_check" or self.diag_btn_text == "btn_memory_fault_reset":
+                self.diag_state = "memory_fault"
+                self.diag_success_byte = "59"
+                self.diag_memory_fault(self.diag_btn_text)
 
     def diag_sess(self, txt):
         while self.diag_state:
@@ -601,6 +640,56 @@ class ThreadWorker(NodeThread):
                     self.data[2] = 0x01
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.parent.c_can_bus.send(message)
+
+    def diag_memory_fault(self, txt):
+        while self.diag_state:
+            # print(self.diag_list)
+            if txt == "btn_memory_fault_check":
+                self.data[0] = 0x03
+                self.data[1] = 0x19
+                self.data[2] = 0x02
+                self.data[3] = 0x09
+                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+                self.parent.c_can_bus.send(message)
+            # if len(self.diag_list) != 0:
+            #     li_len = len(self.diag_list)
+            #     temp = self.diag_list[li_len-1]
+            #     if temp[8] == "10":
+            #         print("need to flow control")
+            #         self.data[0] = 0x30
+            #         self.data[1] = 0x00
+            #         self.data[2] = 0x00
+            #         message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            #         self.parent.c_can_bus.send(message)
+            #         # print(self.diag_list)
+            #         if len(self.diag_list) > 1:
+            #             self.diag_state = False
+            #             time.sleep(1)
+            #             print(self.diag_list)
+            # while self.diag_state:
+            #     self.data[0] = 0x03
+            #     self.data[1] = 0x19
+            #     self.data[2] = 0x02
+            #     self.data[3] = 0x09
+            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            #     self.parent.c_can_bus.send(message)
+
+        # else:
+        #     print(self.diag_list)
+        #     self.diag_state = False
+        #     li_len = len(self.diag_list)
+        #     temp = self.diag_list[0]
+        #     if temp[10] == self.diag_success_byte:
+        #         print("aaa")
+        #         # if temp[10] == "01":
+                #     self.parent.btn_sess_default.setEnabled(False)
+                #     self.parent.label_sess_default.setText("Success")
+                # for tt in self.diag_list:
+                #     self.parent.diag_console.appendPlainText(str(tt))
+                # self.diag_list = []
+                # self.diag_state = False
+
+
 
 
         # if res[9] == "50":

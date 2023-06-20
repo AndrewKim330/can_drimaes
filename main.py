@@ -29,17 +29,30 @@ def print_hi(name):
     # # print(a)
     # # print(hex(int(b, 2)))
     #
-    value1 = [0x49, 0x56, 0x49, 0x30, 0x58, 0x30]
-    list1 = [chr(asc) for asc in value1]
-    value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
-    list2 = [hex(ord(ch)) for ch in value2]
-    # temp = a[0]+'1'+a[2:]
-    # a[0] = '1'
-    # print(temp)
-    a = example(0x01, 0, 2, 1)
-    print(a)
-    b = example(int(a, 16), 2, 2, 2)
-    print(b, type(b))
+    # value1 = [0x49, 0x56, 0x49, 0x30, 0x58, 0x30]
+    # list1 = [chr(asc) for asc in value1]
+    # value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
+    # list2 = [hex(ord(ch)) for ch in value2]
+    # # temp = a[0]+'1'+a[2:]
+    # # a[0] = '1'
+    # # print(temp)
+    # a = example(0x01, 0, 2, 1)
+    # print(a)
+    # b = example(int(a, 16), 2, 2, 2)
+    # print(b, type(b))
+
+    # def sig_generator(hex_val, pos, bit_len, val):
+    #     tt = bin(hex_val)[2:].zfill(8)
+    #     val_bin = bin(val)[2:].zfill(bit_len)
+    #     if pos > 0:
+    #         temp = tt[:pos] + val_bin + tt[pos + len(val_bin):]
+    #     else:
+    #         temp = val_bin + tt[pos + len(val_bin):]
+    #     return int(temp, 2)
+    #
+    # print(sig_generator(0x81, 4, 3, 2))
+
+
 
     # color_str = f"\"color : {color}\""
     # print(color_str)

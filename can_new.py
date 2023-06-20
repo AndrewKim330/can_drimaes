@@ -13,16 +13,7 @@ from can import interfaces
 import can_thread as worker
 
 form_class = uic.loadUiType("untitled.ui")[0]
-
-# bus1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-
-# try:
-#     # bus2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-# except:
-#     # bus1 = can.interface.Bus(bustype='vector', ch annel=0, bitrate='500000')
-#     # bus2 = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-#     print("No good")
-
+# form_class = uic.loadUiType("can_dist.ui")[0]
 
 class Main(QMainWindow, form_class):
     custom_signal = pyqtSignal("PyQt_PyObject")
@@ -31,6 +22,10 @@ class Main(QMainWindow, form_class):
         super().__init__()
 
         self.setupUi(self)
+
+        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+
+        self.temp_list = []
 
         self.c_can_bus = None
         self.p_can_bus = None
@@ -54,21 +49,14 @@ class Main(QMainWindow, form_class):
 
         self.btn_ok.clicked.connect(self.swrc_worker.thread_func)
         self.btn_left.pressed.connect(self.swrc_worker.thread_func)
-        self.btn_left_long.clicked.connect(self.swrc_worker.thread_func)
         self.btn_right.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_right_long.clicked.connect(self.swrc_worker.thread_func)
         self.btn_undo.clicked.connect(self.swrc_worker.thread_func)
         self.btn_mode.clicked.connect(self.swrc_worker.thread_func)
         self.btn_mute.clicked.connect(self.swrc_worker.thread_func)
 
         self.btn_call.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_call_long.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_vol_up.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_vol_up_long.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_vol_down.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_vol_down_long.clicked.connect(self.swrc_worker.thread_func)
-
-        self.btn_reset.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_vol_up.released.connect(self.swrc_worker.thread_func)
+        self.btn_vol_down.released.connect(self.swrc_worker.thread_func)
 
         self.speed_worker = worker.TachoSpeed(parent=self)
 
@@ -122,12 +110,9 @@ class Main(QMainWindow, form_class):
         self.btn_nrc_reset_7f_sw.clicked.connect(self.thread_worker.diag_func)
         self.btn_nrc_reset_7f_hw.clicked.connect(self.thread_worker.diag_func)
 
-        # self.hw_reset.clicked.connect(self.reset_cont)
-        # self.sw_reset.clicked.connect(self.reset_cont)
-        # self.nrc_reset_12.clicked.connect(self.reset_cont)
-        # self.nrc_reset_13.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_hw.clicked.connect(self.reset_cont)
-        # self.nrc_reset_7f_sw.clicked.connect(self.reset_cont)
+        self.btn_memory_fault_check.clicked.connect(self.thread_worker.diag_func)
+        # self.btn_memory_fault_check.clicked.connect(self.diag_memory_fault)
+        self.btn_memory_fault_reset.clicked.connect(self.thread_worker.diag_func)
 
         # self.clear_console.clicked.connect(self.diag_text_clear)
 
@@ -346,6 +331,9 @@ class Main(QMainWindow, form_class):
         self.chkbox_drv_invalid.setEnabled(flag)
         self.chkbox_pass_invalid.setEnabled(flag)
 
+        self.btn_memory_fault_check.setEnabled(flag)
+        self.btn_memory_fault_reset.setEnabled(flag)
+
     def set_diag_btns_enable(self, flag):
         if flag:
             color = "black"
@@ -531,6 +519,34 @@ class Main(QMainWindow, form_class):
 #         # if li[3] == '18ff8621':
 #         #     print("good", li)
 #         #     self.mmi_console.appendPlainText(str(li))
+
+    def diag_memory_fault(self, txt):
+        flag = True
+        while flag:
+            a = str(self.c_can_bus.recv()).split()
+
+            if a[3] == "18daf141":
+                self.diag_list.append(a)
+
+            self.data[0] = 0x03
+            self.data[1] = 0x19
+            self.data[2] = 0x02
+            self.data[3] = 0x09
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.c_can_bus.send(message)
+            if len(self.temp_list) != 0:
+                li_len = len(self.temp_list)
+                temp = self.temp_list[li_len-1]
+                if temp[8] == "10":
+                    print("need to flow control")
+                    self.temp_list = []
+                    self.data[0] = 0x30
+                    self.data[1] = 0x00
+                    self.data[2] = 0x00
+                    message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+                    self.c_can_bus.send(message)
+            print(self.temp_list)
+
 
 
 if __name__ == '__main__':
