@@ -5,15 +5,15 @@
 # import canopen
 
 # ****need to fix to the bit length
-def example(hex_val, pos, bit_len, val):
-    a = bin(hex_val)[2:].zfill(8)
-    val_bin = bin(val)[2:].zfill(bit_len)
-    if pos > 0:
-        temp = a[pos - 1] + val_bin + a[pos + len(val_bin):]
-    else:
-        temp = val_bin + a[pos + len(val_bin):]
-    print(int(temp, 2))
-    return hex(int(temp, 2))
+# def example(hex_val, pos, bit_len, val):
+#     a = bin(hex_val)[2:].zfill(8)
+#     val_bin = bin(val)[2:].zfill(bit_len)
+#     if pos > 0:
+#         temp = a[pos - 1] + val_bin + a[pos + len(val_bin):]
+#     else:
+#         temp = val_bin + a[pos + len(val_bin):]
+#     print(int(temp, 2))
+#     return hex(int(temp, 2))
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -52,7 +52,15 @@ def print_hi(name):
     #
     # print(sig_generator(0x81, 4, 3, 2))
 
-
+    # a = {1,2,3}
+    # b = {3}
+    # c = a | b
+    # print(a, b, c)
+    for i in range(5):
+        for j in range(5):
+            if i == j:
+                break
+            print(f'i={i}', f'j={j}')
 
     # color_str = f"\"color : {color}\""
     # print(color_str)

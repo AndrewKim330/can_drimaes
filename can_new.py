@@ -1,12 +1,14 @@
+import copy
 
 import scrapping3 as scr
 
 import sys
 import can
 import time
+import security_algorithm as secu_algo
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5 import uic
+from PyQt5 import uic, QtCore
 from can import interfaces
 
 
@@ -21,15 +23,25 @@ class Main(QMainWindow, form_class):
     def __init__(self):
         super().__init__()
 
+        QtCore.QCoreApplication.processEvents()
+
         self.setupUi(self)
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
         self.temp_list = []
 
+        self.flow = False
+
         self.c_can_bus = None
         self.p_can_bus = None
         self.bus_flag = False
+
+        self.diag_btn_text = None
+        self.diag_success_byte = None
+        self.diag_failure_byte = "7f"
+        self.drv_state = False
+        self.diag_list = []
 
         self.hvac_worker = worker.Hvac(parent=self)
 
@@ -98,21 +110,23 @@ class Main(QMainWindow, form_class):
 
         self.tx_worker.sig2.connect(self.sig2)
 
-        self.btn_sess_default.clicked.connect(self.thread_worker.diag_func)
-        self.btn_sess_extended.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_sess_12.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_sess_13.clicked.connect(self.thread_worker.diag_func)
+        self.btn_sess_default.clicked.connect(self.diag_func)
+        self.btn_sess_extended.clicked.connect(self.diag_func)
+        self.btn_sess_nrc_12.clicked.connect(self.diag_func)
+        self.btn_sess_nrc_13.clicked.connect(self.diag_func)
 
-        self.btn_reset_sw.clicked.connect(self.thread_worker.diag_func)
-        self.btn_reset_hw.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_reset_12.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_reset_13.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_reset_7f_sw.clicked.connect(self.thread_worker.diag_func)
-        self.btn_nrc_reset_7f_hw.clicked.connect(self.thread_worker.diag_func)
+        self.btn_reset_sw.clicked.connect(self.diag_func)
+        self.btn_reset_hw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_12.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_13.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_7f_sw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_7f_hw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_22_sw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
 
-        self.btn_memory_fault_check.clicked.connect(self.thread_worker.diag_func)
+        self.btn_memory_fault_check.clicked.connect(self.diag_func)
         # self.btn_memory_fault_check.clicked.connect(self.diag_memory_fault)
-        self.btn_memory_fault_reset.clicked.connect(self.thread_worker.diag_func)
+        self.btn_memory_fault_reset.clicked.connect(self.diag_func)
 
         # self.clear_console.clicked.connect(self.diag_text_clear)
 
@@ -121,13 +135,13 @@ class Main(QMainWindow, form_class):
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
-        self.btn_mmi_console_clear.clicked.connect(self.mmi_text_clear)
+        self.btn_main_console_clear.clicked.connect(self.mmi_text_clear)
         self.btn_diag_console_clear.clicked.connect(self.diag_text_clear)
 
-        self.btn_diag_reset_1.clicked.connect(self.set_diag_btns_enable)
-        self.btn_diag_reset_2.clicked.connect(self.set_diag_btns_enable)
+        # self.btn_diag_reset_1.clicked.connect(self.set_diag_btns_enable)
+        # self.btn_diag_reset_2.clicked.connect(self.set_diag_btns_enable)
 
-        self.set_basic_btns_enable(False)
+        self.set_can_basic_btns_enable(False)
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -201,8 +215,9 @@ class Main(QMainWindow, form_class):
             self.battery_worker._isRunning = True
             self.charge_worker._isRunning = True
 
-            self.set_basic_btns_enable(True)
+            self.set_can_basic_btns_enable(True)
 
+            QtCore.QCoreApplication.processEvents()
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -235,7 +250,7 @@ class Main(QMainWindow, form_class):
         self.battery_worker.quit()
         self.charge_worker.quit()
 
-        self.set_basic_btns_enable(False)
+        self.set_can_basic_btns_enable(False)
 
     def set_drv_state(self):
         if self.btn_drv_state.text() == 'Set Driving State' or self.thread_worker.drv_state:
@@ -254,7 +269,7 @@ class Main(QMainWindow, form_class):
             self.btn_gear_n.setChecked(True)
             self.chkbox_h_brake.setChecked(True)
 
-    def set_basic_btns_enable(self, flag):
+    def set_can_basic_btns_enable(self, flag):
         if flag:
             color = "black"
             self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
@@ -334,7 +349,8 @@ class Main(QMainWindow, form_class):
         self.btn_memory_fault_check.setEnabled(flag)
         self.btn_memory_fault_reset.setEnabled(flag)
 
-    def set_diag_btns_enable(self, flag):
+    def set_diag_basic_btns_enable(self, flag):
+        # **need to add reset btns
         if flag:
             color = "black"
         else:
@@ -345,208 +361,413 @@ class Main(QMainWindow, form_class):
         self.btn_sess_extended.setEnabled(flag)
         self.label_sess_extended.setStyleSheet(f"color: {color}")
 
+        self.btn_sess_nrc_12.setEnabled(flag)
+        self.label_sess_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_sess_nrc_13.setEnabled(flag)
+        self.label_sess_nrc_13.setStyleSheet(f"color: {color}")
 
-    # def btn_clicked_dtc_num(self):
-    #     print("19 01 service")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
-    #
-    # def btn_clicked_dtc_list(self):
-    #     print("19 02 service")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x02, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
+        self.btn_tester.setEnabled(flag)
+        self.label_tester.setStyleSheet(f"color: {color}")
 
-    # def btn_clicked5(self):
-    #     print("2E - ECU date")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
-    #
-    # def btn_clicked6(self):
-    #     print("27 02 service")
-    #     message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     bus1.send(message)
+        self.btn_tester_nrc_12.setEnabled(flag)
+        self.label_tester_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_tester_nrc_13.setEnabled(flag)
+        self.label_tester_nrc_13.setStyleSheet(f"color: {color}")
+
+    def set_diag_did_btns_enable(self, flag):
+        if flag:
+            color = "black"
+        else:
+            color = "gray"
+
+        self.btn_id_ecu_num.setEnabled(flag)
+        self.label_id_ecu_num.setStyleSheet(f"color: {color}")
+        self.btn_id_ecu_supp.setEnabled(flag)
+        self.label_id_ecu_supp.setStyleSheet(f"color: {color}")
+        self.btn_id_vin.setEnabled(flag)
+        self.label_id_vin.setStyleSheet(f"color: {color}")
+        self.btn_id_install_date.setEnabled(flag)
+        self.label_id_install_date.setStyleSheet(f"color: {color}")
+        self.btn_id_diag_ver.setEnabled(flag)
+        self.label_id_diag_ver.setStyleSheet(f"color: {color}")
+        self.btn_id_sys_name.setEnabled(flag)
+        self.label_id_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_id_active_sess.setEnabled(flag)
+        self.label_id_active_sess.setStyleSheet(f"color: {color}")
+        self.btn_id_veh_name.setEnabled(flag)
+        self.label_id_veh_name.setStyleSheet(f"color: {color}")
+        self.btn_id_ecu_serial.setEnabled(flag)
+        self.label_id_ecu_serial.setStyleSheet(f"color: {color}")
+        self.btn_id_hw_ver.setEnabled(flag)
+        self.label_id_hw_ver.setStyleSheet(f"color: {color}")
+        self.btn_id_sw_ver.setEnabled(flag)
+        self.label_id_sw_ver.setStyleSheet(f"color: {color}")
+        self.btn_id_ecu_manu_date.setEnabled(flag)
+        self.label_id_ecu_manu_date.setStyleSheet(f"color: {color}")
+        self.btn_id_assy_num.setEnabled(flag)
+        self.label_id_assy_num.setStyleSheet(f"color: {color}")
+        self.btn_id_net_config.setEnabled(flag)
+        self.label_id_net_config.setStyleSheet(f"color: {color}")
+
+        self.btn_id_nrc_13.setEnabled(flag)
+        self.label_id_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_id_nrc_31.setEnabled(flag)
+        self.label_id_nrc_31.setStyleSheet(f"color: {color}")
+
+    def set_diag_secu_btns_enable(self, flag):
+        if flag:
+            color = "black"
+        else:
+            color = "gray"
+
+        self.btn_sec_req_seed.setEnabled(flag)
+        self.label_sec_req_seed.setStyleSheet(f"color: {color}")
+        self.btn_sec_send_key.setEnabled(flag)
+        self.label_sec_send_key.setStyleSheet(f"color: {color}")
+
+        self.btn_sec_nrc_12.setEnabled(flag)
+        self.label_sec_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_13.setEnabled(flag)
+        self.label_sec_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_24.setEnabled(flag)
+        self.label_sec_nrc_24.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_35.setEnabled(flag)
+        self.label_sec_nrc_35.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_36.setEnabled(flag)
+        self.label_sec_nrc_36.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_37.setEnabled(flag)
+        self.label_sec_nrc_37.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_7f_req.setEnabled(flag)
+        self.label_sec_nrc_7f_req.setStyleSheet(f"color: {color}")
+        self.btn_sec_nrc_7f_send.setEnabled(flag)
+        self.label_sec_nrc_7f_send.setStyleSheet(f"color: {color}")
+
+    def set_diag_write_btns_enable(self, flag):
+        if flag:
+            color = "black"
+        else:
+            color = "gray"
+
+        self.btn_write_vin.setEnabled(flag)
+        self.label_write_vin.setStyleSheet(f"color: {color}")
+        self.btn_write_install_date.setEnabled(flag)
+        self.label_write_install_date.setStyleSheet(f"color: {color}")
+        self.btn_write_veh_name.setEnabled(flag)
+        self.label_write_veh_name.setStyleSheet(f"color: {color}")
+        self.btn_write_sys_name.setEnabled(flag)
+        self.label_write_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_write_net_config.setEnabled(flag)
+        self.label_write_net_config.setStyleSheet(f"color: {color}")
+
+        self.btn_write_nrc_7f_vin.setEnabled(flag)
+        self.label_write_nrc_7f_vin.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_7f_install_date.setEnabled(flag)
+        self.label_write_nrc_7f_install_date.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_7f_veh_name.setEnabled(flag)
+        self.label_write_nrc_7f_veh_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_7f_sys_name.setEnabled(flag)
+        self.label_write_nrc_7f_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_7f_net_config.setEnabled(flag)
+        self.label_write_nrc_7f_net_config.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_33_vin.setEnabled(flag)
+        self.label_write_nrc_33_vin.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_33_install_date.setEnabled(flag)
+        self.label_write_nrc_33_install_date.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_33_veh_name.setEnabled(flag)
+        self.label_write_nrc_33_veh_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_33_sys_name.setEnabled(flag)
+        self.label_write_nrc_33_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_33_net_config.setEnabled(flag)
+        self.label_write_nrc_33_net_config.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_22_vin.setEnabled(flag)
+        self.label_write_nrc_22_vin.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_22_install_date.setEnabled(flag)
+        self.label_write_nrc_22_install_date.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_22_veh_name.setEnabled(flag)
+        self.label_write_nrc_22_veh_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_22_sys_name.setEnabled(flag)
+        self.label_write_nrc_22_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_22_net_config.setEnabled(flag)
+        self.label_write_nrc_22_net_config.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_13.setEnabled(flag)
+        self.label_write_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_write_nrc_31.setEnabled(flag)
+        self.label_write_nrc_31.setStyleSheet(f"color: {color}")
+
+    def set_diag_comm_control_btns_enable(self, flag):
+        if flag:
+            color = "black"
+        else:
+            color = "gray"
+
+        self.btn_comm_cont_all_en.setEnabled(flag)
+        self.label_comm_cont_all_en.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_tx_dis.setEnabled(flag)
+        self.label_comm_cont_tx_dis.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_all_dis.setEnabled(flag)
+        self.label_comm_cont_all_dis.setStyleSheet(f"color: {color}")
+
+        self.btn_comm_cont_nrc_12.setEnabled(flag)
+        self.label_comm_cont_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_13.setEnabled(flag)
+        self.label_comm_cont_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_31.setEnabled(flag)
+        self.label_comm_cont_nrc_31.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_7f_all_en.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_all_en.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_7f_tx_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_tx_dis.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_7f_all_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_all_dis.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_22_all_en.setEnabled(flag)
+        self.label_comm_cont_nrc_22_all_en.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_22_tx_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_22_tx_dis.setStyleSheet(f"color: {color}")
+        self.btn_comm_cont_nrc_22_all_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_22_all_dis.setStyleSheet(f"color: {color}")
 
     def diag_text_clear(self):
         self.diag_console.clear()
 
     def mmi_text_clear(self):
-        self.mmi_console.clear()
+        self.main_console.clear()
 
     @pyqtSlot(list)
     def sig2(self, li):
-        self.mmi_console.appendPlainText(str(li))
-        #     print("diag", li)
-        #     self.session_cont(li)
-        # if li[3] == '18ffd741':
-        #     print("Seat_HAVC", li)
-        #     self.mmi_console.appendPlainText(str(li))
-        # for i in li:
-        #     self.mmi_hvac.append(str(i))
-        #     # self.text_box.appendPlainText(str(i))
-        # if li[3] == '18ff8621':
-            # print("good", li)
-            # self.mmi_console.appendPlainText(str(li))
+        self.main_console.appendPlainText(str(li))
+        # if li[3] == "18daf141":
+        #     self.diag_list.append(li)
+        #     self.diag_console.appendPlainText(str(li))
+        QtCore.QCoreApplication.processEvents()
 
-    # def reset_cont(self, l):
-    #     try:
-    #         btn_text = self.sender().objectName()
-    #         if len(btn_text) > 0:
-    #             message = can.Message(arbitration_id=0x18da41f1,
-    #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             bus1.send(message)
-    #             time.sleep(0.5)
-    #             if btn_text == "hw_reset":
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x02, 0x11, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             elif btn_text == "sw_reset":
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x02, 0x11, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             elif btn_text == "nrc_reset_12":
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x02, 0x11, 0x07, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             elif btn_text == "nrc_reset_13":
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x03, 0x11, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             elif btn_text == "nrc_reset_7f_hw":
-    #                 self.custom_signal.emit("security")
-    #                 #
-    #                 # message = can.Message(arbitration_id=0x18da41f1,
-    #                 #                       data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #                 # bus1.send(message)
-    #                 # time.sleep(0.5)
-    #                 # message = can.Message(arbitration_id=0x18da41f1,
-    #                 #                       data=[0x02, 0x11, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #             elif btn_text == "nrc_reset_7f_sw":
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #                 bus1.send(message)
-    #                 time.sleep(0.5)
-    #                 message = can.Message(arbitration_id=0x18da41f1,
-    #                                       data=[0x02, 0x11, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #
-    #             bus1.send(message)
-    #         time.sleep(0.5)
-    #         if l:
-    #             data_str = str([l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15]])
-    #             if l[9] == "51":
-    #                 print("51")
-    #                 pf_flag = "Success"
-    #                 if l[10] == "01":
-    #                     reset_name = "H/W"
-    #                     self.hw_reset_label.setText("Tested Success")
-    #                 elif l[10] == "03":
-    #                     reset_name = "S/W"
-    #                     self.sw_reset_label.setText("Tested Success")
-    #                 console_str = f'{reset_name} reset {pf_flag}'
-    #                 self.diag_console.appendPlainText(console_str)
-    #                 self.diag_console.appendPlainText(data_str)
-    #             elif l[9] == "7f":
-    #                 if l[11] == "12":
-    #                     reason = "Not Supported Subfunction"
-    #                     self.nrc_reset_12_label.setText("Tested Success")
-    #                 elif l[11] == "13":
-    #                     reason = "Data Length Error"
-    #                     self.nrc_reset_13_label.setText("Tested Success")
-    #                 elif l[11] == "7f":
-    #                     if l[10] == "01":
-    #                         reason = "Not Supported Session (for H/W reset)"
-    #                         self.nrc_reset_7f_hw_label.setText("Tested Success")
-    #                     elif l[10] == "03":
-    #                         reason = "Not Supported Session (for S/W reset)"
-    #                         self.nrc_reset_7f_sw_label.setText("Tested Success")
-    #                 console_str = f'Diagnosis Error - {reason} (NRC Code : {l[11]})'
-    #                 self.diag_console.appendPlainText(console_str)
-    #                 self.diag_console.appendPlainText(data_str)
-    #     except AttributeError:
-    #         pass
-    #
-    # # def btn_reset(self):
+    def diag_func(self):
+        if self.sender():
+            self.diag_btn_text = self.sender().objectName()
+            if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" \
+                    or self.diag_btn_text == "btn_sess_nrc_12" or self.diag_btn_text == "btn_sess_nrc_13":
+                self.diag_success_byte = "50"
+                self.diag_sess(self.diag_btn_text)
+            elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" \
+                    or self.diag_btn_text == "btn_reset_nrc_12" or self.diag_btn_text == "btn_reset_nrc_13" \
+                    or self.diag_btn_text == "btn_reset_nrc_7f_sw" or self.diag_btn_text == "btn_reset_nrc_7f_hw" \
+                    or self.diag_btn_text == "btn_reset_nrc_22_sw" or self.diag_btn_text == "btn_reset_nrc_22_hw":
+                self.diag_success_byte = "51"
+                self.diag_reset(self.diag_btn_text)
+            elif self.diag_btn_text == "btn_memory_fault_check" or self.diag_btn_text == "btn_memory_fault_reset":
+                self.diag_success_byte = "59"
+                self.diag_memory_fault(self.diag_btn_text)
 
-    # def btn_clicked_security(self):
-    #     self.custom_signal.emit("security")
-    #
-    # def btn_clicked_write(self):
-    #     self.custom_signal.emit("write")
+    def diag_sess(self, txt):
+        if txt == "btn_sess_default":
+            self.data[0] = 0x02
+            self.data[1] = 0x10
+            self.data[2] = 0x01
+        elif txt == "btn_sess_extended":
+            self.data[0] = 0x02
+            self.data[1] = 0x10
+            self.data[2] = 0x03
+        elif txt == "btn_sess_nrc_12":
+            self.data[0] = 0x02
+            self.data[1] = 0x10
+            self.data[2] = 0xFF
+        elif txt == "btn_sess_nrc_13":
+            self.data[0] = 0x03
+            self.data[1] = 0x10
+            self.data[2] = 0x01
+            self.data[3] = 0x01
+        while len(self.diag_list) == 0:
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.c_can_bus.send(message)
+            self.diag_console.appendPlainText("Thread trying to send message once more")
+            time.sleep(0.5)
+            QtCore.QCoreApplication.processEvents()
+        li_len = len(self.diag_list)
+        temp = self.diag_list[li_len - 1]
+        if temp[9] == self.diag_success_byte:
+            if temp[10] == "01":
+                self.btn_sess_default.setEnabled(False)
+                self.label_sess_default.setText("Success")
+            elif temp[10] == "03":
+                self.btn_sess_extended.setEnabled(False)
+                self.label_sess_extended.setText("Success")
+        else:
+            if temp[11] == "12":
+                self.btn_sess_nrc_12.setEnabled(False)
+                self.label_sess_nrc_12.setText("Success")
+            elif temp[11] == "13":
+                self.btn_sess_nrc_13.setEnabled(False)
+                self.label_sess_nrc_13.setText("Success")
+        for tt in self.diag_list:
+            self.diag_console.appendPlainText(str(tt))
+        # need to add test failed scenario
+        # self.diag_console.appendPlainText("Test Failed")
+        self.diag_list = []
+
+    def diag_reset(self, txt):
+        if txt == "btn_reset_sw":
+            self.diag_sess("btn_sess_extended")
+            time.sleep(0.3)
+            self.data[0] = 0x02
+            self.data[1] = 0x11
+            self.data[2] = 0x01
+        # elif txt == "btn_sess_extended":
+        #     self.data[0] = 0x02
+        #     self.data[1] = 0x10
+        #     self.data[2] = 0x03
+        # elif txt == "btn_sess_nrc_12":
+        #     self.data[0] = 0x02
+        #     self.data[1] = 0x10
+        #     self.data[2] = 0xFF
+        # elif txt == "btn_sess_nrc_13":
+        #     self.data[0] = 0x03
+        #     self.data[1] = 0x10
+        #     self.data[2] = 0x01
+        #     self.data[3] = 0x01
+        # while len(self.diag_list) == 0:
+        message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        self.c_can_bus.send(message)
+            # try:
+            #     self.c_can_bus.send(message)
+            # except:
+            #     print("aaaa")
+            #     time.sleep(0.5)
+            #     self.diag_reset(txt)
+            # self.diag_console.appendPlainText("Thread trying to send message once more")
+            # time.sleep(0.5)
+        while len(self.diag_list) == 0:
+            time.sleep(0.5)
+            QtCore.QCoreApplication.processEvents()
+        li_len = len(self.diag_list)
+        temp = self.diag_list[li_len - 1]
+        if temp[9] == self.diag_success_byte:
+            if temp[10] == "01":
+                self.btn_reset_sw.setEnabled(False)
+                self.label_reset_sw.setText("Success")
+            elif temp[10] == "03":
+                self.btn_sess_extended.setEnabled(False)
+                self.label_sess_extended.setText("Success")
+        else:
+            if temp[11] == "12":
+                self.btn_sess_nrc_12.setEnabled(False)
+                self.label_sess_nrc_12.setText("Success")
+            elif temp[11] == "13":
+                self.btn_sess_nrc_13.setEnabled(False)
+                self.label_sess_nrc_13.setText("Success")
+        for tt in self.diag_list:
+            self.diag_console.appendPlainText(str(tt))
+        # need to add test failed scenario
+        # self.diag_console.appendPlainText("Test Failed")
+        self.diag_list = []
+
+    def temp(self):
+        while True:
+            if self.c_can_bus:
+                a = str(self.c_can_bus.recv()).split()
+                QtCore.QCoreApplication.processEvents()
+                self.main_console.appendPlainText(str(a))
+                # self.sig2.emit(a)
+            else:
+                print("no good")
 
 
-# @pyqtSlot(list)
-#     def sig2(self, li):
-#         self.mmi_console.appendPlainText(str(li))
-#         if li[3] == '18ffd741':
-#             seat_hvac_bin = bin(int(li[9], 16))[2:].zfill(8)
-#             drv_heat = seat_hvac_bin[6:8]
-#             self.txt_res_drv_heat.setText(str(int(drv_heat, 2)))
-#             pass_heat = seat_hvac_bin[4:6]
-#             self.txt_res_pass_heat.setText(str(int(pass_heat, 2)))
-#             drv_vent = seat_hvac_bin[2:4]
-#             self.txt_res_drv_vent.setText(str(int(drv_vent, 2)))
-#             pass_vent = seat_hvac_bin[0:2]
-#             self.txt_res_pass_vent.setText(str(int(pass_vent, 2)))
-#
-#             st_whl_heat_bin = bin(int(li[8], 16))[2:].zfill(8)
-#             st_whl_heat = st_whl_heat_bin[6:8]
-#             self.txt_res_st_whl_heat.setText(str(int(st_whl_heat, 2)))
-#
-#             tpms_and_sidemirror_mani_bin = bin(int(li[10], 16))[2:].zfill(8)
-#             sidemirror = tpms_and_sidemirror_mani_bin[4:6]
-#             self.txt_res_side_mani.setText(str(int(sidemirror, 2)))
-#
-#         if li[3] == '0c0ba021':
-#             aeb_bin = bin(int(li[8], 16))[2:].zfill(8)
-#             aeb = aeb_bin[6:8]
-#             self.txt_res_aeb.setText(str(int(aeb, 2)))
-#
-#         if li[3] == '18ffd841':
-#             sidemirror_heat_bin = bin(int(li[15], 16))[2:].zfill(8)
-#             sidemirror_heat = sidemirror_heat_bin[0:2]
-#             self.txt_res_side_heat.setText(str(int(sidemirror_heat, 2)))
-#
-#             home_safety_light_bin = bin(int(li[11], 16))[2:].zfill(8)
-#             home_safety_light = home_safety_light_bin[3:5]
-#             self.txt_res_light.setText(str(int(home_safety_light, 2)))
-#
-#         # self.mmi_console.appendPlainText(str(li))
-#         # self.mmi_hvac.appendPlainText(li[5])
-#         if li[3] == "18daf141":
-#             print("diag", li)
-#             self.diag_console.appendPlainText(li[5])
-#         # if li[3] == '18ffd741':
-#         #     print("Seat_HAVC", li)
-#         #     self.mmi_console.appendPlainText(str(li))
-#         # for i in li:
-#         #     self.mmi_hvac.append(str(i))
-#         #     # self.text_box.appendPlainText(str(i))
-#         # if li[3] == '18ff8621':
-#         #     print("good", li)
-#         #     self.mmi_console.appendPlainText(str(li))
-
-    def diag_memory_fault(self, txt):
-        flag = True
-        while flag:
-            a = str(self.c_can_bus.recv()).split()
-
-            if a[3] == "18daf141":
-                self.diag_list.append(a)
-
+    def diag_memory_fault(self, txt=None):
+        temp_li = []
+        bb = []
+        flag = False
+        self.data[0] = 0x03
+        self.data[1] = 0x19
+        self.data[2] = 0x02
+        self.data[3] = 0x09
+        message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        self.c_can_bus.send(message)
+        while len(temp_li) < 11:
             self.data[0] = 0x03
             self.data[1] = 0x19
             self.data[2] = 0x02
             self.data[3] = 0x09
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.c_can_bus.send(message)
-            if len(self.temp_list) != 0:
-                li_len = len(self.temp_list)
-                temp = self.temp_list[li_len-1]
-                if temp[8] == "10":
-                    print("need to flow control")
-                    self.temp_list = []
-                    self.data[0] = 0x30
-                    self.data[1] = 0x00
-                    self.data[2] = 0x00
-                    message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                    self.c_can_bus.send(message)
-            print(self.temp_list)
+            time.sleep(0.010)
+            self.data[0] = 0x30
+            self.data[1] = 0x00
+            self.data[2] = 0x00
+            self.data[3] = 0xFF
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.c_can_bus.send(message)
+            time.sleep(0.5)
+            zzz = copy.copy(self.tx_worker.ggg)
+            if flag:
+                for qqq in zzz:
+                    if qqq[8] == '03':
+                        continue
+                    for q in bb:
+                        uni = bb | {qqq[8]}
+                        if bb != uni:
+                            bb.add(qqq[8])
+                            temp_li.append(qqq)
+                            break
+            else:
+                if len(zzz) != 0:
+                    for qqq in zzz:
+                        if qqq[8] == '03':
+                            continue
+                        bb.append(qqq[8])
+                        temp_li.append(qqq)
+                    bb = set(bb)
+                    flag = True
+            self.tx_worker.ggg = []
+            QtCore.QCoreApplication.processEvents()
+        print(bb)
+        order = []
+        for zz in bb:
+            print(zz)
+            a = int(zz[-1], 16)
+            print(a)
+            order.append(a)
+        print(order)
+        # for zz in temp_li:
+            # print(zz)
+            # self.diag_console.appendPlainText(str(zz))
+        # self.data[4] = 0x00
+        # self.data[5] = 0x00
+        # self.data[6] = 0x00
+        # self.data[7] = 0x00
+        # li_len = len(self.diag_list)
+        # temp = self.diag_list[li_len - 1]
+        # if temp[8] == "10":
+        #     print("aaaaa")
+        # self.diag_console_mem.appendPlainText("Flow Control")
+        # self.diag_console.appendPlainText(str)
+                # self.diag_console.appendPlainText(str(qqq))
+                # QtCore.QCoreApplication.processEvents()
+        # message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        # self.c_can_bus.send(message)
+        # QtCore.QCoreApplication.processEvents()
+        # time.sleep(2)
+        # print(self.diag_list)
+        # for tt in self.diag_list:
+        #     self.diag_console_mem.appendPlainText(str(tt))
 
+        # while len(self.temp_list) == 0:
+        #     self.c_can_bus.send(message)
+        #     self.diag_console.appendPlainText("Thread trying to send message once more")
+        #     QtCore.QCoreApplication.processEvents()
+        # li_len = len(self.temp_list)
+        # temp = self.temp_list[li_len-1]
+        # print(temp)
+
+        #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        #     self.c_can_bus.send(message)
+
+    def security_access(self, txt=None):
+        self.data[0] = 0x02
+        self.data[1] = 0x27
+        self.data[2] = 0x01
+        message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+
+        good = secu_algo()
+
+        message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
 
 
 if __name__ == '__main__':

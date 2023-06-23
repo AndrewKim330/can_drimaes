@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1178</width>
-    <height>1048</height>
+    <height>1052</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,11 +20,11 @@
       <x>20</x>
       <y>10</y>
       <width>921</width>
-      <height>811</height>
+      <height>731</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -327,9 +327,9 @@
       <property name="geometry">
        <rect>
         <x>250</x>
-        <y>130</y>
+        <y>120</y>
         <width>181</width>
-        <height>141</height>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -339,7 +339,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>30</y>
+         <y>40</y>
          <width>90</width>
          <height>21</height>
         </rect>
@@ -355,7 +355,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>70</y>
+         <y>80</y>
          <width>90</width>
          <height>21</height>
         </rect>
@@ -368,7 +368,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>110</y>
+         <y>120</y>
          <width>90</width>
          <height>21</height>
         </rect>
@@ -381,10 +381,10 @@
      <widget class="QGroupBox" name="power_group">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>30</y>
-        <width>181</width>
-        <height>241</height>
+        <x>30</x>
+        <y>20</y>
+        <width>191</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -394,7 +394,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>40</y>
+         <y>30</y>
          <width>161</width>
          <height>21</height>
         </rect>
@@ -407,7 +407,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>90</y>
+         <y>60</y>
          <width>161</width>
          <height>21</height>
         </rect>
@@ -420,7 +420,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>140</y>
+         <y>90</y>
          <width>161</width>
          <height>20</height>
         </rect>
@@ -433,7 +433,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>190</y>
+         <y>120</y>
          <width>161</width>
          <height>21</height>
         </rect>
@@ -447,9 +447,9 @@
       <property name="geometry">
        <rect>
         <x>460</x>
-        <y>30</y>
+        <y>20</y>
         <width>421</width>
-        <height>401</height>
+        <height>411</height>
        </rect>
       </property>
       <property name="title">
@@ -882,7 +882,7 @@
       <widget class="QLabel" name="tick_240">
        <property name="geometry">
         <rect>
-         <x>352</x>
+         <x>351</x>
          <y>110</y>
          <width>31</width>
          <height>16</height>
@@ -898,7 +898,7 @@
       <widget class="QLabel" name="tick_120">
        <property name="geometry">
         <rect>
-         <x>183</x>
+         <x>178</x>
          <y>110</y>
          <width>31</width>
          <height>16</height>
@@ -929,8 +929,8 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>450</y>
-        <width>331</width>
+        <y>440</y>
+        <width>321</width>
         <height>131</height>
        </rect>
       </property>
@@ -953,7 +953,7 @@
       <widget class="QLabel" name="label_battery">
        <property name="geometry">
         <rect>
-         <x>170</x>
+         <x>160</x>
          <y>90</y>
          <width>141</width>
          <height>20</height>
@@ -969,9 +969,9 @@
       <widget class="QSlider" name="slider_battery">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>20</x>
          <y>30</y>
-         <width>271</width>
+         <width>281</width>
          <height>20</height>
         </rect>
        </property>
@@ -1000,7 +1000,7 @@
       <widget class="QLabel" name="tick_0_batt">
        <property name="geometry">
         <rect>
-         <x>25</x>
+         <x>13</x>
          <y>55</y>
          <width>21</width>
          <height>16</height>
@@ -1016,7 +1016,7 @@
       <widget class="QLabel" name="tick_50">
        <property name="geometry">
         <rect>
-         <x>157</x>
+         <x>151</x>
          <y>55</y>
          <width>21</width>
          <height>16</height>
@@ -1032,7 +1032,7 @@
       <widget class="QLabel" name="tick_100">
        <property name="geometry">
         <rect>
-         <x>278</x>
+         <x>280</x>
          <y>55</y>
          <width>31</width>
          <height>16</height>
@@ -1050,7 +1050,7 @@
       <property name="geometry">
        <rect>
         <x>250</x>
-        <y>30</y>
+        <y>20</y>
         <width>181</width>
         <height>81</height>
        </rect>
@@ -1075,9 +1075,9 @@
      <widget class="QGroupBox" name="ota_group">
       <property name="geometry">
        <rect>
-        <x>630</x>
-        <y>620</y>
-        <width>251</width>
+        <x>370</x>
+        <y>550</y>
+        <width>231</width>
         <height>131</height>
        </rect>
       </property>
@@ -1100,7 +1100,7 @@
       <widget class="QPushButton" name="btn_ota_cond">
        <property name="geometry">
         <rect>
-         <x>40</x>
+         <x>30</x>
          <y>30</y>
          <width>171</width>
          <height>41</height>
@@ -1116,8 +1116,8 @@
        <rect>
         <x>30</x>
         <y>590</y>
-        <width>161</width>
-        <height>161</height>
+        <width>321</width>
+        <height>91</height>
        </rect>
       </property>
       <property name="title">
@@ -1127,7 +1127,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>40</y>
+         <y>30</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1139,8 +1139,8 @@
       <widget class="QPushButton" name="btn_tpms_fail">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>100</y>
+         <x>180</x>
+         <y>30</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1153,10 +1153,10 @@
      <widget class="QGroupBox" name="brightness_group">
       <property name="geometry">
        <rect>
-        <x>210</x>
-        <y>590</y>
-        <width>151</width>
-        <height>161</height>
+        <x>30</x>
+        <y>190</y>
+        <width>191</width>
+        <height>91</height>
        </rect>
       </property>
       <property name="title">
@@ -1166,7 +1166,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>50</y>
+         <y>30</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1179,7 +1179,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>100</y>
+         <y>60</y>
          <width>81</width>
          <height>20</height>
         </rect>
@@ -1192,10 +1192,10 @@
      <widget class="QGroupBox" name="mscs_StWhl_diag_group">
       <property name="geometry">
        <rect>
-        <x>390</x>
-        <y>450</y>
-        <width>211</width>
-        <height>301</height>
+        <x>620</x>
+        <y>440</y>
+        <width>261</width>
+        <height>241</height>
        </rect>
       </property>
       <property name="title">
@@ -1205,7 +1205,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>100</y>
+         <y>70</y>
          <width>181</width>
          <height>20</height>
         </rect>
@@ -1218,7 +1218,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>130</y>
+         <y>100</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1230,8 +1230,8 @@
       <widget class="QRadioButton" name="btn_mscs_SnsrFltT">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>160</y>
+         <x>150</x>
+         <y>100</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1244,7 +1244,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>190</y>
+         <y>130</y>
          <width>191</width>
          <height>20</height>
         </rect>
@@ -1257,7 +1257,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>220</y>
+         <y>160</y>
          <width>191</width>
          <height>20</height>
         </rect>
@@ -1270,7 +1270,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>250</y>
+         <y>190</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1282,8 +1282,8 @@
       <widget class="QRadioButton" name="btn_mscs_CmnFail">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>70</y>
+         <x>150</x>
+         <y>40</y>
          <width>121</width>
          <height>20</height>
         </rect>
@@ -1309,10 +1309,10 @@
      <widget class="QGroupBox" name="mscs_seatbelt_group">
       <property name="geometry">
        <rect>
-        <x>630</x>
-        <y>450</y>
-        <width>251</width>
-        <height>151</height>
+        <x>370</x>
+        <y>440</y>
+        <width>231</width>
+        <height>91</height>
        </rect>
       </property>
       <property name="title">
@@ -1322,7 +1322,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>50</y>
+         <y>30</y>
          <width>231</width>
          <height>21</height>
         </rect>
@@ -1338,7 +1338,7 @@
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>90</y>
+         <y>60</y>
          <width>231</width>
          <height>21</height>
         </rect>
@@ -1352,17 +1352,17 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="diagnosis_1">
+    <widget class="QWidget" name="diagnosis_basic">
      <attribute name="title">
-      <string>CAN Diagnosis 1</string>
+      <string>Diagnosis - Basic</string>
      </attribute>
-     <widget class="QGroupBox" name="session_box">
+     <widget class="QGroupBox" name="sess_box">
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>100</y>
-        <width>831</width>
-        <height>211</height>
+        <y>80</y>
+        <width>841</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -1371,8 +1371,8 @@
       <widget class="QPushButton" name="btn_sess_default">
        <property name="geometry">
         <rect>
-         <x>30</x>
-         <y>80</y>
+         <x>40</x>
+         <y>50</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1381,25 +1381,25 @@
         <string>Default</string>
        </property>
       </widget>
-      <widget class="QGroupBox" name="session_nrc_box">
+      <widget class="QGroupBox" name="sess_nrc_box">
        <property name="geometry">
         <rect>
          <x>370</x>
-         <y>30</y>
-         <width>421</width>
-         <height>151</height>
+         <y>20</y>
+         <width>431</width>
+         <height>121</height>
         </rect>
        </property>
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QPushButton" name="btn_nrc_sess_12">
+       <widget class="QPushButton" name="btn_sess_nrc_12">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>40</y>
-          <width>181</width>
-          <height>61</height>
+          <x>30</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1407,12 +1407,12 @@
  Subfunction</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_nrc_sess_12">
+       <widget class="QLabel" name="label_sess_nrc_12">
         <property name="geometry">
          <rect>
-          <x>50</x>
-          <y>110</y>
-          <width>121</width>
+          <x>30</x>
+          <y>90</y>
+          <width>171</width>
           <height>20</height>
          </rect>
         </property>
@@ -1423,25 +1423,25 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_nrc_sess_13">
+       <widget class="QPushButton" name="btn_sess_nrc_13">
         <property name="geometry">
          <rect>
-          <x>220</x>
-          <y>40</y>
-          <width>181</width>
-          <height>61</height>
+          <x>230</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_nrc_sess_13">
+       <widget class="QLabel" name="label_sess_nrc_13">
         <property name="geometry">
          <rect>
-          <x>250</x>
-          <y>110</y>
-          <width>121</width>
+          <x>230</x>
+          <y>90</y>
+          <width>171</width>
           <height>20</height>
          </rect>
         </property>
@@ -1456,8 +1456,8 @@
       <widget class="QPushButton" name="btn_sess_extended">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>80</y>
+         <x>210</x>
+         <y>50</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1470,8 +1470,8 @@
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>130</y>
-         <width>101</width>
+         <y>100</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -1486,8 +1486,8 @@
        <property name="geometry">
         <rect>
          <x>40</x>
-         <y>130</y>
-         <width>101</width>
+         <y>100</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -1499,36 +1499,13 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPlainTextEdit" name="diag_console">
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>670</y>
-        <width>731</width>
-        <height>71</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="btn_diag_console_clear">
-      <property name="geometry">
-       <rect>
-        <x>800</x>
-        <y>640</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Clear</string>
-      </property>
-     </widget>
      <widget class="QGroupBox" name="reset_box">
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>340</y>
-        <width>831</width>
-        <height>301</height>
+        <y>250</y>
+        <width>841</width>
+        <height>261</height>
        </rect>
       </property>
       <property name="title">
@@ -1538,20 +1515,20 @@
        <property name="geometry">
         <rect>
          <x>190</x>
-         <y>30</y>
-         <width>621</width>
-         <height>241</height>
+         <y>20</y>
+         <width>611</width>
+         <height>221</height>
         </rect>
        </property>
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QLabel" name="label_nrc_reset_12">
+       <widget class="QLabel" name="label_reset_nrc_12">
         <property name="geometry">
          <rect>
-          <x>50</x>
-          <y>100</y>
-          <width>121</width>
+          <x>20</x>
+          <y>90</y>
+          <width>171</width>
           <height>20</height>
          </rect>
         </property>
@@ -1562,13 +1539,16 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_12">
+       <widget class="QPushButton" name="btn_reset_nrc_12">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
           <x>20</x>
           <y>30</y>
-          <width>181</width>
-          <height>61</height>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1576,25 +1556,28 @@
  Subfunction</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_13">
+       <widget class="QPushButton" name="btn_reset_nrc_13">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
           <x>20</x>
-          <y>130</y>
-          <width>181</width>
-          <height>61</height>
+          <y>120</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_nrc_reset_13">
+       <widget class="QLabel" name="label_reset_nrc_13">
         <property name="geometry">
          <rect>
-          <x>50</x>
-          <y>200</y>
-          <width>121</width>
+          <x>20</x>
+          <y>180</y>
+          <width>171</width>
           <height>20</height>
          </rect>
         </property>
@@ -1605,13 +1588,16 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_7f_sw">
+       <widget class="QPushButton" name="btn_reset_nrc_7f_sw">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
           <x>220</x>
           <y>30</y>
-          <width>181</width>
-          <height>61</height>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1619,45 +1605,48 @@
  (S/W Reset)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_nrc_reset_7f_sw">
-        <property name="geometry">
-         <rect>
-          <x>250</x>
-          <y>100</y>
-          <width>121</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Not tested</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_nrc_reset_7f_hw">
-        <property name="geometry">
-         <rect>
-          <x>250</x>
-          <y>200</y>
-          <width>121</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Not tested</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_7f_hw">
+       <widget class="QLabel" name="label_reset_nrc_7f_sw">
         <property name="geometry">
          <rect>
           <x>220</x>
-          <y>130</y>
-          <width>181</width>
-          <height>61</height>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_reset_nrc_7f_hw">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>180</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_reset_nrc_7f_hw">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>120</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1665,45 +1654,48 @@
  (H/W Reset)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_nrc_reset_22_hw">
-        <property name="geometry">
-         <rect>
-          <x>450</x>
-          <y>100</y>
-          <width>121</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Not tested</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_nrc_reset_22hw">
-        <property name="geometry">
-         <rect>
-          <x>450</x>
-          <y>200</y>
-          <width>121</width>
-          <height>20</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Not tested</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_22_hw">
+       <widget class="QLabel" name="label_reset_nrc_22_hw">
         <property name="geometry">
          <rect>
           <x>420</x>
-          <y>130</y>
-          <width>181</width>
-          <height>61</height>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_reset_nrc_22hw">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>180</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_reset_nrc_22_hw">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>120</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1711,13 +1703,16 @@
  (H/W Reset)</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_nrc_reset_22_sw">
+       <widget class="QPushButton" name="btn_reset_nrc_22_sw">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="geometry">
          <rect>
           <x>420</x>
           <y>30</y>
-          <width>181</width>
-          <height>61</height>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
@@ -1727,6 +1722,9 @@
        </widget>
       </widget>
       <widget class="QPushButton" name="btn_reset_sw">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -1742,9 +1740,9 @@
       <widget class="QLabel" name="label_reset_sw">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>40</x>
          <y>110</y>
-         <width>101</width>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -1758,9 +1756,9 @@
       <widget class="QLabel" name="label_reset_hw">
        <property name="geometry">
         <rect>
-         <x>50</x>
-         <y>230</y>
-         <width>101</width>
+         <x>40</x>
+         <y>200</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -1772,10 +1770,13 @@
        </property>
       </widget>
       <widget class="QPushButton" name="btn_reset_hw">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>40</x>
-         <y>180</y>
+         <y>150</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -1785,11 +1786,11 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_diag_reset_1">
+     <widget class="QPushButton" name="btn_diag_reset_sess_reset">
       <property name="geometry">
        <rect>
         <x>710</x>
-        <y>30</y>
+        <y>20</y>
         <width>181</width>
         <height>51</height>
        </rect>
@@ -1798,55 +1799,80 @@
        <string>Diagnosis Reset</string>
       </property>
      </widget>
-    </widget>
-    <widget class="QWidget" name="diagnosis_2">
-     <attribute name="title">
-      <string>CAN Diagnosis 2</string>
-     </attribute>
-     <widget class="QGroupBox" name="read_did_box_3">
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_sess_reset">
       <property name="geometry">
        <rect>
-        <x>50</x>
-        <y>100</y>
-        <width>751</width>
-        <height>241</height>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="tester_box">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>520</y>
+        <width>841</width>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
-       <string>Read Data By Identifier</string>
+       <string>Tester Present</string>
       </property>
-      <widget class="QPushButton" name="read_ecu_supplier_3">
+      <widget class="QPushButton" name="btn_tester">
        <property name="geometry">
         <rect>
-         <x>170</x>
-         <y>30</y>
-         <width>111</width>
-         <height>23</height>
+         <x>50</x>
+         <y>50</y>
+         <width>121</width>
+         <height>51</height>
         </rect>
        </property>
        <property name="text">
-        <string>ECU Supplier</string>
+        <string>Tester Present</string>
        </property>
       </widget>
-      <widget class="QGroupBox" name="reset_nrc_box_5">
+      <widget class="QGroupBox" name="tester_nrc_box">
        <property name="geometry">
         <rect>
-         <x>610</x>
-         <y>60</y>
-         <width>131</width>
+         <x>370</x>
+         <y>20</y>
+         <width>431</width>
          <height>121</height>
         </rect>
        </property>
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QLabel" name="nrc_read_13_label_3">
+       <widget class="QPushButton" name="btn_tester_nrc_12">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>50</y>
-          <width>111</width>
-          <height>16</height>
+          <x>30</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not supported 
+ Subfunction</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_tester_nrc_12">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text">
@@ -1856,191 +1882,43 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="nrc_read_31_label_3">
+       <widget class="QPushButton" name="btn_tester_nrc_13">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>100</y>
-          <width>111</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Not tested</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="nrc_read_15">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>111</width>
-          <height>23</height>
+          <x>230</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
          </rect>
         </property>
         <property name="text">
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="nrc_read_33">
+       <widget class="QLabel" name="label_tester_nrc_13">
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>70</y>
-          <width>111</width>
-          <height>23</height>
+          <x>230</x>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text">
-         <string>Invailid Identifier</string>
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </widget>
-      <widget class="QLabel" name="read_ecu_num_label_3">
+      <widget class="QLabel" name="label_tester">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>60</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_ecu_supplier_label_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>60</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_vin_num_label_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>60</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_vin_num_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>30</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>VIN Num.</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_ecu_install_date_3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>30</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ECU Install Date</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_ecu_install_date_label_3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>60</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_hw_ver_label_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>160</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_sw_ver_label_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>160</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_sw_ver_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>130</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>S/W Ver.</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_vehi_name_label_3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
+         <x>50</x>
          <y>110</y>
-         <width>111</width>
-         <height>16</height>
+         <width>121</width>
+         <height>20</height>
         </rect>
        </property>
        <property name="text">
@@ -2050,231 +1928,2064 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="read_vehi_name_3">
+      <widget class="QCheckBox" name="chkbox_tester_present">
        <property name="geometry">
         <rect>
-         <x>470</x>
-         <y>80</y>
-         <width>111</width>
-         <height>23</height>
+         <x>210</x>
+         <y>60</y>
+         <width>141</width>
+         <height>31</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Vehicle Name</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_sys_name_label_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>110</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
        </property>
        <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_sys_name_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>80</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>System Name</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_diag_ver_label_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>110</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_act_sess_label_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>110</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_act_sess_3">
-       <property name="geometry">
-        <rect>
-         <x>320</x>
-         <y>80</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Active Session</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_ecu_num_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>30</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ECU Supplier</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_hw_ver_3">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>130</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>H/W Ver.</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_diag_ver_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>80</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Diag. Ver.</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_manu_date_label_3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>160</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_manu_date_3">
-       <property name="geometry">
-        <rect>
-         <x>470</x>
-         <y>130</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ECU Manu. date</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_ecu_serial_num_label_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>210</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not Tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_ecu_serial_num_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>180</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ECU Serial Num.</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="read_manu_part_num_label_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>160</y>
-         <width>111</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Not Tested</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="read_manu_part_num_3">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>130</y>
-         <width>111</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Manu. Part Num.</string>
+        <string>Tester Present </string>
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_diag_reset_2">
+    </widget>
+    <widget class="QWidget" name="diagnosis_did">
+     <attribute name="title">
+      <string>Diagnosis - DID</string>
+     </attribute>
+     <widget class="QPushButton" name="btn_diag_reset_did">
       <property name="geometry">
        <rect>
         <x>710</x>
-        <y>30</y>
+        <y>20</y>
         <width>181</width>
         <height>51</height>
        </rect>
       </property>
       <property name="text">
        <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="did_box">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>80</y>
+        <width>841</width>
+        <height>581</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Idendification by ID</string>
+      </property>
+      <widget class="QGroupBox" name="did_nrc_box">
+       <property name="geometry">
+        <rect>
+         <x>420</x>
+         <y>440</y>
+         <width>401</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>NRC</string>
+       </property>
+       <widget class="QPushButton" name="btn_id_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Data Length Error</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_id_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_id_nrc_31">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>90</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_id_nrc_31">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>30</y>
+          <width>171</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Invalid Idendifier</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QLabel" name="label_id_ecu_num">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>120</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_ecu_num">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>60</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Number</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_ecu_supp">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>60</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Supplier</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_ecu_supp">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>120</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_vin">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>60</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>VIN Number</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_vin">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>120</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_install_date">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>120</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_install_date">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>60</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Install Date</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_sys_name">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>160</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>System Name</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_diag_ver">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>160</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Diagnosis Version</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_veh_name">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>160</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Vehicle Name</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_active_sess">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>160</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Active Session</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_active_sess">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>220</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_diag_ver">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>210</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_sys_name">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>220</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_veh_name">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>220</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_ecu_manu_date">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>260</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Manufacturing 
+ Date</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_ecu_manu_date">
+       <property name="geometry">
+        <rect>
+         <x>620</x>
+         <y>320</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_ecu_serial">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>260</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Serial 
+ Number</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_sw_ver">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>320</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_sw_ver">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>260</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>S/W Version</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_hw_ver">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>260</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>H/W Version</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_ecu_serial">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>320</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_hw_ver">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>320</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_assy_num">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>360</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Assembly 
+ Number</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_assy_num">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>420</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_id_net_config">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>420</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_id_net_config">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>360</y>
+         <width>171</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Network Config</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_did">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="diagnosis_secu_acc">
+     <attribute name="title">
+      <string>Diagnosis - Security Access</string>
+     </attribute>
+     <widget class="QGroupBox" name="secu_box">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>80</y>
+        <width>841</width>
+        <height>541</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Security Access</string>
+      </property>
+      <widget class="QGroupBox" name="secu_nrc_box">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>200</y>
+         <width>801</width>
+         <height>301</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>NRC</string>
+       </property>
+       <widget class="QPushButton" name="btn_sec_nrc_12">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>50</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not supported 
+ Subfunction</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_12">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>120</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>50</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Data Length Error</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>120</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_35">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>180</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Invalid Key</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_35">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>250</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_36">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>250</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_36">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>180</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Exceede Attempts</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_24">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>50</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security 
+ Sequence Error</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_24">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>120</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_37">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>180</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Request 
+ Within Delay</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_37">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>250</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_7f_req">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>50</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Request Seed)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_sec_nrc_7f_send">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>180</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Send Key)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_7f_send">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>250</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_sec_nrc_7f_req">
+        <property name="geometry">
+         <rect>
+          <x>600</x>
+          <y>120</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QLabel" name="label_sec_req_seed">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>130</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_sec_req_seed">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>60</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Request Seed</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_sec_send_key">
+       <property name="geometry">
+        <rect>
+         <x>470</x>
+         <y>60</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Send Key</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sess_default_4">
+       <property name="geometry">
+        <rect>
+         <x>470</x>
+         <y>130</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="btn_diag_reset_secu_acc">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>20</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_secu_acc">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="diagnosis_write">
+     <attribute name="title">
+      <string>Diagnosis - Write</string>
+     </attribute>
+     <widget class="QPushButton" name="btn_diag_reset_secu_acc_2">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>20</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_secu_acc_2">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="wrtie_box">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>90</y>
+        <width>851</width>
+        <height>601</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Idendification by ID</string>
+      </property>
+      <widget class="QGroupBox" name="wrtie_nrc_box">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>190</y>
+         <width>781</width>
+         <height>391</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>NRC</string>
+       </property>
+       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>30</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (VIN num)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_7f_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>90</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_write_nrc_7f_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>30</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (ECU Date)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_write_nrc_7f_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>90</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_write_nrc_7f_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>30</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Veh Name)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_write_nrc_7f_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>90</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_write_nrc_7f_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>90</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_write_nrc_7f_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>30</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Sys Name)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_write_nrc_7f_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>30</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Net Config)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_write_nrc_7f_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>90</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_22_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>270</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_22_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>210</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (VIN num)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_33_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>120</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security Denied 
+ (VIN num)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_33_vin">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>180</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_22_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>210</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (ECU Date)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_22_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>270</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_33_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>120</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security Denied 
+ (ECU Date)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_33_install_date">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>180</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_22_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>270</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_22_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>210</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (Veh Name)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_33_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>120</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security Denied 
+ (Veh Name)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_33_veh_name">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>180</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_22_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>270</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_22_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>210</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (Sys Name)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_33_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>120</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security Denied 
+ (Sys Name)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_33_sys_name">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>180</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_22_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>270</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_22_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>210</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (Net Config)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_33_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>120</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Security Denied 
+ (Net Config)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_33_net_config">
+        <property name="geometry">
+         <rect>
+          <x>620</x>
+          <y>180</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>300</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Data Length Error</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_7f_vin_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>360</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_wrtie_nrc_7f_vin_3">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>360</y>
+          <width>141</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin_3">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>300</y>
+          <width>141</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Invalid Idendifier</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QPushButton" name="btn_wrtie_vin">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>90</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>VIN Number</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_wrtie_vin">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>150</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_wrtie_install_date">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>150</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_wrtie_install_date">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>90</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ECU Install Date</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_write_sys_name">
+       <property name="geometry">
+        <rect>
+         <x>510</x>
+         <y>90</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>System Name</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_write_veh_name">
+       <property name="geometry">
+        <rect>
+         <x>350</x>
+         <y>90</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Vehicle Name</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_write_sys_name">
+       <property name="geometry">
+        <rect>
+         <x>510</x>
+         <y>150</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_write_veh_name">
+       <property name="geometry">
+        <rect>
+         <x>350</x>
+         <y>150</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_write_net_config">
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>150</y>
+         <width>141</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_write_net_config">
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>90</y>
+         <width>141</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Network Config</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_write_data">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>30</y>
+         <width>281</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_write">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>29</y>
+         <width>191</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>Writing Data :</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Diagnosis - Comm Control</string>
+     </attribute>
+     <widget class="QGroupBox" name="comm_cont_box">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>80</y>
+        <width>841</width>
+        <height>581</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Communication Control</string>
+      </property>
+      <widget class="QGroupBox" name="comm_cont_nrc_box">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>180</y>
+         <width>691</width>
+         <height>371</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>NRC</string>
+       </property>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_12">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>30</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not supported 
+ Subfunction</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_12">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>100</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>30</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Data Length Error</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_13">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>100</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_31">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>30</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Invalid Parameter</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_31">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>100</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_en">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>140</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (All Enable)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_7f_tx_dis">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>140</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (Tx Diable)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_7f_tx_dis">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>210</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_7f_all_en">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>210</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_7f_all_dis">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>210</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_dis">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>140</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Session Error 
+ (All Diable)</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_22_tx_dis">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>250</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (S/W Reset)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_22_tx_dis">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>320</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_22_all_dis">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>320</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_dis">
+        <property name="geometry">
+         <rect>
+          <x>490</x>
+          <y>250</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (H/W Reset)</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_comm_cont_nrc_22_all_en">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>320</y>
+          <width>171</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Not tested</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_en">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>250</y>
+          <width>171</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Driving State 
+ (S/W Reset)</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QLabel" name="label_comm_cont_all_en">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>130</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_comm_cont_all_en">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>60</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Tx / Rx Enable</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_comm_cont_tx_dis">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>60</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Tx Disable 
+ Rx Enable</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_comm_cont_tx_dis">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>130</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_comm_cont_all_dis">
+       <property name="geometry">
+        <rect>
+         <x>570</x>
+         <y>130</y>
+         <width>171</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Not tested</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_comm_cont_all_dis">
+       <property name="geometry">
+        <rect>
+         <x>570</x>
+         <y>60</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Tx /Rx Disable</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="btn_diag_reset_comm_cont">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>20</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_comm_cont">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
       </property>
      </widget>
     </widget>
@@ -2284,12 +3995,12 @@
      </attribute>
      <widget class="QPushButton" name="btn_memory_fault_check">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
-        <x>150</x>
-        <y>120</y>
+        <x>140</x>
+        <y>280</y>
         <width>291</width>
         <height>131</height>
        </rect>
@@ -2303,24 +4014,14 @@
        <string>DTC Check</string>
       </property>
      </widget>
-     <widget class="QPlainTextEdit" name="diag_console_mem">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>300</y>
-        <width>731</width>
-        <height>211</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QPushButton" name="btn_memory_fault_reset">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
-        <x>510</x>
-        <y>120</y>
+        <x>500</x>
+        <y>280</y>
         <width>291</width>
         <height>131</height>
        </rect>
@@ -2334,13 +4035,42 @@
        <string>DTC Reset</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="btn_diag_reset_mem_fault">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>20</y>
+        <width>181</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Diagnosis Reset</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_mem_fault">
+      <property name="geometry">
+       <rect>
+        <x>510</x>
+        <y>30</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Test Mode</string>
+      </property>
+     </widget>
     </widget>
    </widget>
-   <widget class="QPlainTextEdit" name="mmi_console">
+   <widget class="QPlainTextEdit" name="main_console">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>850</y>
+      <y>860</y>
       <width>1121</width>
       <height>141</height>
      </rect>
@@ -2395,17 +4125,40 @@
      <string>CAN Bus Start</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_mmi_console_clear">
+   <widget class="QPushButton" name="btn_main_console_clear">
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>780</y>
+      <y>790</y>
       <width>171</width>
       <height>51</height>
      </rect>
     </property>
     <property name="text">
      <string>Console Clear</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="diag_console">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>760</y>
+      <width>811</width>
+      <height>71</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_diag_console_clear">
+    <property name="geometry">
+     <rect>
+      <x>860</x>
+      <y>780</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clear</string>
     </property>
    </widget>
   </widget>

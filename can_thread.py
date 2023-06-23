@@ -5,6 +5,7 @@ import uptime
 import can
 import can.interfaces.vector
 import can.interfaces.pcan
+from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
 
@@ -50,17 +51,20 @@ class TxOnlyWorker(QThread):
         self.abc = None
         self.parent = parent
         self._isRunning = True
+        self.ggg = []
 
     def run(self):
         while self._isRunning:
-            if self.parent.c_can_bus:
-                a = str(self.parent.c_can_bus.recv()).split()
-                # print(self.parent.c_can_bus.recv())
-                # self.parent.mmi_console.appendPlainText(str(a))
-                self.sig2.emit(a)
-            else:
-                print("no good")
-                self._isRunning = False
+            a = str(self.parent.c_can_bus.recv()).split()
+            if a[3] == "18daf141":
+                self.ggg.append(a)
+                if a[8] == '10':
+                    self.parent.flow = True
+
+            # print(len(self.ggg))
+            QtCore.QCoreApplication.processEvents()
+            # self.parent.main_console.appendPlainText(str(a))
+            self.sig2.emit(a)
 
     # @pyqtSlot("PyQt_PyObject")
     # def good2(self, good2):
@@ -167,7 +171,6 @@ class Swrc(NodeThread):
             elif btn_text == "btn_vol_down":
                 self.data[1] = 0x40
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-        print(message)
         if self.parent.c_can_bus:
             self.parent.c_can_bus.send(message)
         else:
@@ -402,18 +405,11 @@ class ThreadWorker(NodeThread):
         self.drv_state = False
         self.diag_list = []
 
-    def run(self):
-        while self._isRunning:
-            self.thread_func()
-
     def thread_func(self):
         # print(self.diag_list)
         if self.parent.c_can_bus:
             a = str(self.parent.c_can_bus.recv()).split()
             # print(a)
-            if a[3] == "18daf141":
-                print(a)
-                self.diag_list.append(a)
 
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
@@ -480,6 +476,24 @@ class ThreadWorker(NodeThread):
                         self.diag_state = False
                     else:
                         self.parent.label_sess_default.setText("Test Failed")
+            elif txt == "btn_sess_extended":
+                if len(self.diag_list) == 0:
+                    self.data[0] = 0x02
+                    self.data[1] = 0x10
+                    self.data[2] = 0x03
+                else:
+                    li_len = len(self.diag_list)
+                    temp = self.diag_list[li_len - 1]
+                    if temp[9] == self.diag_success_byte:
+                        if temp[10] == "03":
+                            self.parent.btn_sess_extended.setEnabled(False)
+                            self.parent.label_sess_extended.setText("Success")
+                        for tt in self.diag_list:
+                            self.parent.diag_console.appendPlainText(str(tt))
+                        self.diag_list = []
+                        self.diag_state = False
+                    else:
+                        self.parent.label_sess_extended.setText("Test Failed")
             # elif txt == "btn_sess_extended":
             #     if res:
             #         if res[9] == self.diag_success_byte:
@@ -533,7 +547,7 @@ class ThreadWorker(NodeThread):
                             self.parent.label_reset_sw.setText("Test Failed")
                 else:
                     self.diag_sess("btn_sess_extended")
-                    time.sleep(0.3)
+                    time.sleep(0.5)
                     self.data[0] = 0x02
                     self.data[1] = 0x11
                     self.data[2] = 0x03
@@ -575,7 +589,7 @@ class ThreadWorker(NodeThread):
                             self.parent.label_nrc_reset_12.setText("Test Failed")
                 else:
                     self.diag_sess("btn_sess_extended")
-                    time.sleep(0.3)
+                    time.sleep(0.5)
                     self.data[0] = 0x03
                     self.data[1] = 0x10
                     self.data[2] = 0x01
@@ -590,7 +604,7 @@ class ThreadWorker(NodeThread):
                             self.parent.label_nrc_reset_7f_sw.setText("Test Failed")
                 else:
                     self.diag_sess("btn_sess_default")
-                    time.sleep(0.3)
+                    time.sleep(0.5)
                     self.data[0] = 0x02
                     self.data[1] = 0x11
                     self.data[2] = 0x03

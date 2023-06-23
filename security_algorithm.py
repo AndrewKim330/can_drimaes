@@ -2,7 +2,6 @@ def secu_algo(seed):
     xor = [0x69, 0x1d, 0xbe, 0x55]
     cal_data = []
     res = []
-    new = []
 
     for i in range(4):
         temp = int(seed[i], 16) ^ xor[i]
