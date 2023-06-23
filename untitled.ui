@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -1786,7 +1786,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_diag_reset_sess_reset">
+     <widget class="QPushButton" name="btn_diag_reset_basic">
       <property name="geometry">
        <rect>
         <x>710</x>
@@ -1799,7 +1799,7 @@
        <string>Diagnosis Reset</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_test_mode_sess_reset">
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_basic">
       <property name="geometry">
        <rect>
         <x>510</x>
@@ -2781,7 +2781,7 @@
         <string>Send Key</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_sess_default_4">
+      <widget class="QLabel" name="label_sec_send_key">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -2798,7 +2798,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_diag_reset_secu_acc">
+     <widget class="QPushButton" name="btn_diag_reset_sec">
       <property name="geometry">
        <rect>
         <x>710</x>
@@ -2811,7 +2811,7 @@
        <string>Diagnosis Reset</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_test_mode_secu_acc">
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_sec">
       <property name="geometry">
        <rect>
         <x>510</x>
@@ -2832,7 +2832,7 @@
      <attribute name="title">
       <string>Diagnosis - Write</string>
      </attribute>
-     <widget class="QPushButton" name="btn_diag_reset_secu_acc_2">
+     <widget class="QPushButton" name="btn_diag_reset_write">
       <property name="geometry">
        <rect>
         <x>710</x>
@@ -2845,7 +2845,7 @@
        <string>Diagnosis Reset</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_test_mode_secu_acc_2">
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_write">
       <property name="geometry">
        <rect>
         <x>510</x>
@@ -2885,7 +2885,7 @@
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin">
+       <widget class="QPushButton" name="btn_write_nrc_7f_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -2899,7 +2899,7 @@
  (VIN num)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_7f_vin">
+       <widget class="QLabel" name="label_write_nrc_7f_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3035,7 +3035,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_22_vin">
+       <widget class="QLabel" name="label_write_nrc_22_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3051,7 +3051,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_22_vin">
+       <widget class="QPushButton" name="btn_write_nrc_22_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3065,7 +3065,7 @@
  (VIN num)</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_33_vin">
+       <widget class="QPushButton" name="btn_write_nrc_33_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3079,7 +3079,7 @@
  (VIN num)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_33_vin">
+       <widget class="QLabel" name="label_write_nrc_33_vin">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3095,7 +3095,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_22_install_date">
+       <widget class="QPushButton" name="btn_write_nrc_22_install_date">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3109,7 +3109,7 @@
  (ECU Date)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_22_install_date">
+       <widget class="QLabel" name="label_write_nrc_22_install_date">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3125,7 +3125,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_33_install_date">
+       <widget class="QPushButton" name="btn_write_nrc_33_install_date">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3139,7 +3139,7 @@
  (ECU Date)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_33_install_date">
+       <widget class="QLabel" name="label_write_nrc_33_install_date">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3155,7 +3155,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_22_veh_name">
+       <widget class="QLabel" name="label_write_nrc_22_veh_name">
         <property name="geometry">
          <rect>
           <x>320</x>
@@ -3171,7 +3171,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_22_veh_name">
+       <widget class="QPushButton" name="btn_write_nrc_22_veh_name">
         <property name="geometry">
          <rect>
           <x>320</x>
@@ -3185,7 +3185,7 @@
  (Veh Name)</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_33_veh_name">
+       <widget class="QPushButton" name="btn_write_nrc_33_veh_name">
         <property name="geometry">
          <rect>
           <x>320</x>
@@ -3199,7 +3199,7 @@
  (Veh Name)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_33_veh_name">
+       <widget class="QLabel" name="label_write_nrc_33_veh_name">
         <property name="geometry">
          <rect>
           <x>320</x>
@@ -3215,7 +3215,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_22_sys_name">
+       <widget class="QLabel" name="label_write_nrc_22_sys_name">
         <property name="geometry">
          <rect>
           <x>470</x>
@@ -3231,7 +3231,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_22_sys_name">
+       <widget class="QPushButton" name="btn_write_nrc_22_sys_name">
         <property name="geometry">
          <rect>
           <x>470</x>
@@ -3245,7 +3245,7 @@
  (Sys Name)</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_33_sys_name">
+       <widget class="QPushButton" name="btn_write_nrc_33_sys_name">
         <property name="geometry">
          <rect>
           <x>470</x>
@@ -3259,7 +3259,7 @@
  (Sys Name)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_33_sys_name">
+       <widget class="QLabel" name="label_write_nrc_33_sys_name">
         <property name="geometry">
          <rect>
           <x>470</x>
@@ -3275,7 +3275,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_22_net_config">
+       <widget class="QLabel" name="label_write_nrc_22_net_config">
         <property name="geometry">
          <rect>
           <x>620</x>
@@ -3291,7 +3291,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_22_net_config">
+       <widget class="QPushButton" name="btn_write_nrc_22_net_config">
         <property name="geometry">
          <rect>
           <x>620</x>
@@ -3305,7 +3305,7 @@
  (Net Config)</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_33_net_config">
+       <widget class="QPushButton" name="btn_write_nrc_33_net_config">
         <property name="geometry">
          <rect>
           <x>620</x>
@@ -3319,7 +3319,7 @@
  (Net Config)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_33_net_config">
+       <widget class="QLabel" name="label_write_nrc_33_net_config">
         <property name="geometry">
          <rect>
           <x>620</x>
@@ -3335,7 +3335,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin_2">
+       <widget class="QPushButton" name="btn_write_nrc_13">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3348,7 +3348,7 @@
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_7f_vin_2">
+       <widget class="QLabel" name="label_write_nrc_13">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -3364,7 +3364,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_wrtie_nrc_7f_vin_3">
+       <widget class="QLabel" name="label_write_nrc_31">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3380,7 +3380,7 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_wrtie_nrc_7f_vin_3">
+       <widget class="QPushButton" name="btn_write_nrc_31">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -3394,7 +3394,7 @@
         </property>
        </widget>
       </widget>
-      <widget class="QPushButton" name="btn_wrtie_vin">
+      <widget class="QPushButton" name="btn_write_vin">
        <property name="geometry">
         <rect>
          <x>30</x>
@@ -3407,7 +3407,7 @@
         <string>VIN Number</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_wrtie_vin">
+      <widget class="QLabel" name="label_write_vin">
        <property name="geometry">
         <rect>
          <x>30</x>
@@ -3423,7 +3423,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QLabel" name="label_wrtie_install_date">
+      <widget class="QLabel" name="label_write_install_date">
        <property name="geometry">
         <rect>
          <x>190</x>
@@ -3439,7 +3439,7 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="btn_wrtie_install_date">
+      <widget class="QPushButton" name="btn_write_install_date">
        <property name="geometry">
         <rect>
          <x>190</x>
@@ -3542,7 +3542,7 @@
       <widget class="QLineEdit" name="lineEdit_write_data">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>210</x>
          <y>30</y>
          <width>281</width>
          <height>31</height>
@@ -3555,7 +3555,7 @@
       <widget class="QLabel" name="label_write">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>0</x>
          <y>29</y>
          <width>191</width>
          <height>31</height>

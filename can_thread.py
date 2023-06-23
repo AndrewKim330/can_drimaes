@@ -394,6 +394,24 @@ class ChargingState(NodeThread):
             self._isRunning = False
 
 
+class TesterPresent(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 4.0
+
+    def thread_func(self):
+        if self.parent.chkbox_tester_present.isChecked():
+            self.data[0] = 0x02
+            self.data[1] = 0x3E
+            self.data[2] = 0x00
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            if self.parent.p_can_bus:
+                self.parent.p_can_bus.send(message)
+            else:
+                print("no good charge")
+                self._isRunning = False
+
+
 class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
@@ -406,10 +424,13 @@ class ThreadWorker(NodeThread):
         self.diag_list = []
 
     def thread_func(self):
-        # print(self.diag_list)
+        if self.parent.chkbox_test_mode_basic.isChecked():
+            self.parent.test_mode_basic = True
+        else:
+            self.parent.test_mode_basic = False
+
         if self.parent.c_can_bus:
             a = str(self.parent.c_can_bus.recv()).split()
-            # print(a)
 
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
