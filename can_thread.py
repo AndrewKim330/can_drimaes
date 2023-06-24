@@ -424,7 +424,7 @@ class ThreadWorker(NodeThread):
         self.diag_list = []
 
     def thread_func(self):
-        if self.parent.chkbox_test_mode_basic.isChecked():
+        if self.parent.chkbox_diag_test_mode_basic.isChecked():
             self.parent.test_mode_basic = True
         else:
             self.parent.test_mode_basic = False

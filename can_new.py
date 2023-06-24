@@ -43,6 +43,8 @@ class Main(QMainWindow, form_class):
         self.drv_state = False
         self.test_mode_basic = False
 
+        self.flow_control_len = 0
+
         self.hvac_worker = worker.Hvac(parent=self)
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
@@ -127,6 +129,8 @@ class Main(QMainWindow, form_class):
         self.btn_reset_nrc_7f_hw.clicked.connect(self.diag_func)
         self.btn_reset_nrc_22_sw.clicked.connect(self.diag_func)
         self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
+
+        self.btn_tester.released.connect(self.diag_func)
 
         self.btn_memory_fault_check.clicked.connect(self.diag_func)
         # self.btn_memory_fault_check.clicked.connect(self.diag_memory_fault)
@@ -594,13 +598,14 @@ class Main(QMainWindow, form_class):
                 self.diag_reset(self.diag_btn_text)
             elif self.diag_btn_text == "btn_tester" \
                     or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
-                self.diag_success_byte = "7E"
-                self.diag_reset(self.diag_btn_text)
+                self.diag_success_byte = "7e"
+                self.diag_tester(self.diag_btn_text)
             elif self.diag_btn_text == "btn_memory_fault_check" or self.diag_btn_text == "btn_memory_fault_reset":
                 self.diag_success_byte = "59"
                 self.diag_memory_fault(self.diag_btn_text)
 
     def diag_sess(self, txt):
+        self.flow_control_len = 1
         if txt == "btn_sess_default":
             self.data[0] = 0x02
             self.data[1] = 0x10
@@ -618,8 +623,8 @@ class Main(QMainWindow, form_class):
             self.data[1] = 0x10
             self.data[2] = 0x01
             self.data[3] = 0x01
-        temp = None
-        while not temp:
+        count = 0
+        while count < self.flow_control_len:
             self.diag_console.appendPlainText("Thread trying to send message")
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.c_can_bus.send(message)
@@ -701,25 +706,24 @@ class Main(QMainWindow, form_class):
             self.diag_console.appendPlainText(str(tt))
         # need to add test failed scenario
         # self.diag_console.appendPlainText("Test Failed")
-        self.diag_list = []
 
     def diag_tester(self, txt):
-
+        self.flow_control_len = 1
         if txt == "btn_tester":
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
         elif txt == "btn_tester_nrc_12":
             self.data[0] = 0x02
-            self.data[1] = 0x10
+            self.data[1] = 0x3E
             self.data[2] = 0x03
         elif txt == "btn_tester_nrc_13":
             self.data[0] = 0x03
             self.data[1] = 0x3E
             self.data[2] = 0x00
             self.data[3] = 0x01
-        temp = None
-        while not temp:
+        count = 0
+        while count < self.flow_control_len:
             self.diag_console.appendPlainText("Thread trying to send message")
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.c_can_bus.send(message)
@@ -746,29 +750,103 @@ class Main(QMainWindow, form_class):
         # **need to add test failed scenario
 
     def diag_did(self, txt):
+        self.flow_control_len = 1
         if self.chkbox_diag_test_mode_did.isChecked():
             test_mode = True
         else:
             test_mode = False
-        if txt == "btn_sess_default":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0x01
-        elif txt == "btn_sess_extended":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0x03
-        elif txt == "btn_sess_nrc_12":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0xFF
+        if txt == "btn_id_ecu_num":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x87
+            self.flow_control_len = 4
+        elif txt == "btn_id_ecu_supp":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x8A
+            self.flow_control_len = 2
+        elif txt == "btn_id_vin":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x90
+            self.flow_control_len = 3
+        elif txt == "btn_id_install_date":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0xA2
+        elif txt == "btn_id_diag_ver":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x13
+        elif txt == "btn_id_sys_name":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x97
+            self.flow_control_len = 2
+        elif txt == "btn_id_active_sess":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x86
+        elif txt == "btn_id_veh_name":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x12
+            self.flow_control_len = 2
+        elif txt == "btn_id_ecu_serial":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x8C
+            self.flow_control_len = 4
+        elif txt == "btn_id_hw_ver":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x93
+            self.flow_control_len = 3
+        elif txt == "btn_id_sw_ver":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x95
+            self.flow_control_len = 3
+        elif txt == "btn_id_ecu_manu_date":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x8B
+        elif txt == "btn_id_assy_num":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x8E
+            self.flow_control_len = 3
+        elif txt == "btn_id_net_config":
+            self.data[0] = 0x03
+            self.data[1] = 0x22
+            self.data[2] = 0xF1
+            self.data[3] = 0x10
+            self.flow_control_len = 2
         elif txt == "btn_sess_nrc_13":
             self.data[0] = 0x03
-            self.data[1] = 0x10
+            self.data[1] = 0x22
             self.data[2] = 0x01
             self.data[3] = 0x01
-        temp = None
-        while not temp:
+            self.data[4] = 0x01
+        elif txt == "btn_sess_nrc_31":
+            self.data[0] = 0x22
+            self.data[1] = 0xFF
+            self.data[2] = 0xFF
+        temp_li = []
+        while len(temp_li) < self.flow_control_len:
             self.diag_console.appendPlainText("Thread trying to send message")
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
             self.c_can_bus.send(message)
@@ -776,24 +854,24 @@ class Main(QMainWindow, form_class):
             zzz = copy.copy(self.tx_worker.ggg)
             for qqq in zzz:
                 if qqq[3] == "18daf141":
-                    temp = qqq
+                    temp_li.append(qqq)
             QtCore.QCoreApplication.processEvents()
-        if test_mode:
-            if temp[9] == self.diag_success_byte:
-                if temp[10] == "01":
-                    self.btn_sess_default.setEnabled(False)
-                    self.label_sess_default.setText("Success")
-                elif temp[10] == "03":
-                    self.btn_sess_extended.setEnabled(False)
-                    self.label_sess_extended.setText("Success")
-            else:
-                if temp[11] == "12":
-                    self.btn_sess_nrc_12.setEnabled(False)
-                    self.label_sess_nrc_12.setText("Success")
-                elif temp[11] == "13":
-                    self.btn_sess_nrc_13.setEnabled(False)
-                    self.label_sess_nrc_13.setText("Success")
-        self.diag_console.appendPlainText(str(temp))
+        # if test_mode:
+        #     if temp[9] == self.diag_success_byte:
+        #         if temp[10] == "01":
+        #             self.btn_sess_default.setEnabled(False)
+        #             self.label_sess_default.setText("Success")
+        #         elif temp[10] == "03":
+        #             self.btn_sess_extended.setEnabled(False)
+        #             self.label_sess_extended.setText("Success")
+        #     else:
+        #         if temp[11] == "12":
+        #             self.btn_sess_nrc_12.setEnabled(False)
+        #             self.label_sess_nrc_12.setText("Success")
+        #         elif temp[11] == "13":
+        #             self.btn_sess_nrc_13.setEnabled(False)
+        #             self.label_sess_nrc_13.setText("Success")
+        # self.diag_console.appendPlainText(str(temp))
         self.tx_worker.ggg = []
         # **need to add test failed scenario
 
