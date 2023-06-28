@@ -5,7 +5,7 @@ import scrapping3 as scr
 import sys
 import can
 import time
-import security_algorithm as secu_algo
+import security_algorithm as algo
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
@@ -136,6 +136,9 @@ class Main(QMainWindow, form_class):
         self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
 
         self.btn_tester.released.connect(self.diag_func)
+
+        self.btn_sec_req_seed.released.connect(self.diag_func)
+        self.btn_sec_send_key.released.connect(self.diag_func)
 
         self.btn_write_vin.clicked.connect(self.diag_func)
 
@@ -692,6 +695,7 @@ class Main(QMainWindow, form_class):
             for qqq in zzz:
                 if qqq[3] == "18daf141":
                     temp = qqq
+                    count += 1
             self.tx_worker.ggg = []
             QtCore.QCoreApplication.processEvents()
         if self.test_mode_basic:
@@ -1240,6 +1244,7 @@ class Main(QMainWindow, form_class):
         #     self.c_can_bus.send(message)
 
     def diag_security_access(self, txt=None):
+        self.flow_control_len = 1
         if txt == "btn_sec_req_seed":
             self.diag_sess("btn_sess_extended")
             time.sleep(0.2)
@@ -1251,18 +1256,41 @@ class Main(QMainWindow, form_class):
                 self.diag_console.appendPlainText("Thread trying to send message")
                 message = can.Message(arbitration_id=0x18da41f1, data=self.data)
                 self.c_can_bus.send(message)
-                time.sleep(0.2)
+                time.sleep(0.3)
                 zzz = copy.copy(self.tx_worker.ggg)
                 for qqq in zzz:
                     if qqq[3] == "18daf141":
                         temp = qqq
+                        count += 1
                 self.tx_worker.ggg = []
                 QtCore.QCoreApplication.processEvents()
-
-        # good = secu_algo()
-
-        # message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
-
+            self.diag_console.appendPlainText(str(temp))
+            self.req_seed = temp[11:15]
+        elif txt == "btn_sec_send_key":
+            count = 0
+            while count < self.flow_control_len:
+                self.diag_console.appendPlainText("Thread trying to send message")
+                self.diag_security_access("btn_sec_req_seed")
+                time.sleep(0.2)
+                good = algo.secu_algo(self.req_seed)
+                self.data[0] = 0x06
+                self.data[1] = 0x27
+                self.data[2] = 0x02
+                self.data[3] = good[0]
+                self.data[4] = good[1]
+                self.data[5] = good[2]
+                self.data[6] = good[3]
+                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+                self.c_can_bus.send(message)
+                time.sleep(0.5)
+                zzz = copy.copy(self.tx_worker.ggg)
+                for qqq in zzz:
+                    if qqq[3] == "18daf141":
+                        temp = qqq
+                        count += 1
+                self.tx_worker.ggg = []
+                QtCore.QCoreApplication.processEvents()
+            self.diag_console.appendPlainText(str(temp))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
