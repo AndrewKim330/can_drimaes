@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1176</width>
-    <height>1045</height>
+    <width>1178</width>
+    <height>1052</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -3608,7 +3608,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Fill the VIN number</string>
+        <string>Fill the data</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -4202,7 +4202,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1176</width>
+     <width>1178</width>
      <height>18</height>
     </rect>
    </property>

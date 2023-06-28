@@ -29,6 +29,8 @@ class Main(QMainWindow, form_class):
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
+        self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+
         self.temp_list = []
 
         self.flow = False
@@ -134,6 +136,8 @@ class Main(QMainWindow, form_class):
         self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
 
         self.btn_tester.released.connect(self.diag_func)
+
+        self.btn_write_vin.clicked.connect(self.diag_func)
 
         self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
         self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
@@ -582,12 +586,13 @@ class Main(QMainWindow, form_class):
         self.btn_mem_fault_list_check.setEnabled(flag)
         self.btn_mem_fault_reset.setEnabled(flag)
 
-    def console_text_clear(self):
+    def console_text_clear(self, txt=None):
         if self.sender().objectName() == "btn_main_console_clear":
             self.main_console.clear()
         elif self.sender().objectName() == "btn_diag_console_clear":
             self.diag_console.clear()
-        elif self.sender().objectName() == "btn_write_data_clear":
+        elif self.sender().objectName() == "btn_write_data_clear" or txt:
+            self.label_flag_convert.setText("Fill the data")
             self.lineEdit_write_data.clear()
 
     def vin_ascii_convert(self):
@@ -599,15 +604,19 @@ class Main(QMainWindow, form_class):
                     self.write_txt = self.write_txt[1:]
                 if self.write_txt[txt_len - 1] == ' ':
                     self.write_txt = self.write_txt[:txt_len-1]
-        if txt_len != 17:
-            self.label_flag_convert.setText(f'length Error (now : {txt_len})')
-        else:
             ascii_li = []
             for i, ch in zip(range(txt_len), self.write_txt):
                 # LMPA1KMB7NC002090
-                ascii_li.append(hex(ord(ch))[2:])
-            self.label_flag_convert.setText(f'Conversion Success - VIN : {self.write_txt}')
+                ascii_li.append(int(hex(ord(ch))[2:]))
+            self.label_flag_convert.setText(f'Conversion Success - Data : {self.write_txt}, length: {txt_len}')
             self.write_txt_ascii = ascii_li
+
+    def write_data_not_correct(self, txt):
+        if txt == "btn_write_vin":
+            err = "Length Error"
+            message = "Incorrect length of VIN number"
+        QMessageBox.warning(self, err, message)
+        self.console_text_clear(err)
 
     @pyqtSlot(list)
     def sig2(self, li):
@@ -631,6 +640,9 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
                 self.diag_success_byte = "7e"
                 self.diag_tester(self.diag_btn_text)
+            elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key":
+                self.diag_success_byte = "67"
+                self.diag_security_access(self.diag_btn_text)
             elif self.diag_btn_text == "btn_write_vin" or self.diag_btn_text == "btn_write_install_date" \
                     or self.diag_btn_text == "btn_write_veh_name" or self.diag_btn_text == "btn_write_sys_name" \
                     or self.diag_btn_text == "btn_write_net_config" or self.diag_btn_text == "btn_write_nrc_7f_vin" \
@@ -929,12 +941,47 @@ class Main(QMainWindow, form_class):
         else:
             test_mode = False
         if txt == "btn_write_vin":
-            # need to fix
-            # self.data[0] = 0x03
-            # self.data[1] = 0x22
-            # self.data[2] = 0xF1
-            # self.data[3] = 0x87
-            self.flow_control_len = 4
+            data_len = len(self.write_txt_ascii)
+            if data_len != 17:
+                self.write_data_not_correct(txt)
+            else:
+                self.flow_control_len = 3
+                temp_li = []
+                for i in range(self.flow_control_len):
+                    self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+                    if i == 0:
+                        self.write_data[0] = 0x10
+                        self.write_data[1] = 0x14
+                        self.write_data[2] = 0x2E
+                        self.write_data[3] = 0xF1
+                        self.write_data[4] = 0x90
+                        self.write_data[5] = self.write_txt_ascii.pop(0)
+                        self.write_data[6] = self.write_txt_ascii.pop(0)
+                        self.write_data[7] = self.write_txt_ascii.pop(0)
+                    else:
+                        for j in range(8):
+                            if len(self.write_txt_ascii) > 0:
+                                if j == 0:
+                                    self.write_data[0] = (0x20 + i)
+                                else:
+                                    self.write_data[j] = self.write_txt_ascii.pop(0)
+
+                    temp_li.append(self.write_data)
+                for i, mess in zip(range(len(temp_li)), temp_li):
+                    mess = can.Message(arbitration_id=0x18da41f1, data=self.data)
+                    self.c_can_bus.send(mess)
+                    if i == 0:
+                        time.sleep(0.030)
+
+        #     time.sleep(0.2)
+        #     zzz = copy.copy(self.tx_worker.ggg)
+        #     for qqq in zzz:
+        #         if qqq[8] == "10":
+        #             count = int(int(qqq[9], 16) / 7) + 1
+        #             self.diag_console.appendPlainText(str(qqq))
+        #     self.tx_worker.ggg = []
+        #     QtCore.QCoreApplication.processEvents()
+        # self.flow_control_len = count
         # elif txt == "btn_id_ecu_supp":
         #     self.data[0] = 0x03
         #     self.data[1] = 0x22
@@ -1019,35 +1066,35 @@ class Main(QMainWindow, form_class):
         #     self.data[0] = 0x22
         #     self.data[1] = 0xFF
         #     self.data[2] = 0xFF
-        temp_li = []
-        while len(temp_li) < self.flow_control_len:
-            self.diag_console.appendPlainText("Thread trying to send message")
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.c_can_bus.send(message)
-            time.sleep(0.5)
-            zzz = copy.copy(self.tx_worker.ggg)
-            for qqq in zzz:
-                if qqq[3] == "18daf141":
-                    temp_li.append(qqq)
-            QtCore.QCoreApplication.processEvents()
-        # if test_mode:
-        #     if temp[9] == self.diag_success_byte:
-        #         if temp[10] == "01":
-        #             self.btn_sess_default.setEnabled(False)
-        #             self.label_sess_default.setText("Success")
-        #         elif temp[10] == "03":
-        #             self.btn_sess_extended.setEnabled(False)
-        #             self.label_sess_extended.setText("Success")
-        #     else:
-        #         if temp[11] == "12":
-        #             self.btn_sess_nrc_12.setEnabled(False)
-        #             self.label_sess_nrc_12.setText("Success")
-        #         elif temp[11] == "13":
-        #             self.btn_sess_nrc_13.setEnabled(False)
-        #             self.label_sess_nrc_13.setText("Success")
-        # self.diag_console.appendPlainText(str(temp))
-        self.tx_worker.ggg = []
-        # **need to add test failed scenario
+        # temp_li = []
+        # while len(temp_li) < self.flow_control_len:
+        #     self.diag_console.appendPlainText("Thread trying to send message")
+        #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        #     self.c_can_bus.send(message)
+        #     time.sleep(0.5)
+        #     zzz = copy.copy(self.tx_worker.ggg)
+        #     for qqq in zzz:
+        #         if qqq[3] == "18daf141":
+        #             temp_li.append(qqq)
+        #     QtCore.QCoreApplication.processEvents()
+        # # if test_mode:
+        # #     if temp[9] == self.diag_success_byte:
+        # #         if temp[10] == "01":
+        # #             self.btn_sess_default.setEnabled(False)
+        # #             self.label_sess_default.setText("Success")
+        # #         elif temp[10] == "03":
+        # #             self.btn_sess_extended.setEnabled(False)
+        # #             self.label_sess_extended.setText("Success")
+        # #     else:
+        # #         if temp[11] == "12":
+        # #             self.btn_sess_nrc_12.setEnabled(False)
+        # #             self.label_sess_nrc_12.setText("Success")
+        # #         elif temp[11] == "13":
+        # #             self.btn_sess_nrc_13.setEnabled(False)
+        # #             self.label_sess_nrc_13.setText("Success")
+        # # self.diag_console.appendPlainText(str(temp))
+        # self.tx_worker.ggg = []
+        # # **need to add test failed scenario
 
     def diag_memory_fault(self, txt=None):
         self.flow_control_len = 1
@@ -1192,15 +1239,29 @@ class Main(QMainWindow, form_class):
         #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
         #     self.c_can_bus.send(message)
 
-    def security_access(self, txt=None):
-        self.data[0] = 0x02
-        self.data[1] = 0x27
-        self.data[2] = 0x01
-        message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+    def diag_security_access(self, txt=None):
+        if txt == "btn_sec_req_seed":
+            self.diag_sess("btn_sess_extended")
+            time.sleep(0.2)
+            self.data[0] = 0x02
+            self.data[1] = 0x27
+            self.data[2] = 0x01
+            count = 0
+            while count < self.flow_control_len:
+                self.diag_console.appendPlainText("Thread trying to send message")
+                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+                self.c_can_bus.send(message)
+                time.sleep(0.2)
+                zzz = copy.copy(self.tx_worker.ggg)
+                for qqq in zzz:
+                    if qqq[3] == "18daf141":
+                        temp = qqq
+                self.tx_worker.ggg = []
+                QtCore.QCoreApplication.processEvents()
 
-        good = secu_algo()
+        # good = secu_algo()
 
-        message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
+        # message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
 
 
 if __name__ == '__main__':
