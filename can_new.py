@@ -43,7 +43,7 @@ class Main(QMainWindow, form_class):
         self.drv_state = False
         self.test_mode_basic = False
 
-        self.flow_control_len = 0
+        self.flow_control_len = 1
 
         self.hvac_worker = worker.Hvac(parent=self)
 
@@ -132,9 +132,9 @@ class Main(QMainWindow, form_class):
 
         self.btn_tester.released.connect(self.diag_func)
 
-        self.btn_memory_fault_check.clicked.connect(self.diag_func)
-        # self.btn_memory_fault_check.clicked.connect(self.diag_memory_fault)
-        self.btn_memory_fault_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
+        self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
+        self.btn_mem_fault_reset.clicked.connect(self.diag_func)
 
         # self.clear_console.clicked.connect(self.diag_text_clear)
 
@@ -143,8 +143,9 @@ class Main(QMainWindow, form_class):
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
-        self.btn_main_console_clear.clicked.connect(self.mmi_text_clear)
-        self.btn_diag_console_clear.clicked.connect(self.diag_text_clear)
+        self.btn_main_console_clear.clicked.connect(self.console_text_clear)
+        self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
+        self.btn_write_data_clear.clicked.connect(self.console_text_clear)
 
         # self.btn_diag_reset_1.clicked.connect(self.set_diag_btns_enable)
         # self.btn_diag_reset_2.clicked.connect(self.set_diag_btns_enable)
@@ -374,9 +375,6 @@ class Main(QMainWindow, form_class):
         self.chkbox_drv_invalid.setEnabled(flag)
         self.chkbox_pass_invalid.setEnabled(flag)
 
-        self.btn_memory_fault_check.setEnabled(flag)
-        self.btn_memory_fault_reset.setEnabled(flag)
-
     def set_diag_basic_btns_enable(self, flag=True):
         # **need to add reset btns
         if flag:
@@ -487,6 +485,7 @@ class Main(QMainWindow, form_class):
             color = "gray"
 
         self.lineEdit_write_data.setEnabled(flag)
+        self.btn_write_data_clear.setEnabled(flag)
 
         self.btn_write_vin.setEnabled(flag)
         self.label_write_vin.setStyleSheet(f"color: {color}")
@@ -572,11 +571,18 @@ class Main(QMainWindow, form_class):
         self.btn_diag_reset_comm_cont.setEnabled(flag)
         self.chkbox_diag_test_mode_comm_cont.setEnabled(flag)
 
-    def diag_text_clear(self):
-        self.diag_console.clear()
+    def set_diag_mem_fault_btns_enable(self, flag=True):
+        self.btn_mem_fault_num_check.setEnabled(flag)
+        self.btn_mem_fault_list_check.setEnabled(flag)
+        self.btn_mem_fault_reset.setEnabled(flag)
 
-    def mmi_text_clear(self):
-        self.main_console.clear()
+    def console_text_clear(self):
+        if self.sender().objectName() == "btn_main_console_clear":
+            self.main_console.clear()
+        elif self.sender().objectName() == "btn_diag_console_clear":
+            self.diag_console.clear()
+        elif self.sender().objectName() == "btn_write_data_clear":
+            self.lineEdit_write_data.clear()
 
     @pyqtSlot(list)
     def sig2(self, li):
@@ -600,7 +606,8 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
                 self.diag_success_byte = "7e"
                 self.diag_tester(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_memory_fault_check" or self.diag_btn_text == "btn_memory_fault_reset":
+            elif self.diag_btn_text == "btn_memory_fault_num_check" or self.diag_btn_text == "btn_memory_fault_list_check" \
+                    or self.diag_btn_text == "btn_memory_fault_reset":
                 self.diag_success_byte = "59"
                 self.diag_memory_fault(self.diag_btn_text)
 

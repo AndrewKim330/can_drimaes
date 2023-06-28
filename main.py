@@ -31,8 +31,8 @@ def print_hi(name):
     #
     # value1 = [0x49, 0x56, 0x49, 0x30, 0x58, 0x30]
     # list1 = [chr(asc) for asc in value1]
-    # value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
-    # list2 = [hex(ord(ch)) for ch in value2]
+    value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
+    list2 = [hex(ord(ch)) for ch in value2]
     # # temp = a[0]+'1'+a[2:]
     # # a[0] = '1'
     # # print(temp)
@@ -56,11 +56,11 @@ def print_hi(name):
     # b = {3}
     # c = a | b
     # print(a, b, c)
-    for i in range(5):
-        for j in range(5):
-            if i == j:
-                break
-            print(f'i={i}', f'j={j}')
+    # for i in range(5):
+    #     for j in range(5):
+    #         if i == j:
+    #             break
+    #         print(f'i={i}', f'j={j}')
 
     # color_str = f"\"color : {color}\""
     # print(color_str)
