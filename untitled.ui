@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -2864,10 +2864,10 @@
      <widget class="QGroupBox" name="wrtie_box">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>90</y>
-        <width>851</width>
-        <height>601</height>
+        <x>40</x>
+        <y>80</y>
+        <width>841</width>
+        <height>611</height>
        </rect>
       </property>
       <property name="title">
@@ -2877,7 +2877,7 @@
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>190</y>
+         <y>200</y>
          <width>781</width>
          <height>391</height>
         </rect>
@@ -3345,7 +3345,8 @@
          </rect>
         </property>
         <property name="text">
-         <string>Data Length Error</string>
+         <string>Data Length 
+ Error</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_13">
@@ -3398,7 +3399,7 @@
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>90</y>
+         <y>100</y>
          <width>141</width>
          <height>51</height>
         </rect>
@@ -3411,7 +3412,7 @@
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>150</y>
+         <y>160</y>
          <width>141</width>
          <height>20</height>
         </rect>
@@ -3427,7 +3428,7 @@
        <property name="geometry">
         <rect>
          <x>190</x>
-         <y>150</y>
+         <y>160</y>
          <width>141</width>
          <height>20</height>
         </rect>
@@ -3443,7 +3444,7 @@
        <property name="geometry">
         <rect>
          <x>190</x>
-         <y>90</y>
+         <y>100</y>
          <width>141</width>
          <height>51</height>
         </rect>
@@ -3456,7 +3457,7 @@
        <property name="geometry">
         <rect>
          <x>510</x>
-         <y>90</y>
+         <y>100</y>
          <width>141</width>
          <height>51</height>
         </rect>
@@ -3469,7 +3470,7 @@
        <property name="geometry">
         <rect>
          <x>350</x>
-         <y>90</y>
+         <y>100</y>
          <width>141</width>
          <height>51</height>
         </rect>
@@ -3482,7 +3483,7 @@
        <property name="geometry">
         <rect>
          <x>510</x>
-         <y>150</y>
+         <y>160</y>
          <width>141</width>
          <height>20</height>
         </rect>
@@ -3498,7 +3499,7 @@
        <property name="geometry">
         <rect>
          <x>350</x>
-         <y>150</y>
+         <y>160</y>
          <width>141</width>
          <height>20</height>
         </rect>
@@ -3514,7 +3515,7 @@
        <property name="geometry">
         <rect>
          <x>670</x>
-         <y>150</y>
+         <y>160</y>
          <width>141</width>
          <height>20</height>
         </rect>
@@ -3530,7 +3531,7 @@
        <property name="geometry">
         <rect>
          <x>670</x>
-         <y>90</y>
+         <y>100</y>
          <width>141</width>
          <height>51</height>
         </rect>
@@ -3574,7 +3575,7 @@
       <widget class="QPushButton" name="btn_write_data_clear">
        <property name="geometry">
         <rect>
-         <x>480</x>
+         <x>630</x>
          <y>30</y>
          <width>121</width>
          <height>31</height>
@@ -3582,6 +3583,35 @@
        </property>
        <property name="text">
         <string>Clear</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_write_data_convert">
+       <property name="geometry">
+        <rect>
+         <x>480</x>
+         <y>30</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Convert</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_flag_convert">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>70</y>
+         <width>431</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Fill the VIN number</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </widget>
@@ -4008,7 +4038,7 @@
      </attribute>
      <widget class="QPushButton" name="btn_mem_fault_list_check">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -4029,7 +4059,7 @@
      </widget>
      <widget class="QPushButton" name="btn_mem_fault_reset">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -4050,7 +4080,7 @@
      </widget>
      <widget class="QPushButton" name="btn_mem_fault_num_check">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>

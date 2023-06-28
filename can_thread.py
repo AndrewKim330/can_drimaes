@@ -23,6 +23,7 @@ def sig_generator(hex_val, pos, bit_len, val):
         temp = val_bin + tt[pos + len(val_bin):]
     return int(temp, 2)
 
+
 class NodeThread(QThread):
     def __init__(self, parent):
         super().__init__(parent)
