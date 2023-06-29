@@ -15,7 +15,7 @@ from can import interfaces
 import can_thread as worker
 
 form_class = uic.loadUiType("untitled.ui")[0]
-# form_class = uic.loadUiType("can_dist.ui")[0]
+
 
 class Main(QMainWindow, form_class):
     custom_signal = pyqtSignal("PyQt_PyObject")
@@ -30,6 +30,8 @@ class Main(QMainWindow, form_class):
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
         self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+
+        self.res_data = []
 
         self.temp_list = []
 
@@ -136,6 +138,8 @@ class Main(QMainWindow, form_class):
         self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
 
         self.btn_tester.released.connect(self.diag_func)
+        self.btn_tester_nrc_12.released.connect(self.diag_func)
+        self.btn_tester_nrc_13.released.connect(self.diag_func)
 
         self.btn_sec_req_seed.released.connect(self.diag_func)
         self.btn_sec_send_key.released.connect(self.diag_func)
@@ -598,6 +602,25 @@ class Main(QMainWindow, form_class):
             self.label_flag_convert.setText("Fill the data")
             self.lineEdit_write_data.clear()
 
+    def diag_initialization(self):
+        self.flow_control_len = 1
+        self.res_data = []
+        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+
+    def diag_data_collector(self):
+        while len(self.res_data) < self.flow_control_len:
+            self.diag_console.appendPlainText("Thread trying to send message")
+            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            self.c_can_bus.send(message)
+            time.sleep(0.3)
+            reservoir = copy.copy(self.tx_worker.ggg)
+            for tx_single in reservoir:
+                if tx_single[3] == "18daf141":
+                    self.res_data.append(tx_single)
+            self.tx_worker.ggg = []
+            QtCore.QCoreApplication.processEvents()
+
     def vin_ascii_convert(self):
         self.write_txt = self.lineEdit_write_data.text()
         txt_len = len(self.write_txt)
@@ -667,7 +690,8 @@ class Main(QMainWindow, form_class):
                 self.diag_memory_fault(self.diag_btn_text)
 
     def diag_sess(self, txt):
-        self.flow_control_len = 1
+        # **need to add test failed scenario
+        self.diag_initialization()
         if txt == "btn_sess_default":
             self.data[0] = 0x02
             self.data[1] = 0x10
@@ -685,36 +709,24 @@ class Main(QMainWindow, form_class):
             self.data[1] = 0x10
             self.data[2] = 0x01
             self.data[3] = 0x01
-        count = 0
-        while count < self.flow_control_len:
-            self.diag_console.appendPlainText("Thread trying to send message")
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.c_can_bus.send(message)
-            time.sleep(0.2)
-            zzz = copy.copy(self.tx_worker.ggg)
-            for qqq in zzz:
-                if qqq[3] == "18daf141":
-                    temp = qqq
-                    count += 1
-            self.tx_worker.ggg = []
-            QtCore.QCoreApplication.processEvents()
+        self.diag_data_collector()
+        tx_result = self.res_data[0]
         if self.test_mode_basic:
-            if temp[9] == self.diag_success_byte:
-                if temp[10] == "01":
+            if tx_result[9] == self.diag_success_byte:
+                if tx_result[10] == "01":
                     self.btn_sess_default.setEnabled(False)
                     self.label_sess_default.setText("Success")
-                elif temp[10] == "03":
+                elif tx_result[10] == "03":
                     self.btn_sess_extended.setEnabled(False)
                     self.label_sess_extended.setText("Success")
             else:
-                if temp[11] == "12":
+                if tx_result[11] == "12":
                     self.btn_sess_nrc_12.setEnabled(False)
                     self.label_sess_nrc_12.setText("Success")
-                elif temp[11] == "13":
+                elif tx_result[11] == "13":
                     self.btn_sess_nrc_13.setEnabled(False)
                     self.label_sess_nrc_13.setText("Success")
-        self.diag_console.appendPlainText(str(temp))
-        # **need to add test failed scenario
+        self.diag_console.appendPlainText(str(tx_result))
 
     def diag_reset(self, txt):
         if txt == "btn_reset_sw":
@@ -771,7 +783,8 @@ class Main(QMainWindow, form_class):
         # self.diag_console.appendPlainText("Test Failed")
 
     def diag_tester(self, txt):
-        self.flow_control_len = 1
+        # **need to add test failed scenario
+        self.diag_initialization()
         if txt == "btn_tester":
             self.data[0] = 0x02
             self.data[1] = 0x3E
@@ -785,32 +798,21 @@ class Main(QMainWindow, form_class):
             self.data[1] = 0x3E
             self.data[2] = 0x00
             self.data[3] = 0x01
-        count = 0
-        while count < self.flow_control_len:
-            self.diag_console.appendPlainText("Thread trying to send message")
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.c_can_bus.send(message)
-            time.sleep(0.5)
-            zzz = copy.copy(self.tx_worker.ggg)
-            for qqq in zzz:
-                if qqq[3] == "18daf141":
-                    temp = qqq
-            QtCore.QCoreApplication.processEvents()
+        self.diag_data_collector()
+        tx_result = self.res_data[0]
         if self.test_mode_basic:
-            if temp[9] == self.diag_success_byte:
-                if temp[10] == "00":
+            if tx_result[9] == self.diag_success_byte:
+                if tx_result[10] == "00":
                     self.btn_tester.setEnabled(False)
                     self.label_tester.setText("Success")
             else:
-                if temp[11] == "12":
+                if tx_result[11] == "12":
                     self.btn_tester_nrc_12.setEnabled(False)
                     self.label_tester_nrc_12.setText("Success")
-                elif temp[11] == "13":
+                elif tx_result[11] == "13":
                     self.btn_tester_nrc_13.setEnabled(False)
                     self.label_tester_nrc_13.setText("Success")
-        self.diag_console.appendPlainText(str(temp))
-        self.tx_worker.ggg = []
-        # **need to add test failed scenario
+        self.diag_console.appendPlainText(str(tx_result))
 
     def diag_did(self, txt):
         self.flow_control_len = 1
@@ -939,7 +941,7 @@ class Main(QMainWindow, form_class):
         # **need to add test failed scenario
 
     def diag_security_access(self, txt):
-        self.flow_control_len = 1
+        self.diag_initialization()
         if txt == "btn_sec_req_seed":
             self.diag_sess("btn_sess_default")
             self.diag_sess("btn_sess_extended")
@@ -947,49 +949,24 @@ class Main(QMainWindow, form_class):
             self.data[0] = 0x02
             self.data[1] = 0x27
             self.data[2] = 0x01
-            count = 0
-            while count < self.flow_control_len:
-                self.diag_console.appendPlainText("Thread trying to send message")
-                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                self.c_can_bus.send(message)
-                time.sleep(0.3)
-                zzz = copy.copy(self.tx_worker.ggg)
-                for qqq in zzz:
-                    if qqq[3] == "18daf141":
-                        temp = qqq
-                        count += 1
-                self.tx_worker.ggg = []
-                QtCore.QCoreApplication.processEvents()
-            self.diag_console.appendPlainText(str(temp))
-            self.req_seed = temp[11:15]
+            self.diag_data_collector()
+            self.diag_console.appendPlainText(str(self.res_data[0]))
+            self.req_seed = self.res_data[0][11:15]
         elif txt == "btn_sec_send_key":
-            count = 0
-            while count < self.flow_control_len:
-                self.diag_console.appendPlainText("Thread trying to send message")
-                self.diag_security_access("btn_sec_req_seed")
-                time.sleep(0.2)
-                good = algo.secu_algo(self.req_seed)
-                self.data[0] = 0x06
-                self.data[1] = 0x27
-                self.data[2] = 0x02
-                self.data[3] = good[0]
-                self.data[4] = good[1]
-                self.data[5] = good[2]
-                self.data[6] = good[3]
-                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                self.c_can_bus.send(message)
-                time.sleep(0.5)
-                zzz = copy.copy(self.tx_worker.ggg)
-                for qqq in zzz:
-                    if qqq[3] == "18daf141":
-                        temp = qqq
-                        count += 1
-                self.tx_worker.ggg = []
-                QtCore.QCoreApplication.processEvents()
-            self.diag_console.appendPlainText(str(temp))
+            self.diag_security_access("btn_sec_req_seed")
+            good = algo.secu_algo(self.req_seed)
+            self.data[0] = 0x06
+            self.data[1] = 0x27
+            self.data[2] = 0x02
+            self.data[3] = good[0]
+            self.data[4] = good[1]
+            self.data[5] = good[2]
+            self.data[6] = good[3]
+            self.diag_data_collector()
+            self.diag_console.appendPlainText(str(self.res_data[0]))
 
     def diag_write(self, txt):
-        self.flow_control_len = 1
+        self.diag_initialization()
         if self.chkbox_diag_test_mode_write.isChecked():
             test_mode = True
         else:

@@ -13,15 +13,3 @@ def secu_algo(seed):
     res.append(((cal_data[0] & 0x0f) << 4) | (cal_data[2] & 0x0f))
 
     return res
-
-
-
-
-
-
-
-
-
-
-
-

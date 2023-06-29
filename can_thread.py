@@ -406,8 +406,8 @@ class TesterPresent(NodeThread):
             self.data[1] = 0x3E
             self.data[2] = 0x00
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            if self.parent.p_can_bus:
-                self.parent.p_can_bus.send(message)
+            if self.parent.c_can_bus:
+                self.parent.c_can_bus.send(message)
             else:
                 print("no good charge")
                 self._isRunning = False
