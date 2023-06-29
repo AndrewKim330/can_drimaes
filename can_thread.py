@@ -52,13 +52,13 @@ class TxOnlyWorker(QThread):
         self.abc = None
         self.parent = parent
         self._isRunning = True
-        self.ggg = []
+        self.reservoir = []
 
     def run(self):
         while self._isRunning:
             a = str(self.parent.c_can_bus.recv()).split()
             if a[3] == "18daf141":
-                self.ggg.append(a)
+                self.reservoir.append(a)
                 if a[8] == '10':
                     self.parent.flow = True
 
