@@ -612,65 +612,57 @@ class Main(QMainWindow, form_class):
 
     def diag_send_message(self):
         message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        self.diag_console.appendPlainText("Thread trying to send message")
         self.c_can_bus.send(message)
 
-    def diag_data_collector(self, mess, flow=False):
+    def diag_data_collector(self, mess, multi=False):
+        flag = False
+        bb = []
         while len(self.res_data) < self.flow_control_len:
-            if flow:
-                temp = copy.copy(self.flow_control_len)
-                self.flow_control_len = 1
-                self.diag_data_collector(mess)
+            for i, mess_data in zip(range(len(mess)), mess):
+                self.data[i] = mess_data
+            self.diag_send_message()
+            if multi:
                 time.sleep(0.020)
-                self.flow_control_len = temp
-                self.diag_data_collector([0x30])
-            else:
-                flag = False
-                for i, mess_data in zip(range(len(mess)), mess):
-                    self.data[i] = mess_data
-                self.diag_console.appendPlainText("Thread trying to send message")
+                self.data[0] = 0x30
                 self.diag_send_message()
-                time.sleep(0.3)
-                reservoir = copy.copy(self.tx_worker.reservoir)
-                if flow:
-                    if flag:
-                        for qqq in reservoir:
-                            if qqq[8] == '03':
-                                continue
-                            for q in bb:
-                                uni = bb | {qqq[8]}
-                                if bb != uni:
-                                    bb.add(qqq[8])
-                                    self.res_data.append(qqq)
-                                    break
-                    else:
-                        # if len(zzz) != 0:
-                        for qqq in reservoir:
-                            if qqq[8] == '03':
-                                continue
-                            bb.append(qqq[8])
+            time.sleep(0.3)
+            reservoir = copy.copy(self.tx_worker.reservoir)
+            if multi:
+                if flag:
+                    for qqq in reservoir:
+                        if qqq[8] == '03':
+                            continue
+                        uni = bb | {qqq[8]}
+                        if bb != uni:
+                            bb.add(qqq[8])
                             self.res_data.append(qqq)
-                        bb = set(bb)
-                        flag = True
-                    self.tx_worker.reservoir = []
-
+                            break
                 else:
-                    for tx_single in reservoir:
-                        if tx_single[3] == "18daf141":
-                            self.res_data.append(tx_single)
-                    self.tx_worker.reservoir = []
-                QtCore.QCoreApplication.processEvents()
-
-
-
-    #
-    # for i in range(self.flow_control_len):
-    #     for j in range(self.flow_control_len):
-    #         a = int(temp_li[j][8][-1], 16)
-    #         if i == a:
-    #             self.diag_console.appendPlainText(str(temp_li[j]))
-    #             rrrr.append(temp_li[j])
-    #             break
-    # print(rrrr)
+                    for qqq in reservoir:
+                        if qqq[8] == '03':
+                            continue
+                        bb.append(qqq[8])
+                        self.res_data.append(qqq)
+                    bb = set(bb)
+                    flag = True
+            else:
+                for tx_single in reservoir:
+                    if tx_single[3] == "18daf141":
+                        self.res_data.append(tx_single)
+            self.tx_worker.reservoir = []
+            QtCore.QCoreApplication.processEvents()
+        temp_li = []
+        if len(self.res_data) > 1:
+            for i in range(self.flow_control_len):
+                for j in range(self.flow_control_len):
+                    a = int(self.res_data[j][8][-1], 16)
+                    if i == a:
+                        temp_li.append(self.res_data[j])
+                        break
+            self.res_data = temp_li
+        for m in self.res_data:
+            self.diag_console.appendPlainText(str(m))
 
     def vin_ascii_convert(self):
         self.write_txt = self.lineEdit_write_data.text()
@@ -751,6 +743,7 @@ class Main(QMainWindow, form_class):
             self.data[0] = 0x02
             self.data[1] = 0x10
             self.data[2] = 0x01
+            sig_li = [0x02, 0x10, 0x01]
         elif txt == "btn_sess_extended":
             self.data[0] = 0x02
             self.data[1] = 0x10
@@ -764,7 +757,7 @@ class Main(QMainWindow, form_class):
             self.data[1] = 0x10
             self.data[2] = 0x01
             self.data[3] = 0x01
-        self.diag_data_collector()
+        self.diag_data_collector(sig_li)
         tx_result = self.res_data[0]
         if self.test_mode_basic:
             if tx_result[9] == self.diag_success_byte:
@@ -1198,93 +1191,70 @@ class Main(QMainWindow, form_class):
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()
-        rrrr = []
-        temp_li = []
-        bb = []
-        flag = False
         if txt == "btn_mem_fault_num_check":
-            self.data[0] = 0x03
-            self.data[1] = 0x19
-            self.data[2] = 0x01
-            self.data[3] = 0x09
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            count = 0
-            while count < self.flow_control_len:
-                self.diag_console.appendPlainText("Thread trying to send message")
-                self.c_can_bus.send(message)
-                time.sleep(0.2)
-                zzz = copy.copy(self.tx_worker.reservoir)
-                for qqq in zzz:
-                    if qqq[9] == self.diag_success_byte and qqq[10] == '01':
-                        self.diag_console.appendPlainText(str(qqq))
-                        count += 1
-                self.tx_worker.reservoir = []
-                QtCore.QCoreApplication.processEvents()
+            sig_li = [0x03, 0x19, 0x01, 0x09]
+            self.diag_data_collector(sig_li)
         elif txt == "btn_mem_fault_list_check":
-            self.data[0] = 0x03
-            self.data[1] = 0x19
-            self.data[2] = 0x02
-            self.data[3] = 0x09
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            count = 0
-            while count < self.flow_control_len:
-                self.diag_console.appendPlainText("Thread trying to send message")
-                self.c_can_bus.send(message)
-                time.sleep(0.2)
-                zzz = copy.copy(self.tx_worker.reservoir)
-                for qqq in zzz:
-                    if qqq[8] == "10":
-                        count = int(int(qqq[9], 16) / 7) + 1
-                        self.diag_console.appendPlainText(str(qqq))
-                self.tx_worker.ggg = []
-                QtCore.QCoreApplication.processEvents()
-            self.flow_control_len = count
+            self.diag_memory_fault("btn_mem_fault_num_check")
+            dtc_num = int(self.res_data[0][14], 16)
+            if dtc_num > 2:
+                occu = 5
+                self.flow_control_len = 2
+                for i in range(dtc_num - 2):
+                    for j in range(4):
+                        occu += 1
+                        if occu == 7:
+                            self.flow_control_len += 1
+                            occu = 0
+            self.res_data = []
+            sig_li = [0x03, 0x19, 0x02, 0x09]
+            self.diag_data_collector(sig_li, True)
 
-            while len(temp_li) < self.flow_control_len:
-                self.data[0] = 0x03
-                self.data[1] = 0x19
-                self.data[2] = 0x02
-                self.data[3] = 0x09
-                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                self.c_can_bus.send(message)
-                time.sleep(0.020)
-                self.data[0] = 0x30
-                self.data[1] = 0x19
-                self.data[2] = 0x02
-                self.data[3] = 0x09
-                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                self.c_can_bus.send(message)
-                time.sleep(0.3)
-                zzz = copy.copy(self.tx_worker.reservoir)
-                if flag:
-                    for qqq in zzz:
-                        if qqq[8] == '03':
-                            continue
-                        for q in bb:
-                            uni = bb | {qqq[8]}
-                            if bb != uni:
-                                bb.add(qqq[8])
-                                temp_li.append(qqq)
-                                break
-                else:
-                    # if len(zzz) != 0:
-                    for qqq in zzz:
-                        if qqq[8] == '03':
-                            continue
-                        bb.append(qqq[8])
-                        temp_li.append(qqq)
-                    bb = set(bb)
-                    flag = True
-                self.tx_worker.reservoir = []
-                QtCore.QCoreApplication.processEvents()
-            for i in range(self.flow_control_len):
-                for j in range(self.flow_control_len):
-                    a = int(temp_li[j][8][-1], 16)
-                    if i == a:
-                        self.diag_console.appendPlainText(str(temp_li[j]))
-                        rrrr.append(temp_li[j])
-                        break
-            print(rrrr)
+            # while len(temp_li) < self.flow_control_len:
+            #     self.data[0] = 0x03
+            #     self.data[1] = 0x19
+            #     self.data[2] = 0x02
+            #     self.data[3] = 0x09
+            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            #     self.c_can_bus.send(message)
+            #     time.sleep(0.020)
+            #     self.data[0] = 0x30
+            #     self.data[1] = 0x19
+            #     self.data[2] = 0x02
+            #     self.data[3] = 0x09
+            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+            #     self.c_can_bus.send(message)
+            #     time.sleep(0.3)
+            #     zzz = copy.copy(self.tx_worker.reservoir)
+            #     if flag:
+            #         for qqq in zzz:
+            #             if qqq[8] == '03':
+            #                 continue
+            #             for q in bb:
+            #                 uni = bb | {qqq[8]}
+            #                 if bb != uni:
+            #                     bb.add(qqq[8])
+            #                     temp_li.append(qqq)
+            #                     break
+            #     else:
+            #         # if len(zzz) != 0:
+            #         for qqq in zzz:
+            #             if qqq[8] == '03':
+            #                 continue
+            #             bb.append(qqq[8])
+            #             temp_li.append(qqq)
+            #         bb = set(bb)
+            #         flag = True
+            #     self.tx_worker.reservoir = []
+            #     QtCore.QCoreApplication.processEvents()
+            # for i in range(self.flow_control_len):
+            #     for j in range(self.flow_control_len):
+            #         a = int(temp_li[j][8][-1], 16)
+            #         if i == a:
+            #             self.diag_console.appendPlainText(str(temp_li[j]))
+            #             rrrr.append(temp_li[j])
+            #             break
+            # print(rrrr)
         elif txt == "btn_mem_fault_reset":
             self.data[0] = 0x04
             self.data[1] = 0x14

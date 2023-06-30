@@ -59,25 +59,14 @@ class TxOnlyWorker(QThread):
             a = str(self.parent.c_can_bus.recv()).split()
             if a[3] == "18daf141":
                 self.reservoir.append(a)
-                if a[8] == '10':
-                    self.parent.flow = True
-
-            # print(len(self.ggg))
             QtCore.QCoreApplication.processEvents()
-            # self.parent.main_console.appendPlainText(str(a))
             self.sig2.emit(a)
-
-    # @pyqtSlot("PyQt_PyObject")
-    # def good2(self, good2):
-    #     pass
-    #     print(good2)
 
     def stop(self):
         self._isRunning = False
 
 
 class Hvac(NodeThread):
-
     def __init__(self, parent):
         super().__init__(parent)
         self.sig = '0x00'
