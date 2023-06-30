@@ -142,6 +142,21 @@ class Main(QMainWindow, form_class):
         self.btn_tester_nrc_13.released.connect(self.diag_func)
 
         self.btn_id_ecu_num.released.connect(self.diag_func)
+        self.btn_id_ecu_supp.released.connect(self.diag_func)
+        self.btn_id_vin.released.connect(self.diag_func)
+        self.btn_id_install_date.released.connect(self.diag_func)
+        self.btn_id_diag_ver.released.connect(self.diag_func)
+        self.btn_id_sys_name.released.connect(self.diag_func)
+        self.btn_id_active_sess.released.connect(self.diag_func)
+        self.btn_id_veh_name.released.connect(self.diag_func)
+        self.btn_id_ecu_serial.released.connect(self.diag_func)
+        self.btn_id_hw_ver.released.connect(self.diag_func)
+        self.btn_id_sw_ver.released.connect(self.diag_func)
+        self.btn_id_ecu_manu_date.released.connect(self.diag_func)
+        self.btn_id_assy_num.released.connect(self.diag_func)
+        self.btn_id_net_config.released.connect(self.diag_func)
+        self.btn_id_nrc_13.released.connect(self.diag_func)
+        self.btn_id_nrc_31.released.connect(self.diag_func)
 
         self.btn_sec_req_seed.released.connect(self.diag_func)
         self.btn_sec_send_key.released.connect(self.diag_func)
@@ -709,8 +724,14 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
                 self.diag_success_byte = "7e"
                 self.diag_tester(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_id_ecu_num":
-                    # or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
+            elif self.diag_btn_text == "btn_id_ecu_num" or self.diag_btn_text == "btn_id_ecu_supp" \
+                    or "btn_id_vin" == self.diag_btn_text or self.diag_btn_text == "btn_id_install_date" \
+                    or self.diag_btn_text == "btn_id_diag_ver" or self.diag_btn_text == "btn_id_sys_name" \
+                    or self.diag_btn_text == "btn_id_active_sess" or self.diag_btn_text == "btn_id_veh_name" \
+                    or self.diag_btn_text == "btn_id_ecu_serial" or self.diag_btn_text == "btn_id_hw_ver" \
+                    or self.diag_btn_text == "btn_id_sw_ver" or self.diag_btn_text == "btn_id_ecu_manu_date" \
+                    or self.diag_btn_text == "btn_id_assy_num" or self.diag_btn_text == "btn_id_net_config" \
+                    or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
                 self.diag_success_byte = "62"
                 self.diag_did(self.diag_btn_text)
             elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key":
@@ -740,23 +761,13 @@ class Main(QMainWindow, form_class):
         # **need to add test failed scenario
         self.diag_initialization()
         if txt == "btn_sess_default":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0x01
             sig_li = [0x02, 0x10, 0x01]
         elif txt == "btn_sess_extended":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0x03
+            sig_li = [0x02, 0x10, 0x03]
         elif txt == "btn_sess_nrc_12":
-            self.data[0] = 0x02
-            self.data[1] = 0x10
-            self.data[2] = 0xFF
+            sig_li = [0x02, 0x10, 0xFF]
         elif txt == "btn_sess_nrc_13":
-            self.data[0] = 0x03
-            self.data[1] = 0x10
-            self.data[2] = 0x01
-            self.data[3] = 0x01
+            sig_li = [0x03, 0x10, 0x01, 0x01]
         self.diag_data_collector(sig_li)
         tx_result = self.res_data[0]
         if self.test_mode_basic:
@@ -774,7 +785,6 @@ class Main(QMainWindow, form_class):
                 elif tx_result[11] == "13":
                     self.btn_sess_nrc_13.setEnabled(False)
                     self.label_sess_nrc_13.setText("Success")
-        self.diag_console.appendPlainText(str(tx_result))
 
     def diag_reset(self, txt):
         if txt == "btn_reset_sw":
@@ -834,18 +844,11 @@ class Main(QMainWindow, form_class):
         # **need to add test failed scenario
         self.diag_initialization()
         if txt == "btn_tester":
-            self.data[0] = 0x02
-            self.data[1] = 0x3E
-            self.data[2] = 0x00
+            sig_li = [0x02, 0x3E, 0x00]
         elif txt == "btn_tester_nrc_12":
-            self.data[0] = 0x02
-            self.data[1] = 0x3E
-            self.data[2] = 0x03
+            sig_li = [0x02, 0x3E, 0x03]
         elif txt == "btn_tester_nrc_13":
-            self.data[0] = 0x03
-            self.data[1] = 0x3E
-            self.data[2] = 0x00
-            self.data[3] = 0x01
+            sig_li = [0x03, 0x3E, 0x00, 0x01]
         self.diag_data_collector()
         tx_result = self.res_data[0]
         if self.test_mode_basic:
@@ -860,7 +863,6 @@ class Main(QMainWindow, form_class):
                 elif tx_result[11] == "13":
                     self.btn_tester_nrc_13.setEnabled(False)
                     self.label_tester_nrc_13.setText("Success")
-        self.diag_console.appendPlainText(str(tx_result))
 
     def diag_did(self, txt):
         self.diag_initialization()
@@ -869,98 +871,52 @@ class Main(QMainWindow, form_class):
         else:
             test_mode = False
         if txt == "btn_id_ecu_num":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x87
             self.flow_control_len = 4
+            sig_li = [0x03, 0x22, 0xF1, 0x87]
         elif txt == "btn_id_ecu_supp":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x8A
             self.flow_control_len = 2
+            sig_li = [0x03, 0x22, 0xF1, 0x8A]
         elif txt == "btn_id_vin":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x90
             self.flow_control_len = 3
+            sig_li = [0x03, 0x22, 0xF1, 0x90]
         elif txt == "btn_id_install_date":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0xA2
+            sig_li = [0x03, 0x22, 0xF1, 0xA2]
         elif txt == "btn_id_diag_ver":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x13
+            sig_li = [0x03, 0x22, 0xF1, 0x13]
         elif txt == "btn_id_sys_name":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x97
             self.flow_control_len = 2
+            sig_li = [0x03, 0x22, 0xF1, 0x97]
         elif txt == "btn_id_active_sess":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x86
+            sig_li = [0x03, 0x22, 0xF1, 0x86]
         elif txt == "btn_id_veh_name":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x12
             self.flow_control_len = 2
+            sig_li = [0x03, 0x22, 0xF1, 0x12]
         elif txt == "btn_id_ecu_serial":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x8C
             self.flow_control_len = 4
+            sig_li = [0x03, 0x22, 0xF1, 0x8C]
         elif txt == "btn_id_hw_ver":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x93
             self.flow_control_len = 3
+            sig_li = [0x03, 0x22, 0xF1, 0x93]
         elif txt == "btn_id_sw_ver":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x95
+            sig_li = [0x03, 0x22, 0xF1, 0x95]
             self.flow_control_len = 3
         elif txt == "btn_id_ecu_manu_date":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x8B
+            sig_li = [0x03, 0x22, 0xF1, 0x8B]
         elif txt == "btn_id_assy_num":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x8E
             self.flow_control_len = 3
+            sig_li = [0x03, 0x22, 0xF1, 0x8E]
         elif txt == "btn_id_net_config":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0xF1
-            self.data[3] = 0x10
             self.flow_control_len = 2
+            sig_li = [0x03, 0x22, 0xF1, 0x10]
         elif txt == "btn_sess_nrc_13":
-            self.data[0] = 0x03
-            self.data[1] = 0x22
-            self.data[2] = 0x01
-            self.data[3] = 0x01
-            self.data[4] = 0x01
+            sig_li = [0x04, 0x22, 0xF1, 0x01, 0x01]
         elif txt == "btn_sess_nrc_31":
-            self.data[0] = 0x22
-            self.data[1] = 0xFF
-            self.data[2] = 0xFF
-        self.diag_data_collector()
-        for aa in self.res_data:
-            self.diag_console.appendPlainText(str(aa))
+            sig_li = [0x03, 0x22, 0xFF, 0xFF]
+        if self.flow_control_len > 1:
+            multi = True
+        else:
+            multi = False
+        self.diag_data_collector(sig_li, multi)
         # temp_li = []
         # while len(temp_li) < self.flow_control_len:
         #     self.diag_console.appendPlainText("Thread trying to send message")

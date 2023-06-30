@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -2234,7 +2234,7 @@
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>210</y>
+         <y>220</y>
          <width>171</width>
          <height>20</height>
         </rect>
