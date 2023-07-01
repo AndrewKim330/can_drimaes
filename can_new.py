@@ -28,12 +28,12 @@ class Main(QMainWindow, form_class):
         self.setupUi(self)
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-
         self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
-
+        self.raw_data = []
         self.res_data = []
-
         self.temp_list = []
+        self.data_len = 0
+        self.data_type = None
 
         self.flow = False
 
@@ -174,7 +174,7 @@ class Main(QMainWindow, form_class):
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
-        self.btn_write_data_convert.clicked.connect(self.vin_ascii_convert)
+        self.btn_write_data_convert.clicked.connect(self.ascii_convert)
 
         self.btn_main_console_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
@@ -624,6 +624,7 @@ class Main(QMainWindow, form_class):
         self.res_data = []
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+        self.raw_data = []
 
     def diag_send_message(self):
         message = can.Message(arbitration_id=0x18da41f1, data=self.data)
@@ -668,32 +669,54 @@ class Main(QMainWindow, form_class):
             self.tx_worker.reservoir = []
             QtCore.QCoreApplication.processEvents()
         temp_li = []
-        if len(self.res_data) > 1:
+        # len_count = 0
+        if len(self.res_data) == 1:
+            if self.data_len > 0:
+                for i in range(12, 16):
+                    self.raw_data.append(self.res_data[0][i])
+                    if len(self.raw_data) == self.data_len:
+                        break
+        else:
             for i in range(self.flow_control_len):
                 for j in range(self.flow_control_len):
                     a = int(self.res_data[j][8][-1], 16)
                     if i == a:
+                        if self.data_len > 0:
+                            if self.res_data[j][8] == '10':
+                                st = 13
+                            else:
+                                st = 9
+                            for k in range(st, 16):
+                                self.raw_data.append(self.res_data[j][k])
+                                if len(self.raw_data) == self.data_len:
+                                    break
                         temp_li.append(self.res_data[j])
                         break
             self.res_data = temp_li
         for m in self.res_data:
             self.diag_console.appendPlainText(str(m))
 
-    def vin_ascii_convert(self):
-        self.write_txt = self.lineEdit_write_data.text()
-        txt_len = len(self.write_txt)
-        if txt_len > 0:
-            while self.write_txt[0] == ' ' or self.write_txt[txt_len-1] == ' ':
-                if self.write_txt[0] == ' ':
-                    self.write_txt = self.write_txt[1:]
-                if self.write_txt[txt_len - 1] == ' ':
-                    self.write_txt = self.write_txt[:txt_len-1]
-            ascii_li = []
-            for i, ch in zip(range(txt_len), self.write_txt):
-                # LMPA1KMB7NC002090
-                ascii_li.append(int(hex(ord(ch))[2:], 16))
-            self.label_flag_convert.setText(f'Conversion Success - Data : {self.write_txt}, length: {txt_len}')
-            self.write_txt_ascii = ascii_li
+    def ascii_convert(self, conv=None):
+        if conv == 'a2c':
+            entire_ch = ''
+            for ch in self.raw_data:
+                entire_ch += chr(int(ch, 16))
+            self.lineEdit_id_data.setText(entire_ch)
+        else:
+            self.write_txt = self.lineEdit_write_data.text()
+            txt_len = len(self.write_txt)
+            if txt_len > 0:
+                while self.write_txt[0] == ' ' or self.write_txt[txt_len - 1] == ' ':
+                    if self.write_txt[0] == ' ':
+                        self.write_txt = self.write_txt[1:]
+                    if self.write_txt[txt_len - 1] == ' ':
+                        self.write_txt = self.write_txt[:txt_len - 1]
+                ascii_li = []
+                for i, ch in zip(range(txt_len), self.write_txt):
+                    # LMPA1KMB7NC002090
+                    ascii_li.append(int(hex(ord(ch))[2:], 16))
+                self.label_flag_convert.setText(f'Conversion Success - Data : {self.write_txt}, length: {txt_len}')
+                self.write_txt_ascii = ascii_li
 
     def write_data_not_correct(self, txt):
         if txt == "btn_write_vin":
@@ -849,7 +872,7 @@ class Main(QMainWindow, form_class):
             sig_li = [0x02, 0x3E, 0x03]
         elif txt == "btn_tester_nrc_13":
             sig_li = [0x03, 0x3E, 0x00, 0x01]
-        self.diag_data_collector()
+        self.diag_data_collector(sig_li)
         tx_result = self.res_data[0]
         if self.test_mode_basic:
             if tx_result[9] == self.diag_success_byte:
@@ -865,6 +888,7 @@ class Main(QMainWindow, form_class):
                     self.label_tester_nrc_13.setText("Success")
 
     def diag_did(self, txt):
+        # **need to add test failed scenario
         self.diag_initialization()
         if self.chkbox_diag_test_mode_did.isChecked():
             test_mode = True
@@ -872,81 +896,91 @@ class Main(QMainWindow, form_class):
             test_mode = False
         if txt == "btn_id_ecu_num":
             self.flow_control_len = 4
+            self.data_len = 21
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x87]
         elif txt == "btn_id_ecu_supp":
             self.flow_control_len = 2
+            self.data_len = 6
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x8A]
         elif txt == "btn_id_vin":
             self.flow_control_len = 3
+            self.data_len = 17
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x90]
         elif txt == "btn_id_install_date":
+            self.data_len = 4
+            self.data_type = "bcd"
             sig_li = [0x03, 0x22, 0xF1, 0xA2]
         elif txt == "btn_id_diag_ver":
+            self.data_len = 4
+            self.data_type = "hex"
             sig_li = [0x03, 0x22, 0xF1, 0x13]
         elif txt == "btn_id_sys_name":
             self.flow_control_len = 2
+            self.data_len = 8
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x97]
         elif txt == "btn_id_active_sess":
+            self.data_len = 1
+            self.data_type = "hex"
             sig_li = [0x03, 0x22, 0xF1, 0x86]
         elif txt == "btn_id_veh_name":
             self.flow_control_len = 2
+            self.data_len = 8
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x12]
         elif txt == "btn_id_ecu_serial":
             self.flow_control_len = 4
+            self.data_len = 24
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x8C]
         elif txt == "btn_id_hw_ver":
             self.flow_control_len = 3
+            self.data_len = 16
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x93]
         elif txt == "btn_id_sw_ver":
-            sig_li = [0x03, 0x22, 0xF1, 0x95]
             self.flow_control_len = 3
+            self.data_len = 16
+            self.data_type = "ascii"
+            sig_li = [0x03, 0x22, 0xF1, 0x95]
         elif txt == "btn_id_ecu_manu_date":
+            self.data_len = 4
+            self.data_type = "bcd"
             sig_li = [0x03, 0x22, 0xF1, 0x8B]
         elif txt == "btn_id_assy_num":
             self.flow_control_len = 3
+            self.data_len = 16
+            self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x8E]
         elif txt == "btn_id_net_config":
             self.flow_control_len = 2
+            self.data_len = 8
+            self.data_type = "hex"
             sig_li = [0x03, 0x22, 0xF1, 0x10]
         elif txt == "btn_sess_nrc_13":
             sig_li = [0x04, 0x22, 0xF1, 0x01, 0x01]
         elif txt == "btn_sess_nrc_31":
             sig_li = [0x03, 0x22, 0xFF, 0xFF]
+
         if self.flow_control_len > 1:
             multi = True
         else:
             multi = False
         self.diag_data_collector(sig_li, multi)
-        # temp_li = []
-        # while len(temp_li) < self.flow_control_len:
-        #     self.diag_console.appendPlainText("Thread trying to send message")
-        #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-        #     self.c_can_bus.send(message)
-        #     time.sleep(0.5)
-        #     zzz = copy.copy(self.tx_worker.ggg)
-        #     for qqq in zzz:
-        #         if qqq[3] == "18daf141":
-        #             temp_li.append(qqq)
-        #     QtCore.QCoreApplication.processEvents()
 
-        # if test_mode:
-        #     if temp[9] == self.diag_success_byte:
-        #         if temp[10] == "01":
-        #             self.btn_sess_default.setEnabled(False)
-        #             self.label_sess_default.setText("Success")
-        #         elif temp[10] == "03":
-        #             self.btn_sess_extended.setEnabled(False)
-        #             self.label_sess_extended.setText("Success")
-        #     else:
-        #         if temp[11] == "12":
-        #             self.btn_sess_nrc_12.setEnabled(False)
-        #             self.label_sess_nrc_12.setText("Success")
-        #         elif temp[11] == "13":
-        #             self.btn_sess_nrc_13.setEnabled(False)
-        #             self.label_sess_nrc_13.setText("Success")
-        # self.diag_console.appendPlainText(str(temp))
-        self.tx_worker.ggg = []
-        # **need to add test failed scenario
+        if self.data_type == "ascii":
+            self.ascii_convert('a2c')
+        elif self.data_type == "bcd":
+            temp_str = f'{self.raw_data[0]}{self.raw_data[1]}/{self.raw_data[2]}/{self.raw_data[3]}'
+            self.lineEdit_id_data.setText(temp_str)
+        elif self.data_type == "hex":
+            temp_str = ''
+            for temp_ch in self.raw_data:
+                temp_str += temp_ch
+            self.lineEdit_id_data.setText(temp_str)
 
     def diag_security_access(self, txt):
         self.diag_initialization()
@@ -954,23 +988,15 @@ class Main(QMainWindow, form_class):
             self.diag_sess("btn_sess_default")
             self.diag_sess("btn_sess_extended")
             time.sleep(0.2)
-            self.data[0] = 0x02
-            self.data[1] = 0x27
-            self.data[2] = 0x01
-            self.diag_data_collector()
+            self.res_data = []
+            self.diag_data_collector([0x02, 0x27, 0x01])
             self.diag_console.appendPlainText(str(self.res_data[0]))
             self.req_seed = self.res_data[0][11:15]
         elif txt == "btn_sec_send_key":
             self.diag_security_access("btn_sec_req_seed")
             good = algo.secu_algo(self.req_seed)
-            self.data[0] = 0x06
-            self.data[1] = 0x27
-            self.data[2] = 0x02
-            self.data[3] = good[0]
-            self.data[4] = good[1]
-            self.data[5] = good[2]
-            self.data[6] = good[3]
-            self.diag_data_collector()
+            self.res_data = []
+            self.diag_data_collector([0x06, 0x27, 0x02] + good)
             self.diag_console.appendPlainText(str(self.res_data[0]))
 
     def diag_write(self, txt):
@@ -980,13 +1006,13 @@ class Main(QMainWindow, form_class):
         else:
             test_mode = False
         if txt == "btn_write_vin":
-            count = 0
-            while count < self.flow_control_len:
-                self.diag_security_access("btn_sec_send_key")
-                data_len = len(self.write_txt_ascii)
-                if data_len != 17:
-                    self.write_data_not_correct(txt)
-                else:
+            data_len = len(self.write_txt_ascii)
+            if data_len != 17:
+                self.write_data_not_correct(txt)
+            else:
+                count = 0
+                while count < self.flow_control_len:
+                    self.diag_security_access("btn_sec_send_key")
                     self.flow_control_len = 3
                     temp_li = []
                     for i in range(self.flow_control_len):
@@ -1014,14 +1040,14 @@ class Main(QMainWindow, form_class):
                         self.c_can_bus.send(message)
                         time.sleep(0.030)
                     time.sleep(1)
-                    zzz = copy.copy(self.tx_worker.ggg)
+                    zzz = copy.copy(self.tx_worker.reservoir)
                     for qqq in zzz:
                         if qqq[3] == "18daf141":
                             temp = qqq
                             count = self.flow_control_len
-                    self.tx_worker.ggg = []
+                    self.tx_worker.reservoir = []
                     QtCore.QCoreApplication.processEvents()
-            self.diag_console.appendPlainText(str(temp))
+                self.diag_console.appendPlainText(str(temp))
         #     time.sleep(0.2)
         #     zzz = copy.copy(self.tx_worker.ggg)
         #     for qqq in zzz:
@@ -1264,6 +1290,7 @@ class Main(QMainWindow, form_class):
 
         #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
         #     self.c_can_bus.send(message)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
