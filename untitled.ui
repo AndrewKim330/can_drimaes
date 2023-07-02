@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1176</width>
-    <height>1045</height>
+    <height>777</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -4074,8 +4074,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>410</y>
+        <x>100</x>
+        <y>240</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4095,8 +4095,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>530</x>
-        <y>270</y>
+        <x>400</x>
+        <y>90</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4116,8 +4116,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>160</y>
+        <x>100</x>
+        <y>90</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4235,7 +4235,7 @@
      <x>0</x>
      <y>0</y>
      <width>1176</width>
-     <height>18</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>

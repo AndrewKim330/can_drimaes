@@ -121,12 +121,11 @@ class Main(QMainWindow, form_class):
 
         self.tx_worker.sig2.connect(self.sig2)
 
+        # Connect diagnosis basic buttons to diagnostic handling function
         self.btn_sess_default.clicked.connect(self.diag_func)
         self.btn_sess_extended.clicked.connect(self.diag_func)
         self.btn_sess_nrc_12.clicked.connect(self.diag_func)
         self.btn_sess_nrc_13.clicked.connect(self.diag_func)
-
-        self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_enable)
 
         self.btn_reset_sw.clicked.connect(self.diag_func)
         self.btn_reset_hw.clicked.connect(self.diag_func)
@@ -141,6 +140,9 @@ class Main(QMainWindow, form_class):
         self.btn_tester_nrc_12.released.connect(self.diag_func)
         self.btn_tester_nrc_13.released.connect(self.diag_func)
 
+        self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_enable)
+
+        # Connect data identification buttons to diagnostic handling function
         self.btn_id_ecu_num.released.connect(self.diag_func)
         self.btn_id_ecu_supp.released.connect(self.diag_func)
         self.btn_id_vin.released.connect(self.diag_func)
@@ -158,37 +160,62 @@ class Main(QMainWindow, form_class):
         self.btn_id_nrc_13.released.connect(self.diag_func)
         self.btn_id_nrc_31.released.connect(self.diag_func)
 
+        self.btn_diag_reset_did.released.connect(self.set_diag_did_btns_enable)
+
+        # Connect communication control buttons to diagnostic handling function
+        self.btn_comm_cont_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_all_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_12.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_13.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_31.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_all_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_all_dis.released.connect(self.diag_func)
+
+        self.btn_diag_reset_comm_cont.released.connect(self.set_diag_comm_cont_btns_enable)
+
+        # Connect security control buttons to diagnostic handling function
         self.btn_sec_req_seed.released.connect(self.diag_func)
         self.btn_sec_send_key.released.connect(self.diag_func)
+        self.btn_sec_nrc_12.released.connect(self.diag_func)
+        self.btn_sec_nrc_13.released.connect(self.diag_func)
+        self.btn_sec_nrc_24.released.connect(self.diag_func)
+        self.btn_sec_nrc_35.released.connect(self.diag_func)
+        self.btn_sec_nrc_36.released.connect(self.diag_func)
+        self.btn_sec_nrc_37.released.connect(self.diag_func)
+        self.btn_sec_nrc_7f_req.released.connect(self.diag_func)
+        self.btn_sec_nrc_7f_send.released.connect(self.diag_func)
 
+        self.btn_diag_reset_sec.released.connect(self.set_diag_sec_btns_enable)
+
+        # Connect data write buttons to diagnostic handling function
         self.btn_write_vin.clicked.connect(self.diag_func)
+        self.btn_write_data_convert.clicked.connect(self.ascii_convert)
 
+        # Connect dtc buttons to diagnostic handling function
         self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
         self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
         self.btn_mem_fault_reset.clicked.connect(self.diag_func)
-
-        # self.clear_console.clicked.connect(self.diag_text_clear)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
-        self.btn_write_data_convert.clicked.connect(self.ascii_convert)
-
         self.btn_main_console_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
         self.btn_write_data_clear.clicked.connect(self.console_text_clear)
 
-        # self.btn_diag_reset_1.clicked.connect(self.set_diag_btns_enable)
-        # self.btn_diag_reset_2.clicked.connect(self.set_diag_btns_enable)
-
         self.set_can_basic_btns_enable(False)
         self.set_diag_basic_btns_enable(False)
         self.set_diag_did_btns_enable(False)
-        self.set_diag_secu_btns_enable(False)
+        self.set_diag_sec_btns_enable(False)
         self.set_diag_write_btns_enable(False)
-        self.set_diag_comm_control_btns_enable(False)
+        self.set_diag_comm_cont_btns_enable(False)
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -267,9 +294,9 @@ class Main(QMainWindow, form_class):
             self.set_can_basic_btns_enable(True)
             self.set_diag_basic_btns_enable(True)
             self.set_diag_did_btns_enable(True)
-            self.set_diag_secu_btns_enable(True)
+            self.set_diag_sec_btns_enable(True)
             self.set_diag_write_btns_enable(True)
-            self.set_diag_comm_control_btns_enable(True)
+            self.set_diag_comm_cont_btns_enable(True)
 
             QtCore.QCoreApplication.processEvents()
         else:
@@ -309,9 +336,9 @@ class Main(QMainWindow, form_class):
         self.set_can_basic_btns_enable(False)
         self.set_diag_basic_btns_enable(False)
         self.set_diag_did_btns_enable(False)
-        self.set_diag_secu_btns_enable(False)
+        self.set_diag_sec_btns_enable(False)
         self.set_diag_write_btns_enable(False)
-        self.set_diag_comm_control_btns_enable(False)
+        self.set_diag_comm_cont_btns_enable(False)
 
     def set_drv_state(self):
         if self.btn_drv_state.text() == 'Set Driving State' or self.thread_worker.drv_state:
@@ -408,7 +435,6 @@ class Main(QMainWindow, form_class):
         self.chkbox_pass_invalid.setEnabled(flag)
 
     def set_diag_basic_btns_enable(self, flag=True):
-        # **need to add reset btns
         if flag:
             color = "black"
         else:
@@ -479,7 +505,7 @@ class Main(QMainWindow, form_class):
         self.btn_diag_reset_did.setEnabled(flag)
         self.chkbox_diag_test_mode_did.setEnabled(flag)
 
-    def set_diag_secu_btns_enable(self, flag=True):
+    def set_diag_sec_btns_enable(self, flag=True):
         if flag:
             color = "black"
         else:
@@ -570,7 +596,7 @@ class Main(QMainWindow, form_class):
         self.btn_diag_reset_write.setEnabled(flag)
         self.chkbox_diag_test_mode_write.setEnabled(flag)
 
-    def set_diag_comm_control_btns_enable(self, flag=True):
+    def set_diag_comm_cont_btns_enable(self, flag=True):
         if flag:
             color = "black"
         else:
@@ -773,6 +799,14 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_write_nrc_13" or self.diag_btn_text == "btn_write_nrc_31":
                 self.diag_success_byte = "6e"
                 self.diag_write(self.diag_btn_text)
+            elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
+                    or self.diag_btn_text == 'btn_comm_cont_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_12' \
+                    or self.diag_btn_text == 'btn_comm_cont_nrc_13' or self.diag_btn_text == 'btn_comm_cont_nrc_31' \
+                    or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_en' or self.diag_btn_text == 'btn_comm_cont_nrc_22_tx_dis' \
+                    or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_7f_all_en' \
+                    or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
+                self.diag_success_byte = "fffff" # need to fix
+                self.diag_comm_cont(self.diag_btn_text)
             elif self.diag_btn_text == "btn_mem_fault_num_check" or self.diag_btn_text == "btn_mem_fault_list_check":
                 self.diag_success_byte = "59"
                 self.diag_memory_fault(self.diag_btn_text)
@@ -1171,6 +1205,10 @@ class Main(QMainWindow, form_class):
         # self.tx_worker.ggg = []
         # # **need to add test failed scenario
 
+    def diag_comm_cont(self, txt):
+        # need to make function
+        pass
+
     def diag_memory_fault(self, txt):
         self.diag_initialization()
         if txt == "btn_mem_fault_num_check":
@@ -1191,52 +1229,6 @@ class Main(QMainWindow, form_class):
             self.res_data = []
             sig_li = [0x03, 0x19, 0x02, 0x09]
             self.diag_data_collector(sig_li, True)
-
-            # while len(temp_li) < self.flow_control_len:
-            #     self.data[0] = 0x03
-            #     self.data[1] = 0x19
-            #     self.data[2] = 0x02
-            #     self.data[3] = 0x09
-            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            #     self.c_can_bus.send(message)
-            #     time.sleep(0.020)
-            #     self.data[0] = 0x30
-            #     self.data[1] = 0x19
-            #     self.data[2] = 0x02
-            #     self.data[3] = 0x09
-            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            #     self.c_can_bus.send(message)
-            #     time.sleep(0.3)
-            #     zzz = copy.copy(self.tx_worker.reservoir)
-            #     if flag:
-            #         for qqq in zzz:
-            #             if qqq[8] == '03':
-            #                 continue
-            #             for q in bb:
-            #                 uni = bb | {qqq[8]}
-            #                 if bb != uni:
-            #                     bb.add(qqq[8])
-            #                     temp_li.append(qqq)
-            #                     break
-            #     else:
-            #         # if len(zzz) != 0:
-            #         for qqq in zzz:
-            #             if qqq[8] == '03':
-            #                 continue
-            #             bb.append(qqq[8])
-            #             temp_li.append(qqq)
-            #         bb = set(bb)
-            #         flag = True
-            #     self.tx_worker.reservoir = []
-            #     QtCore.QCoreApplication.processEvents()
-            # for i in range(self.flow_control_len):
-            #     for j in range(self.flow_control_len):
-            #         a = int(temp_li[j][8][-1], 16)
-            #         if i == a:
-            #             self.diag_console.appendPlainText(str(temp_li[j]))
-            #             rrrr.append(temp_li[j])
-            #             break
-            # print(rrrr)
         elif txt == "btn_mem_fault_reset":
             self.data[0] = 0x04
             self.data[1] = 0x14
