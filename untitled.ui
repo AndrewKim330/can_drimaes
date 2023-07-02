@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1176</width>
-    <height>777</height>
+    <height>1045</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -1416,8 +1416,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1445,8 +1448,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1475,8 +1481,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -1491,8 +1500,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -1532,8 +1544,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1541,7 +1556,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_12">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1558,7 +1573,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_13">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1581,8 +1596,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1590,7 +1608,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_7f_sw">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1614,8 +1632,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1630,8 +1651,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1639,7 +1663,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_7f_hw">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1654,7 +1678,7 @@
  (H/W Reset)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_reset_nrc_22_hw">
+       <widget class="QLabel" name="label_reset_nrc_22_sw">
         <property name="geometry">
          <rect>
           <x>420</x>
@@ -1663,14 +1687,17 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_reset_nrc_22hw">
+       <widget class="QLabel" name="label_reset_nrc_22_hw">
         <property name="geometry">
          <rect>
           <x>420</x>
@@ -1679,8 +1706,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1688,7 +1718,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_22_hw">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1705,7 +1735,7 @@
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_22_sw">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
@@ -1723,7 +1753,7 @@
       </widget>
       <widget class="QPushButton" name="btn_reset_sw">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1746,8 +1776,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -1762,8 +1795,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -1771,7 +1807,7 @@
       </widget>
       <widget class="QPushButton" name="btn_reset_hw">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1875,8 +1911,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1904,8 +1943,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -1921,8 +1963,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2009,8 +2054,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2025,8 +2073,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2055,8 +2106,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2097,8 +2151,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2126,8 +2183,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2142,8 +2202,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2223,8 +2286,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2239,8 +2305,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2255,8 +2324,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2271,8 +2343,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2301,8 +2376,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2331,8 +2409,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2369,12 +2450,15 @@
         <rect>
          <x>50</x>
          <y>350</y>
-         <width>161</width>
+         <width>171</width>
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2389,8 +2473,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2419,8 +2506,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2435,8 +2525,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2556,8 +2649,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2585,8 +2681,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2614,8 +2713,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2630,8 +2732,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2673,8 +2778,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2703,8 +2811,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2747,8 +2858,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2763,8 +2877,11 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2780,8 +2897,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2822,8 +2942,11 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -2941,7 +3064,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -2971,7 +3094,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3001,7 +3124,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3017,7 +3140,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3061,7 +3184,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3077,7 +3200,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3121,7 +3244,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3151,7 +3274,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3181,7 +3304,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3197,7 +3320,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3241,7 +3364,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3257,7 +3380,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3301,7 +3424,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3317,7 +3440,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3361,7 +3484,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3391,7 +3514,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3407,7 +3530,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3450,7 +3573,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3466,7 +3589,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3521,7 +3644,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3537,7 +3660,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3553,7 +3676,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3700,7 +3823,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3729,7 +3852,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3758,7 +3881,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3802,7 +3925,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3818,7 +3941,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3834,7 +3957,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3878,7 +4001,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3894,7 +4017,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3924,7 +4047,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>Not tested</string>
+         <string>Default</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -3955,7 +4078,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -3998,7 +4121,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -4014,7 +4137,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Not tested</string>
+        <string>Default</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -4074,8 +4197,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>240</y>
+        <x>170</x>
+        <y>410</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4095,8 +4218,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>400</x>
-        <y>90</y>
+        <x>530</x>
+        <y>270</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4116,8 +4239,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>90</y>
+        <x>170</x>
+        <y>160</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4235,7 +4358,7 @@
      <x>0</x>
      <y>0</y>
      <width>1176</width>
-     <height>24</height>
+     <height>18</height>
     </rect>
    </property>
   </widget>

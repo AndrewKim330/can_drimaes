@@ -46,7 +46,7 @@ class Main(QMainWindow, form_class):
 
         self.diag_btn_text = None
         self.diag_success_byte = None
-        self.diag_failure_byte = "7f"
+        self.diag_failure_byte = 0x7f
         self.drv_state = False
         self.test_mode_basic = False
 
@@ -435,29 +435,25 @@ class Main(QMainWindow, form_class):
         self.chkbox_pass_invalid.setEnabled(flag)
 
     def set_diag_basic_btns_enable(self, flag=True):
-        if flag:
-            color = "black"
-        else:
-            color = "gray"
-
+        self.thread_worker.test_mode_flag = True
         self.btn_sess_default.setEnabled(flag)
-        self.label_sess_default.setStyleSheet(f"color: {color}")
         self.btn_sess_extended.setEnabled(flag)
-        self.label_sess_extended.setStyleSheet(f"color: {color}")
-
         self.btn_sess_nrc_12.setEnabled(flag)
-        self.label_sess_nrc_12.setStyleSheet(f"color: {color}")
         self.btn_sess_nrc_13.setEnabled(flag)
-        self.label_sess_nrc_13.setStyleSheet(f"color: {color}")
+
+        self.btn_reset_sw.setEnabled(flag)
+        self.btn_reset_hw.setEnabled(flag)
+        self.btn_reset_nrc_12.setEnabled(flag)
+        self.btn_reset_nrc_13.setEnabled(flag)
+        self.btn_reset_nrc_7f_sw.setEnabled(flag)
+        self.btn_reset_nrc_7f_hw.setEnabled(flag)
+        self.btn_reset_nrc_22_sw.setEnabled(flag)
+        self.btn_reset_nrc_22_hw.setEnabled(flag)
 
         self.btn_tester.setEnabled(flag)
-        self.label_tester.setStyleSheet(f"color: {color}")
         self.chkbox_tester_present.setEnabled(flag)
-
         self.btn_tester_nrc_12.setEnabled(flag)
-        self.label_tester_nrc_12.setStyleSheet(f"color: {color}")
         self.btn_tester_nrc_13.setEnabled(flag)
-        self.label_tester_nrc_13.setStyleSheet(f"color: {color}")
 
         self.btn_diag_reset_basic.setEnabled(flag)
         self.chkbox_diag_test_mode_basic.setEnabled(flag)
@@ -658,6 +654,7 @@ class Main(QMainWindow, form_class):
         self.c_can_bus.send(message)
 
     def diag_data_collector(self, mess, multi=False):
+        self.res_data = []
         flag = False
         bb = []
         while len(self.res_data) < self.flow_control_len:
@@ -690,12 +687,11 @@ class Main(QMainWindow, form_class):
                     flag = True
             else:
                 for tx_single in reservoir:
-                    if tx_single[3] == "18daf141":
+                    if tx_single.arbitration_id == 0x18daf141:
                         self.res_data.append(tx_single)
             self.tx_worker.reservoir = []
             QtCore.QCoreApplication.processEvents()
         temp_li = []
-        # len_count = 0
         if len(self.res_data) == 1:
             if self.data_len > 0:
                 for i in range(12, 16):
@@ -751,27 +747,30 @@ class Main(QMainWindow, form_class):
         QMessageBox.warning(self, err, message)
         self.console_text_clear(err)
 
-    @pyqtSlot(list)
-    def sig2(self, li):
-        self.main_console.appendPlainText(str(li))
-        QtCore.QCoreApplication.processEvents()
+    @pyqtSlot(can.Message)
+    def sig2(self, tx_single):
+        # if tx_single.arbitration_id == 0x18ffd741:  # 100ms
+        #     print(tx_single)
+        # a = list(tx_single.data)
+        # print(str(a))
+        self.main_console.appendPlainText(str(tx_single))
 
     def diag_func(self):
         if self.sender():
             self.diag_btn_text = self.sender().objectName()
             if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" \
                     or self.diag_btn_text == "btn_sess_nrc_12" or self.diag_btn_text == "btn_sess_nrc_13":
-                self.diag_success_byte = "50"
+                self.diag_success_byte = 0x50
                 self.diag_sess(self.diag_btn_text)
             elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" \
                     or self.diag_btn_text == "btn_reset_nrc_12" or self.diag_btn_text == "btn_reset_nrc_13" \
                     or self.diag_btn_text == "btn_reset_nrc_7f_sw" or self.diag_btn_text == "btn_reset_nrc_7f_hw" \
                     or self.diag_btn_text == "btn_reset_nrc_22_sw" or self.diag_btn_text == "btn_reset_nrc_22_hw":
-                self.diag_success_byte = "51"
+                self.diag_success_byte = 0x51
                 self.diag_reset(self.diag_btn_text)
             elif self.diag_btn_text == "btn_tester" \
                     or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
-                self.diag_success_byte = "7e"
+                self.diag_success_byte = 0x7e
                 self.diag_tester(self.diag_btn_text)
             elif self.diag_btn_text == "btn_id_ecu_num" or self.diag_btn_text == "btn_id_ecu_supp" \
                     or "btn_id_vin" == self.diag_btn_text or self.diag_btn_text == "btn_id_install_date" \
@@ -781,10 +780,10 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_id_sw_ver" or self.diag_btn_text == "btn_id_ecu_manu_date" \
                     or self.diag_btn_text == "btn_id_assy_num" or self.diag_btn_text == "btn_id_net_config" \
                     or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
-                self.diag_success_byte = "62"
+                self.diag_success_byte = 0x62
                 self.diag_did(self.diag_btn_text)
             elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key":
-                self.diag_success_byte = "67"
+                self.diag_success_byte = 0x67
                 self.diag_security_access(self.diag_btn_text)
             elif self.diag_btn_text == "btn_write_vin" or self.diag_btn_text == "btn_write_install_date" \
                     or self.diag_btn_text == "btn_write_veh_name" or self.diag_btn_text == "btn_write_sys_name" \
@@ -797,7 +796,7 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_write_nrc_22_install_date" or self.diag_btn_text == "btn_write_nrc_22_veh_name" \
                     or self.diag_btn_text == "btn_write_nrc_22_sys_name" or self.diag_btn_text == "btn_write_nrc_22_net_config" \
                     or self.diag_btn_text == "btn_write_nrc_13" or self.diag_btn_text == "btn_write_nrc_31":
-                self.diag_success_byte = "6e"
+                self.diag_success_byte = 0x6e
                 self.diag_write(self.diag_btn_text)
             elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
                     or self.diag_btn_text == 'btn_comm_cont_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_12' \
@@ -805,13 +804,13 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_en' or self.diag_btn_text == 'btn_comm_cont_nrc_22_tx_dis' \
                     or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_7f_all_en' \
                     or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
-                self.diag_success_byte = "fffff" # need to fix
+                self.diag_success_byte = 0x68
                 self.diag_comm_cont(self.diag_btn_text)
             elif self.diag_btn_text == "btn_mem_fault_num_check" or self.diag_btn_text == "btn_mem_fault_list_check":
-                self.diag_success_byte = "59"
+                self.diag_success_byte = 0x59
                 self.diag_memory_fault(self.diag_btn_text)
             elif self.diag_btn_text == "btn_mem_fault_reset":
-                self.diag_success_byte = "54"
+                self.diag_success_byte = 0x54
                 self.diag_memory_fault(self.diag_btn_text)
 
     def diag_sess(self, txt):
@@ -826,29 +825,75 @@ class Main(QMainWindow, form_class):
         elif txt == "btn_sess_nrc_13":
             sig_li = [0x03, 0x10, 0x01, 0x01]
         self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0]
+        tx_result = self.res_data[0].data
         if self.test_mode_basic:
-            if tx_result[9] == self.diag_success_byte:
-                if tx_result[10] == "01":
+            self.thread_worker.test_mode_flag = False
+            if tx_result[1] == self.diag_success_byte:
+                if tx_result[2] == 0x01:
+                    print(str(tx_result))
                     self.btn_sess_default.setEnabled(False)
                     self.label_sess_default.setText("Success")
-                elif tx_result[10] == "03":
+                elif tx_result[2] == 0x03:
                     self.btn_sess_extended.setEnabled(False)
                     self.label_sess_extended.setText("Success")
             else:
-                if tx_result[11] == "12":
+                if tx_result[3] == 0x12:
                     self.btn_sess_nrc_12.setEnabled(False)
                     self.label_sess_nrc_12.setText("Success")
-                elif tx_result[11] == "13":
+                elif tx_result[3] == 0x13:
                     self.btn_sess_nrc_13.setEnabled(False)
                     self.label_sess_nrc_13.setText("Success")
 
     def diag_reset(self, txt):
-        if txt == "btn_reset_sw":
-            self.diag_sess("btn_sess_extended")
-            self.data[0] = 0x02
-            self.data[1] = 0x11
-            self.data[2] = 0x01
+        self.diag_initialization()
+        while len(self.res_data) < self.flow_control_len:
+            if txt == "btn_reset_sw":
+                self.diag_sess("btn_sess_extended")
+                self.res_data = []
+                sig_li = [0x02, 0x11, 0x01]
+            elif txt == "btn_reset_hw":
+                self.diag_sess("btn_sess_extended")
+                self.res_data = []
+                sig_li = [0x02, 0x11, 0x03]
+            for i, single_byte in zip(range(len(sig_li)), sig_li):
+                self.data[i] = single_byte
+            self.diag_send_message()
+            time.sleep(0.060)
+            reservoir = copy.copy(self.tx_worker.reservoir)
+            for tx_single in reservoir:
+                if tx_single.arbitration_id == 0x18daf141:
+                    self.res_data.append(tx_single)
+            self.tx_worker.reservoir = []
+            self.diag_console.appendPlainText(str(self.res_data[0]))
+            QtCore.QCoreApplication.processEvents()
+        # for i, mess_data in zip(range(len(sig_li)), sig_li):
+        #     self.data[i] = mess_data
+        # message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        # self.diag_console.appendPlainText("Thread trying to send message")
+        # self.c_can_bus.send(message)
+        # time.sleep(0.03)
+        # reservoir = copy.copy(self.tx_worker.reservoir)
+        # for tx_single in reservoir:
+        #     if tx_single.arbitration_id == "18daf141":
+        #         self.res_data.append(tx_single)
+        # # self.diag_console.appendPlainText(str(self.res_data[0]))
+        # print(self.res_data)
+        # self.tx_worker.reservoir = []
+
+
+        # while len(self.res_data) < self.flow_control_len:
+        #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        #     self.diag_console.appendPlainText("Thread trying to send message")
+        #     self.c_can_bus.send(message)
+        #     time.sleep(0.03)
+        #     reservoir = copy.copy(self.tx_worker.reservoir)
+        #     for tx_single in reservoir:
+        #         if tx_single[3] == "18daf141":
+        #             self.res_data.append(tx_single)
+        #     self.tx_worker.reservoir = []
+        #     self.diag_console.appendPlainText(str(self.res_data[0]))
+        #     QtCore.QCoreApplication.processEvents()
+
         # elif txt == "btn_sess_extended":
         #     self.data[0] = 0x02
         #     self.data[1] = 0x10
@@ -863,8 +908,8 @@ class Main(QMainWindow, form_class):
         #     self.data[2] = 0x01
         #     self.data[3] = 0x01
         # while len(self.diag_list) == 0:
-        message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-        self.c_can_bus.send(message)
+        # message = can.Message(arbitration_id=0x18da41f1, data=self.data)
+        # self.c_can_bus.send(message)
             # try:
             #     self.c_can_bus.send(message)
             # except:
@@ -873,27 +918,27 @@ class Main(QMainWindow, form_class):
             #     self.diag_reset(txt)
             # self.diag_console.appendPlainText("Thread trying to send message once more")
             # time.sleep(0.5)
-        while len(self.diag_list) == 0:
-            time.sleep(0.5)
-            QtCore.QCoreApplication.processEvents()
-        li_len = len(self.diag_list)
-        temp = self.diag_list[li_len - 1]
-        if temp[9] == self.diag_success_byte:
-            if temp[10] == "01":
-                self.btn_reset_sw.setEnabled(False)
-                self.label_reset_sw.setText("Success")
-            elif temp[10] == "03":
-                self.btn_sess_extended.setEnabled(False)
-                self.label_sess_extended.setText("Success")
-        else:
-            if temp[11] == "12":
-                self.btn_sess_nrc_12.setEnabled(False)
-                self.label_sess_nrc_12.setText("Success")
-            elif temp[11] == "13":
-                self.btn_sess_nrc_13.setEnabled(False)
-                self.label_sess_nrc_13.setText("Success")
-        for tt in self.diag_list:
-            self.diag_console.appendPlainText(str(tt))
+        # while len(self.diag_list) == 0:
+        #     time.sleep(0.5)
+        # QtCore.QCoreApplication.processEvents()
+        # li_len = len(self.diag_list)
+        # temp = self.diag_list[li_len - 1]
+        # if temp[9] == self.diag_success_byte:
+        #     if temp[10] == "01":
+        #         self.btn_reset_sw.setEnabled(False)
+        #         self.label_reset_sw.setText("Success")
+        #     elif temp[10] == "03":
+        #         self.btn_sess_extended.setEnabled(False)
+        #         self.label_sess_extended.setText("Success")
+        # else:
+        #     if temp[11] == "12":
+        #         self.btn_sess_nrc_12.setEnabled(False)
+        #         self.label_sess_nrc_12.setText("Success")
+        #     elif temp[11] == "13":
+        #         self.btn_sess_nrc_13.setEnabled(False)
+        #         self.label_sess_nrc_13.setText("Success")
+        # for tt in self.diag_list:
+        #     self.diag_console.appendPlainText(str(tt))
         # need to add test failed scenario
         # self.diag_console.appendPlainText("Test Failed")
 
@@ -907,17 +952,17 @@ class Main(QMainWindow, form_class):
         elif txt == "btn_tester_nrc_13":
             sig_li = [0x03, 0x3E, 0x00, 0x01]
         self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0]
+        tx_result = self.res_data[0].data
         if self.test_mode_basic:
-            if tx_result[9] == self.diag_success_byte:
-                if tx_result[10] == "00":
+            if tx_result[1] == self.diag_success_byte:
+                if tx_result[2] == 0x00:
                     self.btn_tester.setEnabled(False)
                     self.label_tester.setText("Success")
             else:
-                if tx_result[11] == "12":
+                if tx_result[3] == 0x12:
                     self.btn_tester_nrc_12.setEnabled(False)
                     self.label_tester_nrc_12.setText("Success")
-                elif tx_result[11] == "13":
+                elif tx_result[3] == 0x13:
                     self.btn_tester_nrc_13.setEnabled(False)
                     self.label_tester_nrc_13.setText("Success")
 

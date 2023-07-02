@@ -45,7 +45,7 @@ class NodeThread(QThread):
 
 
 class TxOnlyWorker(QThread):
-    sig2 = pyqtSignal(list)
+    sig2 = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -56,8 +56,8 @@ class TxOnlyWorker(QThread):
 
     def run(self):
         while self._isRunning:
-            a = str(self.parent.c_can_bus.recv()).split()
-            if a[3] == "18daf141":
+            a = self.parent.c_can_bus.recv()
+            if a.arbitration_id == 0x18daf141:
                 self.reservoir.append(a)
             QtCore.QCoreApplication.processEvents()
             self.sig2.emit(a)
@@ -74,16 +74,15 @@ class Hvac(NodeThread):
     def run(self):
         while self._isRunning:
             if self.parent.c_can_bus:
-                a = str(self.parent.c_can_bus.recv()).split()
-                if a[3] == "18ffd741":  # 100ms
-                    self.sig = a[9]
+                a = self.parent.c_can_bus.recv()
+                if a.arbitration_id == 0x18ffd741:  # 100ms
+                    self.data[0] = a.data[1]
                     self.thread_func()
             else:
                 print("no good hvac")
                 self._isRunning = False
 
     def thread_func(self):
-        self.data[0] = int(self.sig, 16)
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
 
@@ -94,7 +93,6 @@ class Swrc(NodeThread):
         self.period = 0.050
         self.long_count = 0
         self.long_threshold = 40
-
 
     def thread_func(self):
         self.data[0] = 0x00
@@ -221,26 +219,25 @@ class BCMMMI(NodeThread):
         if self.data[3] == 0xFF:
             self.data[3] = 0x01
         if self.parent.c_can_bus:
-            a = str(self.parent.c_can_bus.recv()).split()
-            if a[3] == "18ffd741":
-                # print(a)
-                if a[10] == 'f4':
+            a = self.parent.c_can_bus.recv()
+            if a.arbitration_id == 0x18ffd741:
+                if a.data[2] == 0xf4:
                     self.data[3] = sig_generator(self.data[3], 0, 2, 1)
-                elif a[10] == 'f8':
+                elif a.data[2] == 0xf8:
                     self.data[3] = sig_generator(self.data[3], 0, 2, 2)
-            if a[3] == "18ffd841":
-                if a[11] == "cf":
+            if a.arbitration_id == 0x18ffd841:
+                if a.data[3] == 0xcf:
                     self.data[1] = 0xE7
-                elif a[11] == "d7":
+                elif a.data[3] == 0xd7:
                     self.data[1] = 0xEB
-                elif a[11] == "df":
+                elif a.data[3] == 0xdf:
                     self.data[1] = 0xEF
                 else:
                     self.data[1] = 0xE3
 
-                if a[15] == "7f":
+                if a.data[7] == 0x7f:
                     self.data[3] = sig_generator(self.data[3], 2, 2, 1)
-                elif a[15] == "bf":
+                elif a.data[7] == 0xbf:
                     self.data[3] = sig_generator(self.data[3], 2, 2, 2)
 
             if self.parent.btn_mscs_ok.isChecked():
@@ -313,11 +310,11 @@ class AEB(NodeThread):
 
     def thread_func(self):
         if self.parent.c_can_bus:
-            a = str(self.parent.c_can_bus.recv()).split()
-            if a[3] == "0c0ba021":
-                if a[8] == "fd":
+            a = self.parent.c_can_bus.recv()
+            if a.arbitration_id == 0x0c0ba021:
+                if a.data[0] == "fd":
                     self.data[0] = 0xF1
-                elif a[8] == "fc":
+                elif a.data[0] == "fc":
                     self.data[0] = 0xF2
             message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
             self.parent.c_can_bus.send(message)
@@ -406,21 +403,75 @@ class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.diag_state = None
-        self.diag_btn_text = None
-        self.diag_success_byte = None
-        self.diag_failure_byte = "7f"
         self.drv_state = False
-        self.diag_list = []
+        self.test_mode_flag = True
 
     def thread_func(self):
-        if self.parent.chkbox_diag_test_mode_basic.isChecked():
-            self.parent.test_mode_basic = True
-        else:
-            self.parent.test_mode_basic = False
-
-        if self.parent.c_can_bus:
-            a = str(self.parent.c_can_bus.recv()).split()
+        if self.test_mode_flag:
+            if self.parent.chkbox_diag_test_mode_basic.isChecked():
+                self.parent.test_mode_basic = True
+                self.parent.label_sess_default.setText("Not tested")
+                self.parent.label_sess_default.setStyleSheet(f"color: black")
+                self.parent.label_sess_extended.setText("Not tested")
+                self.parent.label_sess_extended.setStyleSheet(f"color: black")
+                self.parent.label_sess_nrc_12.setText("Not tested")
+                self.parent.label_sess_nrc_12.setStyleSheet(f"color: black")
+                self.parent.label_sess_nrc_13.setText("Not tested")
+                self.parent.label_sess_nrc_13.setStyleSheet(f"color: black")
+                self.parent.label_reset_sw.setText("Not tested")
+                self.parent.label_reset_sw.setStyleSheet(f"color: black")
+                self.parent.label_reset_hw.setText("Not tested")
+                self.parent.label_reset_hw.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_12.setText("Not tested")
+                self.parent.label_reset_nrc_12.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_13.setText("Not tested")
+                self.parent.label_reset_nrc_13.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_7f_sw.setText("Not tested")
+                self.parent.label_reset_nrc_7f_sw.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_7f_hw.setText("Not tested")
+                self.parent.label_reset_nrc_7f_hw.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_22_sw.setText("Not tested")
+                self.parent.label_reset_nrc_22_sw.setStyleSheet(f"color: black")
+                self.parent.label_reset_nrc_22_hw.setText("Not tested")
+                self.parent.label_reset_nrc_22_hw.setStyleSheet(f"color: black")
+                self.parent.label_tester.setText("Not tested")
+                self.parent.label_tester.setStyleSheet(f"color: black")
+                self.parent.label_tester_nrc_12.setText("Not tested")
+                self.parent.label_tester_nrc_12.setStyleSheet(f"color: black")
+                self.parent.label_tester_nrc_13.setText("Not tested")
+                self.parent.label_tester_nrc_13.setStyleSheet(f"color: black")
+            else:
+                self.parent.test_mode_basic = False
+                self.parent.label_sess_default.setText("Default")
+                self.parent.label_sess_default.setStyleSheet(f"color: gray")
+                self.parent.label_sess_extended.setText("Default")
+                self.parent.label_sess_extended.setStyleSheet(f"color: gray")
+                self.parent.label_sess_nrc_12.setText("Default")
+                self.parent.label_sess_nrc_12.setStyleSheet(f"color: gray")
+                self.parent.label_sess_nrc_13.setText("Default")
+                self.parent.label_sess_nrc_13.setStyleSheet(f"color: gray")
+                self.parent.label_reset_sw.setText("Default")
+                self.parent.label_reset_sw.setStyleSheet(f"color: gray")
+                self.parent.label_reset_hw.setText("Default")
+                self.parent.label_reset_hw.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_12.setText("Default")
+                self.parent.label_reset_nrc_12.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_13.setText("Default")
+                self.parent.label_reset_nrc_13.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_7f_sw.setText("Default")
+                self.parent.label_reset_nrc_7f_sw.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_7f_hw.setText("Default")
+                self.parent.label_reset_nrc_7f_hw.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_22_sw.setText("Default")
+                self.parent.label_reset_nrc_22_sw.setStyleSheet(f"color: gray")
+                self.parent.label_reset_nrc_22_hw.setText("Default")
+                self.parent.label_reset_nrc_22_hw.setStyleSheet(f"color: gray")
+                self.parent.label_tester.setText("Default")
+                self.parent.label_tester.setStyleSheet(f"color: gray")
+                self.parent.label_tester_nrc_12.setText("Default")
+                self.parent.label_tester_nrc_12.setStyleSheet(f"color: gray")
+                self.parent.label_tester_nrc_13.setText("Default")
+                self.parent.label_tester_nrc_13.setStyleSheet(f"color: gray")
 
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
@@ -451,275 +502,6 @@ class ThreadWorker(NodeThread):
             self.parent.label_battery.setText(battery)
             self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
-    def diag_func(self):
-        if self.sender():
-            self.diag_btn_text = self.sender().objectName()
-            if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" or self.diag_btn_text == "btn_nrc_sess_12" or self.diag_btn_text == "btn_nrc_sess_13":
-                self.diag_state = "sess_cont"
-                self.diag_success_byte = "50"
-                self.diag_sess(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" or self.diag_btn_text == "btn_nrc_reset_12" or self.diag_btn_text == "btn_nrc_reset_13" or self.diag_btn_text == "btn_nrc_reset_7f_sw" or self.diag_btn_text == "btn_nrc_reset_7f_hw":
-                self.diag_state = "reset"
-                self.diag_success_byte = "51"
-                self.diag_reset(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_memory_fault_check" or self.diag_btn_text == "btn_memory_fault_reset":
-                self.diag_state = "memory_fault"
-                self.diag_success_byte = "59"
-                self.diag_memory_fault(self.diag_btn_text)
-
-    def diag_sess(self, txt):
-        while self.diag_state:
-            if txt == "btn_sess_default":
-                if len(self.diag_list) == 0:
-                    self.data[0] = 0x02
-                    self.data[1] = 0x10
-                    self.data[2] = 0x01
-                else:
-                    li_len = len(self.diag_list)
-                    temp = self.diag_list[li_len - 1]
-                    if temp[9] == self.diag_success_byte:
-                        if temp[10] == "01":
-                            self.parent.btn_sess_default.setEnabled(False)
-                            self.parent.label_sess_default.setText("Success")
-                        for tt in self.diag_list:
-                            self.parent.diag_console.appendPlainText(str(tt))
-                        self.diag_list = []
-                        self.diag_state = False
-                    else:
-                        self.parent.label_sess_default.setText("Test Failed")
-            elif txt == "btn_sess_extended":
-                if len(self.diag_list) == 0:
-                    self.data[0] = 0x02
-                    self.data[1] = 0x10
-                    self.data[2] = 0x03
-                else:
-                    li_len = len(self.diag_list)
-                    temp = self.diag_list[li_len - 1]
-                    if temp[9] == self.diag_success_byte:
-                        if temp[10] == "03":
-                            self.parent.btn_sess_extended.setEnabled(False)
-                            self.parent.label_sess_extended.setText("Success")
-                        for tt in self.diag_list:
-                            self.parent.diag_console.appendPlainText(str(tt))
-                        self.diag_list = []
-                        self.diag_state = False
-                    else:
-                        self.parent.label_sess_extended.setText("Test Failed")
-            # elif txt == "btn_sess_extended":
-            #     if res:
-            #         if res[9] == self.diag_success_byte:
-            #             if res[10] == "03":
-            #                 self.parent.btn_sess_extended.setEnabled(False)
-            #                 self.parent.label_sess_extended.setText("Success")
-            #             else:
-            #                 self.parent.label_sess_extended.setText("Test Failed")
-            #     else:
-            #         self.data[0] = 0x02
-            #         self.data[1] = 0x10
-            #         self.data[2] = 0x03
-            # elif txt == "btn_nrc_sess_12":
-            #     if res:
-            #         if res[9] == self.diag_failure_byte:
-            #             if res[10] == "10" and res[11] == "12":
-            #                 self.parent.btn_nrc_sess_12.setEnabled(False)
-            #                 self.parent.label_nrc_sess_12.setText("Success")
-            #             else:
-            #                 self.parent.label_nrc_sess_12.setText("Success")
-            #     else:
-            #         self.data[0] = 0x02
-            #         self.data[1] = 0x10
-            #         self.data[2] = 0xFF
-            # elif txt == "btn_nrc_sess_13":
-            #     if res:
-            #         if res[9] == self.diag_failure_byte:
-            #             if res[10] == "10" and res[11] == "13":
-            #                 self.parent.btn_nrc_sess_13.setEnabled(False)
-            #                 self.parent.label_nrc_sess_13.setText("Success")
-            #             else:
-            #                 self.parent.label_nrc_sess_13.setText("Test Failed")
-            #     else:
-            #         self.data[0] = 0x03
-            #         self.data[1] = 0x10
-            #         self.data[2] = 0x01
-            #         self.data[3] = 0x01
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.parent.c_can_bus.send(message)
-
-    def diag_reset(self, txt=None, res=None):
-        if txt:
-            if txt == "btn_reset_sw":
-                if res:
-                    if res[9] == self.diag_success_byte:
-                        if res[10] == "01":
-                            print("aaa")
-                            self.parent.btn_reset_sw.setEnabled(False)
-                            self.parent.label_reset_sw.setText("Success")
-                        else:
-                            self.parent.label_reset_sw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_extended")
-                    time.sleep(0.5)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x03
-            elif txt == "btn_reset_hw":
-                if res:
-                    if res[9] == self.diag_success_byte:
-                        if res[10] == "03":
-                            self.parent.btn_reset_hw.setEnabled(False)
-                            self.parent.label_reset_hw.setText("Success")
-                        else:
-                            self.parent.label_reset_hw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_extended")
-                    time.sleep(0.5)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x01
-            elif txt == "btn_nrc_reset_12":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "11" and res[11] == "12":
-                            self.parent.btn_nrc_reset_12.setEnabled(False)
-                            self.parent.label_nrc_reset_12.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_12.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_extended")
-                    time.sleep(0.5)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0xFF
-            elif txt == "btn_nrc_reset_13":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "11" and res[11] == "13":
-                            self.parent.btn_nrc_reset_13.setEnabled(False)
-                            self.parent.label_nrc_reset_13.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_12.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_extended")
-                    time.sleep(0.5)
-                    self.data[0] = 0x03
-                    self.data[1] = 0x10
-                    self.data[2] = 0x01
-                    self.data[3] = 0x01
-            elif txt == "btn_nrc_reset_7f_sw":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "13":
-                            self.parent.btn_nrc_reset_7f_sw.setEnabled(False)
-                            self.parent.label_nrc_reset_7f_sw.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_7f_sw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_default")
-                    time.sleep(0.5)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x03
-            elif txt == "btn_nrc_reset_7f_hw":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "13":
-                            self.parent.btn_nrc_reset_7f_hw.setEnabled(False)
-                            self.parent.label_nrc_reset_7f_hw.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_7f_hw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_default")
-                    time.sleep(0.3)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x01
-            elif txt == "btn_nrc_reset_22_sw":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "22":
-                            self.parent.btn_nrc_reset_22_sw.setEnabled(False)
-                            self.parent.label_nrc_reset_22_sw.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_22_sw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_extended")
-                    time.sleep(0.3)
-                    self.drv_state = True
-                    self.parent.set_drv_state()
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x03
-            elif txt == "btn_nrc_reset_22_hw":
-                if res:
-                    if res[9] == self.diag_failure_byte:
-                        if res[10] == "10" and res[11] == "22":
-                            self.parent.btn_nrc_reset_7f_hw.setEnabled(False)
-                            self.parent.label_nrc_reset_7f_hw.setText("Success")
-                        else:
-                            self.parent.label_nrc_reset_7f_hw.setText("Test Failed")
-                else:
-                    self.diag_sess("btn_sess_default")
-                    time.sleep(0.3)
-                    self.data[0] = 0x02
-                    self.data[1] = 0x11
-                    self.data[2] = 0x01
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.parent.c_can_bus.send(message)
-
-    def diag_memory_fault(self, txt):
-        while self.diag_state:
-            # print(self.diag_list)
-            if txt == "btn_memory_fault_check":
-                self.data[0] = 0x03
-                self.data[1] = 0x19
-                self.data[2] = 0x02
-                self.data[3] = 0x09
-                message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-                self.parent.c_can_bus.send(message)
-            # if len(self.diag_list) != 0:
-            #     li_len = len(self.diag_list)
-            #     temp = self.diag_list[li_len-1]
-            #     if temp[8] == "10":
-            #         print("need to flow control")
-            #         self.data[0] = 0x30
-            #         self.data[1] = 0x00
-            #         self.data[2] = 0x00
-            #         message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            #         self.parent.c_can_bus.send(message)
-            #         # print(self.diag_list)
-            #         if len(self.diag_list) > 1:
-            #             self.diag_state = False
-            #             time.sleep(1)
-            #             print(self.diag_list)
-            # while self.diag_state:
-            #     self.data[0] = 0x03
-            #     self.data[1] = 0x19
-            #     self.data[2] = 0x02
-            #     self.data[3] = 0x09
-            #     message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            #     self.parent.c_can_bus.send(message)
-
-        # else:
-        #     print(self.diag_list)
-        #     self.diag_state = False
-        #     li_len = len(self.diag_list)
-        #     temp = self.diag_list[0]
-        #     if temp[10] == self.diag_success_byte:
-        #         print("aaa")
-        #         # if temp[10] == "01":
-                #     self.parent.btn_sess_default.setEnabled(False)
-                #     self.parent.label_sess_default.setText("Success")
-                # for tt in self.diag_list:
-                #     self.parent.diag_console.appendPlainText(str(tt))
-                # self.diag_list = []
-                # self.diag_state = False
-
-
-
-
-        # if res[9] == "50":
-
-
 
         # message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
 
@@ -733,172 +515,3 @@ class ThreadWorker(NodeThread):
         # self.parent.test_label.setPixmap(pixmap)
         # self.parent.test_label.setPixmap(pixmap2)
         # self.parent.test_label.setPixmap(self.sig_side_mirrorb)
-        # self.parent.test_label.setText("Aaaaa")
-
-    # def diagnosis(self):
-    #     # session control
-    #     self.parent.btn_sess_default.clicked.connect(self.session_cont)
-    #     self.parent.btn_sess_ext.clicked.connect(self.session_cont)
-    #
-    # def session_cont(self):
-    #     btn_text = self.sender().objectName()
-    #     if len(btn_text) > 0:
-    #         if btn_text == "btn_sess_default":
-    #             message = can.Message(arbitration_id=0x18da41f1,
-    #                                   data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         elif btn_text == "btn_sess_ext":
-    #             message = can.Message(arbitration_id=0x18da41f1,
-    #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #         self.parent.c_can_bus1.send(message)
-        # try:
-        #     btn_text = self.sender().objectName()
-        #     if len(btn_text) > 0:
-        #         if btn_text == "def_sess":
-        #             message = can.Message(arbitration_id=0x18da41f1,
-        #                                   data=[0x02, 0x10, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         elif btn_text == "ext_sess":
-        #             message = can.Message(arbitration_id=0x18da41f1,
-        #                                   data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         elif btn_text == "nrc_sess_12":
-        #             message = can.Message(arbitration_id=0x18da41f1,
-        #                                   data=[0x02, 0x10, 0x07, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         elif btn_text == "nrc_sess_13":
-        #             message = can.Message(arbitration_id=0x18da41f1,
-        #                                   data=[0x03, 0x10, 0x01, 0x01, 0xFF, 0xFF, 0xFF, 0xFF])
-        #         self.parent.c_can_bus.send(message)
-        #     time.sleep(0.5)
-        #     if l:
-        #         data_str = str([l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15]])
-        #         if l[9] == "50":
-        #             pf_flag = "Success"
-        #             if l[10] == "01":
-        #                 sess_name = "Default"
-        #                 self.def_sess_label.setText("Tested Success")
-        #             elif l[10] == "03":
-        #                 sess_name = "Extended"
-        #                 self.ext_sess_label.setText("Tested Success")
-        #             console_str = f'{sess_name} Session {pf_flag}'
-        #         elif l[9] == "7f":
-        #             if l[11] == "12":
-        #                 reason = "Not Supported Subfunction"
-        #                 self.nrc_sess_12_label.setText("Tested Success")
-        #             elif l[11] == "13":
-        #                 reason = "Data Length Error"
-        #                 self.nrc_sess_13_label.setText("Tested Success")
-        #             console_str = f'Diagnosis Error - {reason} (NRC Code : {l[11]})'
-        #
-        #         self.diag_console.appendPlainText(console_str)
-        #         self.diag_console.appendPlainText(data_str)
-        # except AttributeError:
-        #     pass
-
-
-# ************************************
-# temp in run()
-# ************************************
-# sig1 = pyqtSignal(list)
-# flowControl = False
-# temp = []
-# @pyqtSlot("PyQt_PyObject")
-#     def good1(self, good1):
-#         print(good1)
-    #     # if good1 == 0xF8:
-    #     # elif good1 == 0xF9:
-    #     # elif good1 == 0xFA:
-    #     # elif good1 == 0xFC:
-    #             # message = 0
-    #         # while True:
-    #         #     print(good1)
-    #             # message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, good1, 0xFF, 0xFF, 0xFF])
-    #             # self.parent.c_can_bus.send_periodic(message, 0.1)
-    #             # print(task)
-    #             # time.sleep(0.1)
-    #         # time.sleep(0.1)
-    #
-    #     # else:
-    #     #     xor = [0x69, 0x1d, 0xbe, 0x55]
-    #     #     cal_data = []
-    #     #     res = []
-    #     #     print("10 03 service")
-    #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x10, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     self.parent.c_can_bus.send(message)
-    #     #     time.sleep(1)
-    #     #     print("27 01 service")
-    #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x02, 0x27, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #     self.parent.c_can_bus.send(message)
-    #     #     time.sleep(1)
-    #     #     print(self.abc)
-    #     #     new = []
-    #     #     for i in range(4):
-    #     #         temp = int(self.abc[i], 16) ^ xor[i]
-    #     #         cal_data.append(temp)
-    #     #     res.append(((cal_data[3] & 0x0f) << 4) | (cal_data[3] & 0xf0))
-    #     #     res.append(((cal_data[1] & 0x0f) << 4) | ((cal_data[0] & 0xf0) >> 4))
-    #     #     res.append((cal_data[1] & 0xf0) | ((cal_data[2] & 0xf0) >> 4))
-    #     #     res.append(((cal_data[0] & 0x0f) << 4) | (cal_data[2] & 0x0f))
-    #     #     time.sleep(1)
-    #     #     message = can.Message(arbitration_id=0x18da41f1, data=[0x06, 0x27, 0x02, res[0], res[1], res[2], res[3], 0xFF])
-    #     #     self.parent.c_can_bus.send(message)
-    #     #     time.sleep(5)
-    #     #     if good1 == "write":
-    #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x10, 0x0B, 0x2E, 0xF1, 0x12, 0x41, 0x42, 0x43])
-    #     #         self.parent.c_can_bus.send(message)
-    #     #         time.sleep(0.5)
-    #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x21, 0x44, 0x45, 0x46, 0x47, 0x48, 0xFF, 0xFF])
-    #     #         self.parent.c_can_bus.send(message)
-    #     #         time.sleep(0.5)
-    #     #         message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x22, 0xF1, 0x12, 0xFF, 0xFF, 0xFF, 0xFF])
-    #     #         self.parent.c_can_bus.send(message)
-
-            # print(b, now - start)
-            # if now - start == 0.010:
-            #     aaaa = now - start
-            #     # print(aaaa)
-            #     # print(aaaa)
-
-    #     while True:
-    #         start = time.time()
-    #         a = str(self.parent.c_can_bus.recv()).split()
-    #         if self.parent.acc_off.isChecked():
-    #             power_sig = 0xF8
-    #         elif self.parent.acc.isChecked():
-    #             power_sig = 0xF9
-    #         elif self.parent.ign.isChecked():
-    #             power_sig = 0xFA
-    #         elif self.parent.start.isChecked():
-    #             power_sig = 0xFC
-    #         message = can.Message(arbitration_id=0x18ff8621, data=[0x97, 0x7A, 0xDF, 0xFF, power_sig, 0xFF, 0xFF, 0xFF])
-    #         self.parent.c_can_bus.send(message)
-    #         # time.sleep(0.001)
-    #         self.sig1.emit(a)
-    #         # # print(a)
-    #         # if a[3] == '18ff8621':
-    #         #     print(a)
-    #         # Seat HAVC
-    #
-    #             self.sig1.emit(a)
-    #         # self.sig.emit(a)
-    #         if a[3] == '18daf141':
-    #             # print(a)
-    #             if a[9] == "67" and a[10] == "01":
-    #                 self.abc = [a[11], a[12], a[13], a[14]]
-    #             # if a[9] == "67" and a[10] == "02":
-    #             #     temp = [a[11], a[12], a[13], a[14]]
-    #             #     print(temp)
-    #             #     self.sig1.emit(temp)
-    #             if flowControl:
-    #                 temp.append(a)
-    #             if a[8] == '10':
-    #                 temp.append(a)
-    #                 message = can.Message(arbitration_id=0x18da41f1, data=[0x30, 0x00, 0x00, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
-    #                 self.parent.c_can_bus.send(message)
-    #                 print("flow control")
-    #                 flowControl = True
-    #         if len(temp) == 10:
-    #             print("good")
-    #             # self.sig1.emit(temp)
-    #             flowControl = False
-    #             temp = []
-    #         now = time.time()
-    #         print(now - start)
-    #
