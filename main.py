@@ -33,9 +33,13 @@ def print_hi(name):
     # list1 = [chr(asc) for asc in value1]
     # value2 = ["L", "M", "P", "A", "1", "K", "M", "B", "7", "N", "C", "0", "0", "2", "0", "9", "0"]
     # list2 = [hex(ord(ch)) for ch in value2]
-    ran = [1,5]
-    b = [1,2]
-    print(ran+b)
+    # ran = [1,5]
+    # b = [1,2]
+    # print(ran+b)
+    a = 0x10
+    b = 0x21
+    c = 0x22
+    print(a % 0x10, b % 0x10, c % 0x10)
     # for i in range(ran):
     #     print(i)
     # # temp = a[0]+'1'+a[2:]

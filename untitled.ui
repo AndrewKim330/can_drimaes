@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -4197,8 +4197,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>410</y>
+        <x>330</x>
+        <y>50</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4218,8 +4218,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>530</x>
-        <y>270</y>
+        <x>610</x>
+        <y>50</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4239,8 +4239,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>160</y>
+        <x>50</x>
+        <y>50</y>
         <width>261</width>
         <height>111</height>
        </rect>
@@ -4252,6 +4252,29 @@
       </property>
       <property name="text">
        <string>DTC Number Check</string>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="diag_dtc_console">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>190</y>
+        <width>721</width>
+        <height>91</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_diag_dtc_console_clear">
+      <property name="geometry">
+       <rect>
+        <x>790</x>
+        <y>220</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear</string>
       </property>
      </widget>
     </widget>
