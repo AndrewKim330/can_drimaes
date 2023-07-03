@@ -39,7 +39,9 @@ def print_hi(name):
     a = 0x10
     b = 0x21
     c = 0x22
-    print(a % 0x10, b % 0x10, c % 0x10)
+    # print(a % 0x10, b % 0x10, c % 0x10)
+    a = None
+    print(not a)
     # for i in range(ran):
     #     print(i)
     # # temp = a[0]+'1'+a[2:]

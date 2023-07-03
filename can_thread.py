@@ -403,76 +403,8 @@ class ThreadWorker(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.drv_state = False
-        self.test_mode_flag = True
 
     def thread_func(self):
-        if self.test_mode_flag:
-            if self.parent.chkbox_diag_test_mode_basic.isChecked():
-                self.parent.test_mode_basic = True
-                self.parent.label_sess_default.setText("Not tested")
-                self.parent.label_sess_default.setStyleSheet(f"color: black")
-                self.parent.label_sess_extended.setText("Not tested")
-                self.parent.label_sess_extended.setStyleSheet(f"color: black")
-                self.parent.label_sess_nrc_12.setText("Not tested")
-                self.parent.label_sess_nrc_12.setStyleSheet(f"color: black")
-                self.parent.label_sess_nrc_13.setText("Not tested")
-                self.parent.label_sess_nrc_13.setStyleSheet(f"color: black")
-                self.parent.label_reset_sw.setText("Not tested")
-                self.parent.label_reset_sw.setStyleSheet(f"color: black")
-                self.parent.label_reset_hw.setText("Not tested")
-                self.parent.label_reset_hw.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_12.setText("Not tested")
-                self.parent.label_reset_nrc_12.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_13.setText("Not tested")
-                self.parent.label_reset_nrc_13.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_7f_sw.setText("Not tested")
-                self.parent.label_reset_nrc_7f_sw.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_7f_hw.setText("Not tested")
-                self.parent.label_reset_nrc_7f_hw.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_22_sw.setText("Not tested")
-                self.parent.label_reset_nrc_22_sw.setStyleSheet(f"color: black")
-                self.parent.label_reset_nrc_22_hw.setText("Not tested")
-                self.parent.label_reset_nrc_22_hw.setStyleSheet(f"color: black")
-                self.parent.label_tester.setText("Not tested")
-                self.parent.label_tester.setStyleSheet(f"color: black")
-                self.parent.label_tester_nrc_12.setText("Not tested")
-                self.parent.label_tester_nrc_12.setStyleSheet(f"color: black")
-                self.parent.label_tester_nrc_13.setText("Not tested")
-                self.parent.label_tester_nrc_13.setStyleSheet(f"color: black")
-            else:
-                self.parent.test_mode_basic = False
-                self.parent.label_sess_default.setText("Default")
-                self.parent.label_sess_default.setStyleSheet(f"color: gray")
-                self.parent.label_sess_extended.setText("Default")
-                self.parent.label_sess_extended.setStyleSheet(f"color: gray")
-                self.parent.label_sess_nrc_12.setText("Default")
-                self.parent.label_sess_nrc_12.setStyleSheet(f"color: gray")
-                self.parent.label_sess_nrc_13.setText("Default")
-                self.parent.label_sess_nrc_13.setStyleSheet(f"color: gray")
-                self.parent.label_reset_sw.setText("Default")
-                self.parent.label_reset_sw.setStyleSheet(f"color: gray")
-                self.parent.label_reset_hw.setText("Default")
-                self.parent.label_reset_hw.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_12.setText("Default")
-                self.parent.label_reset_nrc_12.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_13.setText("Default")
-                self.parent.label_reset_nrc_13.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_7f_sw.setText("Default")
-                self.parent.label_reset_nrc_7f_sw.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_7f_hw.setText("Default")
-                self.parent.label_reset_nrc_7f_hw.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_22_sw.setText("Default")
-                self.parent.label_reset_nrc_22_sw.setStyleSheet(f"color: gray")
-                self.parent.label_reset_nrc_22_hw.setText("Default")
-                self.parent.label_reset_nrc_22_hw.setStyleSheet(f"color: gray")
-                self.parent.label_tester.setText("Default")
-                self.parent.label_tester.setStyleSheet(f"color: gray")
-                self.parent.label_tester_nrc_12.setText("Default")
-                self.parent.label_tester_nrc_12.setStyleSheet(f"color: gray")
-                self.parent.label_tester_nrc_13.setText("Default")
-                self.parent.label_tester_nrc_13.setStyleSheet(f"color: gray")
-
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
             self.parent.btn_drv_state.setText("On Driving State")
@@ -488,6 +420,7 @@ class ThreadWorker(NodeThread):
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
         if self._isRunning:
+            self.parent.slider_speed.setValue(value)
             self.parent.label_speed.setText(speed)
             self.parent.speed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
 
@@ -501,9 +434,6 @@ class ThreadWorker(NodeThread):
             self.parent.slider_battery.setValue(new_value)
             self.parent.label_battery.setText(battery)
             self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
-
-
-        # message = can.Message(arbitration_id=0x18da41f1, data=[0x03, 0x19, 0x01, 0x09, 0xFF, 0xFF, 0xFF, 0xFF])
 
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
