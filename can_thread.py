@@ -44,26 +44,54 @@ class NodeThread(QThread):
         self._isRunning = False
 
 
-class TxOnlyWorker(QThread):
+class ThreadWorker(NodeThread):
     sig2 = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.abc = None
         self.parent = parent
         self._isRunning = True
         self.reservoir = []
+        self.period = 0.050
 
     def run(self):
         while self._isRunning:
             a = self.parent.c_can_bus.recv()
             if a.arbitration_id == 0x18daf141:
                 self.reservoir.append(a)
-            QtCore.QCoreApplication.processEvents()
             self.sig2.emit(a)
+            QtCore.QCoreApplication.processEvents()
 
-    def stop(self):
-        self._isRunning = False
+    def thread_func(self):
+        # driving state check
+        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
+            self.parent.btn_drv_state.setText("On Driving State")
+        else:
+            self.parent.btn_drv_state.setText("Set Driving State")
+
+        # OTA condition check
+        if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
+            self.parent.btn_ota_cond.setText("On OTA Condition")
+        else:
+            self.parent.btn_ota_cond.setText("Set OTA Condition")
+
+    def slider_speed_func(self, value):
+        speed = f'Speed : {value} km/h'
+        if self._isRunning:
+            self.parent.slider_speed.setValue(value)
+            self.parent.label_speed.setText(speed)
+            self.parent.speed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
+
+    def slider_battery_func(self, value):
+        if self._isRunning:
+            if value % 2 == 1 and value != 0:
+                new_value = value + 1
+            else:
+                new_value = value
+            battery = f'Battery : {new_value} %'
+            self.parent.slider_battery.setValue(new_value)
+            self.parent.label_battery.setText(battery)
+            self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
 
 class Hvac(NodeThread):
@@ -397,44 +425,6 @@ class TesterPresent(NodeThread):
             else:
                 print("no good charge")
                 self._isRunning = False
-
-
-class ThreadWorker(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-
-    def thread_func(self):
-        # driving state check
-        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
-            self.parent.btn_drv_state.setText("On Driving State")
-        else:
-            self.parent.btn_drv_state.setText("Set Driving State")
-
-        # OTA condition check
-        if self.parent.chkbox_h_brake.isChecked() and self.parent.btn_gear_n.isChecked():
-            self.parent.btn_ota_cond.setText("On OTA Condition")
-        else:
-            self.parent.btn_ota_cond.setText("Set OTA Condition")
-
-    def slider_speed_func(self, value):
-        speed = f'Speed : {value} km/h'
-        if self._isRunning:
-            self.parent.slider_speed.setValue(value)
-            self.parent.label_speed.setText(speed)
-            self.parent.speed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
-
-    def slider_battery_func(self, value):
-        if self._isRunning:
-            if value % 2 == 1 and value != 0:
-                new_value = value + 1
-            else:
-                new_value = value
-            battery = f'Battery : {new_value} %'
-            self.parent.slider_battery.setValue(new_value)
-            self.parent.label_battery.setText(battery)
-            self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
-
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.sig_side_mirrorb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
