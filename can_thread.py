@@ -104,6 +104,14 @@ class Node_PMS_S(NodeThread):
         self.sig = '0x00'
 
     def thread_func(self):
+        message = can.Message(arbitration_id=0x18fac490, data=self.data)
+        if self.parent.c_can_bus:
+            self.parent.c_can_bus.send(message)
+        else:
+            print("ACU Node is not working")
+            self._isRunning = False
+
+    def thread_func(self):
         self.hvsm_mmiFbSts_func()
 
     def hvsm_mmiFbSts_func(self):
@@ -309,7 +317,7 @@ class TachoSpeed(NodeThread):
             self._isRunning = False
 
 
-class TirePressure(NodeThread):
+class Node_ESC(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -350,7 +358,7 @@ class AEB(NodeThread):
             self._isRunning = False
 
 
-class ACU(NodeThread):
+class Node_ACU(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.200
@@ -360,7 +368,7 @@ class ACU(NodeThread):
         if self.parent.c_can_bus:
             self.parent.c_can_bus.send(message)
         else:
-            print("no good ACU")
+            print("ACU Node is not working")
             self._isRunning = False
 
     def drv_invalid(self):

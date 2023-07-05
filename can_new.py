@@ -85,7 +85,7 @@ class Main(QMainWindow, form_class):
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
-        self.tire_worker = worker.TirePressure(parent=self)
+        self.esc_worker = worker.Node_ESC(parent=self)
 
         self.btn_tpms_success.clicked.connect(self.tire_worker.thread_func)
         self.btn_tpms_fail.clicked.connect(self.tire_worker.thread_func)
@@ -107,7 +107,7 @@ class Main(QMainWindow, form_class):
         self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
 
-        self.acu_worker = worker.ACU(parent=self)
+        self.acu_worker = worker.Node_ACU(parent=self)
 
         self.chkbox_drv_invalid.stateChanged.connect(self.acu_worker.drv_invalid)
         self.chkbox_pass_invalid.stateChanged.connect(self.acu_worker.pass_invalid)
@@ -210,13 +210,24 @@ class Main(QMainWindow, form_class):
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
-        self.btn_bus_start.clicked.connect(self.thread_start)
-        self.btn_bus_stop.clicked.connect(self.thread_stop)
-
         self.btn_main_console_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
         self.btn_write_data_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
+
+        self.btn_bus_start.clicked.connect(self.thread_start)
+        self.btn_bus_stop.clicked.connect(self.thread_stop)
+
+        self.chkbox_node_acu.released.connect(self.set_node)
+        self.chkbox_node_bcm.released.connect(self.set_node)
+        self.chkbox_node_esc.released.connect(self.set_node)
+        self.chkbox_node_fcs.released.connect(self.set_node)
+        self.chkbox_node_ic.released.connect(self.set_node)
+        self.chkbox_node_pms.released.connect(self.set_node)
+        self.chkbox_node_pms_s.released.connect(self.set_node)
+        self.chkbox_node_pms_c.released.connect(self.set_node)
+        self.chkbox_node_bms.released.connect(self.set_node)
+        self.chkbox_node_mcu.released.connect(self.set_node)
 
         self.set_can_basic_btns_labels(False)
         self.set_diag_basic_btns_labels(False)
@@ -267,30 +278,28 @@ class Main(QMainWindow, form_class):
     def thread_start(self):
         if self.bus_flag:
             self.thread_worker._isRunning = True
-            self.pms_s_worker._isRunning = True
             self.swrc_worker._isRunning = True
             self.power_train_worker._isRunning = True
             self.bcm_state_worker._isRunning = True
             self.speed_worker._isRunning = True
-            self.tire_worker._isRunning = True
+
             self.aeb_worker._isRunning = True
             self.bcm_mmi_worker._isRunning = True
-            self.acu_worker._isRunning = True
             self.tester_worker._isRunning = True
 
             self.battery_worker._isRunning = True
             self.charge_worker._isRunning = True
 
+            self.set_node()
+
             self.thread_worker.start()
-            self.pms_s_worker.start()
             self.swrc_worker.start()
             self.power_train_worker.start()
             self.bcm_state_worker.start()
             self.speed_worker.start()
-            self.tire_worker.start()
+
             self.aeb_worker.start()
             self.bcm_mmi_worker.start()
-            self.acu_worker.start()
             self.tester_worker.start()
 
             self.battery_worker.start()
@@ -339,7 +348,6 @@ class Main(QMainWindow, form_class):
         time.sleep(0.1)
 
         self.thread_worker.stop()
-        self.pms_s_worker.stop()
         self.swrc_worker.stop()
         self.power_train_worker.stop()
         self.bcm_state_worker.stop()
@@ -347,24 +355,45 @@ class Main(QMainWindow, form_class):
         self.tire_worker.stop()
         self.aeb_worker.stop()
         self.bcm_mmi_worker.stop()
-        self.acu_worker.stop()
         self.tester_worker.stop()
         self.battery_worker.stop()
         self.charge_worker.stop()
 
-        self.thread_worker.quit()
-        self.pms_s_worker.quit()
-        self.swrc_worker.quit()
-        self.power_train_worker.quit()
-        self.bcm_state_worker.quit()
-        self.speed_worker.quit()
-        self.tire_worker.quit()
-        self.aeb_worker.quit()
-        self.bcm_mmi_worker.quit()
-        self.acu_worker.quit()
-        self.tester_worker.quit()
-        self.battery_worker.quit()
-        self.charge_worker.quit()
+    def set_node(self):
+        if self.chkbox_node_acu.isChecked():
+            self.acu_worker._isRunning = True
+            self.acu_worker.start()
+        else:
+            self.acu_worker.stop()
+
+        if self.chkbox_node_bcm.isChecked():
+             pass
+
+        if self.chkbox_node_esc.isChecked():
+            self.esc_worker._isRunning = True
+            self.esc_worker.start()
+        else:
+            self.esc_worker.stop()
+
+        if self.chkbox_node_fcs.isChecked():
+             pass
+        if self.chkbox_node_ic.isChecked():
+             pass
+        if self.chkbox_node_pms.isChecked():
+             pass
+
+        if self.chkbox_node_pms_s.isChecked():
+            self.pms_s_worker._isRunning = True
+            self.pms_s_worker.start()
+        else:
+            self.pms_s_worker.stop()
+
+        if self.chkbox_node_pms_c.isChecked():
+             pass
+        if self.chkbox_node_bms.isChecked():
+             pass
+        if self.chkbox_node_mcu.isChecked():
+             pass
 
     def set_drv_state(self):
         if not self.drv_state:
