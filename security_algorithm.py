@@ -1,10 +1,11 @@
 def secu_algo(seed):
     xor = [0x69, 0x1d, 0xbe, 0x55]
+    print(seed[0], seed[1], seed[2], seed[3])
     cal_data = []
     res = []
 
     for i in range(4):
-        temp = int(seed[i], 16) ^ xor[i]
+        temp = seed[i] ^ xor[i]
         cal_data.append(temp)
 
     res.append(((cal_data[3] & 0x0f) << 4) | (cal_data[3] & 0xf0))

@@ -178,6 +178,8 @@ class Main(QMainWindow, form_class):
         self.btn_comm_cont_nrc_7f_tx_dis.released.connect(self.diag_func)
         self.btn_comm_cont_nrc_7f_all_dis.released.connect(self.diag_func)
 
+        self.chkbox_diag_functional_domain_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+        self.chkbox_diag_test_mode_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
         self.btn_diag_reset_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
 
         # Connect security control buttons to diagnostic handling function
@@ -307,6 +309,7 @@ class Main(QMainWindow, form_class):
 
     def thread_stop(self):
         self.set_can_basic_btns_labels(False)
+
         self.set_diag_basic_btns_labels(False)
         if self.chkbox_diag_test_mode_basic.isChecked():
             self.chkbox_diag_test_mode_basic.toggle()
@@ -314,16 +317,24 @@ class Main(QMainWindow, form_class):
             self.chkbox_diag_compression_bit_basic.toggle()
         if self.chkbox_diag_functional_domain_basic.isChecked():
             self.chkbox_diag_functional_domain_basic.toggle()
+
         self.set_diag_did_btns_labels(False)
         if self.chkbox_diag_test_mode_did.isChecked():
             self.chkbox_diag_test_mode_did.toggle()
+
         self.set_diag_sec_btns_labels(False)
         if self.chkbox_diag_test_mode_sec.isChecked():
             self.chkbox_diag_test_mode_sec.toggle()
+
         self.set_diag_write_btns_labels(False)
         if self.chkbox_diag_test_mode_write.isChecked():
             self.chkbox_diag_test_mode_write.toggle()
+
         self.set_diag_comm_cont_btns_labels(False)
+        if self.chkbox_diag_compression_bit_comm_cont.isChecked():
+            self.chkbox_diag_compression_bit_comm_cont.toggle()
+        if self.chkbox_diag_functional_domain_comm_cont.isChecked():
+            self.chkbox_diag_functional_domain_comm_cont.toggle()
 
         time.sleep(0.1)
 
@@ -688,35 +699,53 @@ class Main(QMainWindow, form_class):
         self.chkbox_diag_test_mode_write.setEnabled(flag)
 
     def set_diag_comm_cont_btns_labels(self, flag=True):
-        if flag:
-            color = "black"
+        if self.chkbox_diag_test_mode_comm_cont.isChecked():
+            self.chkbox_diag_compression_bit_comm_cont.setEnabled(True)
+            self.chkbox_diag_functional_domain_comm_cont.setEnabled(True)
+            color = 'black'
+            txt = "Not tested"
         else:
-            color = "gray"
+            self.chkbox_diag_compression_bit_comm_cont.setEnabled(False)
+            self.chkbox_diag_functional_domain_comm_cont.setEnabled(False)
+            color = 'gray'
+            txt = "Default"
 
         self.btn_comm_cont_all_en.setEnabled(flag)
+        self.label_comm_cont_all_en.setText(f"{txt}")
         self.label_comm_cont_all_en.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_tx_dis.setEnabled(flag)
+        self.label_comm_cont_tx_dis.setText(f"{txt}")
         self.label_comm_cont_tx_dis.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_all_dis.setEnabled(flag)
+        self.label_comm_cont_all_dis.setText(f"{txt}")
         self.label_comm_cont_all_dis.setStyleSheet(f"color: {color}")
 
         self.btn_comm_cont_nrc_12.setEnabled(flag)
+        self.label_comm_cont_nrc_12.setText(f"{txt}")
         self.label_comm_cont_nrc_12.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_13.setEnabled(flag)
+        self.label_comm_cont_nrc_13.setText(f"{txt}")
         self.label_comm_cont_nrc_13.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_31.setEnabled(flag)
+        self.label_comm_cont_nrc_31.setText(f"{txt}")
         self.label_comm_cont_nrc_31.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_7f_all_en.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_all_en.setText(f"{txt}")
         self.label_comm_cont_nrc_7f_all_en.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_7f_tx_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_tx_dis.setText(f"{txt}")
         self.label_comm_cont_nrc_7f_tx_dis.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_7f_all_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_7f_all_dis.setText(f"{txt}")
         self.label_comm_cont_nrc_7f_all_dis.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_22_all_en.setEnabled(flag)
+        self.label_comm_cont_nrc_22_all_en.setText(f"{txt}")
         self.label_comm_cont_nrc_22_all_en.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_22_tx_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_22_tx_dis.setText(f"{txt}")
         self.label_comm_cont_nrc_22_tx_dis.setStyleSheet(f"color: {color}")
         self.btn_comm_cont_nrc_22_all_dis.setEnabled(flag)
+        self.label_comm_cont_nrc_22_all_dis.setText(f"{txt}")
         self.label_comm_cont_nrc_22_all_dis.setStyleSheet(f"color: {color}")
 
         self.btn_diag_reset_comm_cont.setEnabled(flag)
@@ -868,6 +897,7 @@ class Main(QMainWindow, form_class):
 
     @pyqtSlot(can.Message)
     def sig2(self, tx_single):
+        pass
         # if tx_single.arbitration_id == 0x18ffd741:  # 100ms
         #     print(tx_single)
         # a = list(tx_single.data)
@@ -901,7 +931,11 @@ class Main(QMainWindow, form_class):
                     or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
                 self.diag_success_byte = 0x62
                 self.diag_did(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key":
+            elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key" \
+                    or self.diag_btn_text == "btn_sec_nrc_12" or self.diag_btn_text == "btn_sec_nrc_13" \
+                    or self.diag_btn_text == "btn_sec_nrc_24" or self.diag_btn_text == "btn_sec_nrc_35" \
+                    or self.diag_btn_text == "btn_sec_nrc_36" or self.diag_btn_text == "btn_sec_nrc_37" \
+                    or self.diag_btn_text == "btn_sec_nrc_7f_req" or self.diag_btn_text == "btn_sec_nrc_7f_send":
                 self.diag_success_byte = 0x67
                 self.diag_security_access(self.diag_btn_text)
             elif self.diag_btn_text == "btn_write_vin" or self.diag_btn_text == "btn_write_install_date" \
@@ -1208,19 +1242,56 @@ class Main(QMainWindow, form_class):
     def diag_security_access(self, txt):
         self.diag_initialization()
         if txt == "btn_sec_req_seed":
-            self.diag_sess("btn_sess_default")
             self.diag_sess("btn_sess_extended")
-            time.sleep(0.2)
-            self.res_data = []
-            self.diag_data_collector([0x02, 0x27, 0x01])
-            self.diag_console.appendPlainText(str(self.res_data[0]))
-            self.req_seed = self.res_data[0][11:15]
+            time.sleep(0.1)
+            sig_li = [0x02, 0x27, 0x01]
+            self.diag_data_collector(sig_li)
+            self.req_seed = self.res_data[0].data[3:7]
         elif txt == "btn_sec_send_key":
-            self.diag_security_access("btn_sec_req_seed")
-            good = algo.secu_algo(self.req_seed)
-            self.res_data = []
-            self.diag_data_collector([0x06, 0x27, 0x02] + good)
-            self.diag_console.appendPlainText(str(self.res_data[0]))
+            while len(self.res_data) < self.flow_control_len:
+                self.diag_sess("btn_sess_default")
+                time.sleep(0.1)
+                self.diag_security_access("btn_sec_req_seed")
+                seed_converted = algo.secu_algo(self.req_seed)
+                sig_li = [0x06, 0x27, 0x02]
+                time.sleep(0.1)
+                self.diag_data_collector(sig_li + seed_converted)
+                if self.res_data[0].data[1] == self.diag_success_byte and self.res_data[0].data[2] == 0x02:
+                    break
+                else:
+                    self.res_data = []
+        else:
+            if txt == "btn_sec_nrc_12":
+                self.diag_sess("btn_sess_extended")
+                sig_li = [0x02, 0x27, 0x03]
+            elif txt == "btn_sec_nrc_13":
+                self.diag_sess("btn_sess_extended")
+                sig_li = [0x03, 0x27, 0x01, 0x01]
+            elif txt == "btn_sec_nrc_24":
+                self.diag_sess("btn_sess_extended")
+                sig_li = [0x02, 0x27, 0x02]
+            elif txt == "btn_sec_nrc_35":
+                self.diag_sess("btn_sess_default")
+                time.sleep(0.1)
+                self.diag_security_access("btn_sec_req_seed")
+                sig_li = [0x06, 0x27, 0x02, 0x00, 0x00, 0x00, 0x00]
+                time.sleep(0.1)
+            elif txt == "btn_sec_nrc_36":
+                count = 0
+                while count < 3:
+                    self.diag_sess("btn_sess_default")
+                    self.diag_security_access("btn_sec_nrc_35")
+                    count += 1
+            elif txt == "btn_sec_nrc_37":
+                self.diag_security_access("btn_sec_nrc_36")
+                sig_li = [0x02, 0x27, 0x01]
+            elif txt == "btn_sec_nrc_7f_req":
+                self.diag_sess("btn_sess_default")
+                sig_li = [0x02, 0x27, 0x01]
+            elif txt == "btn_sec_nrc_7f_send":
+                self.diag_sess("btn_sess_default")
+                sig_li = [0x02, 0x27, 0x02]
+            self.diag_data_collector(sig_li)
 
     def diag_write(self, txt):
         self.diag_initialization()
@@ -1395,8 +1466,95 @@ class Main(QMainWindow, form_class):
         # # **need to add test failed scenario
 
     def diag_comm_cont(self, txt):
-        # need to make function
-        pass
+        self.diag_initialization()
+        if txt == 'btn_comm_cont_all_en':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x28, 0x00, 0x01]
+        elif txt == 'btn_comm_cont_tx_dis':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x28, 0x01, 0x01]
+        elif txt == 'btn_comm_cont_all_dis':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x28, 0x03, 0x01]
+        elif txt == 'btn_comm_cont_nrc_12':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x28, 0x0F, 0x01]
+        elif txt == 'btn_comm_cont_nrc_13':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x04, 0x28, 0x00, 0x01, 0x01]
+        elif txt == 'btn_comm_cont_nrc_31':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x28, 0x00, 0xFF]
+        elif txt == "btn_comm_cont_nrc_7f_all_en":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x28, 0x00, 0x01]
+        elif txt == "btn_comm_cont_nrc_7f_tx_dis":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x28, 0x01, 0x01]
+        elif txt == "btn_comm_cont_nrc_7f_all_dis":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x28, 0x03, 0x01]
+        elif txt == "btn_comm_cont_nrc_22_all_en":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            sig_li = [0x03, 0x28, 0x00, 0x01]
+        elif txt == "btn_comm_cont_nrc_22_tx_dis":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            sig_li = [0x03, 0x28, 0x01, 0x01]
+        elif txt == "btn_comm_cont_nrc_22_all_dis":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            sig_li = [0x03, 0x28, 0x03, 0x01]
+        time.sleep(0.1)
+        self.diag_data_collector(sig_li)
+        tx_result = self.res_data[0].data[:4]
+        if self.chkbox_diag_test_mode_comm_cont.isChecked():
+            if tx_result[1] == self.diag_success_byte:
+                if tx_result[2] == 0x00:
+                    self.btn_comm_cont_all_en.setEnabled(False)
+                    self.label_comm_cont_all_en.setText("Success")
+                elif tx_result[2] == 0x01:
+                    self.label_comm_cont_tx_dis.setText("Data Success \n Check the Rx available")
+                elif tx_result[2] == 0x03:
+                    self.label_comm_cont_all_dis.setText("Data Success \n Check the Rx disable")
+            else:
+                if tx_result[3] == 0x12:
+                    self.btn_comm_cont_nrc_12.setEnabled(False)
+                    self.label_comm_cont_nrc_12.setText("Success")
+                elif tx_result[3] == 0x13:
+                    self.btn_comm_cont_nrc_13.setEnabled(False)
+                    self.label_comm_cont_nrc_13.setText("Success")
+                elif tx_result[3] == 0x31:
+                    self.btn_comm_cont_nrc_31.setEnabled(False)
+                    self.label_comm_cont_nrc_31.setText("Success")
+                elif txt == "btn_comm_cont_nrc_7f_all_en" or txt == "btn_comm_cont_nrc_22_all_en":
+                    if tx_result[3] == 0x7f:
+                        self.btn_comm_cont_nrc_7f_all_en.setEnabled(False)
+                        self.label_comm_cont_nrc_7f_all_en.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_comm_cont_nrc_22_all_en.setEnabled(False)
+                        self.label_comm_cont_nrc_22_all_en.setText("Success")
+                elif txt == "btn_comm_cont_nrc_7f_tx_dis" or txt == "btn_comm_cont_nrc_22_tx_dis":
+                    if tx_result[3] == 0x7f:
+                        self.btn_comm_cont_nrc_7f_tx_dis.setEnabled(False)
+                        self.label_comm_cont_nrc_7f_tx_dis.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_comm_cont_nrc_22_tx_dis.setEnabled(False)
+                        self.label_comm_cont_nrc_22_tx_dis.setText("Success")
+                elif txt == "btn_comm_cont_nrc_7f_all_dis" or txt == "btn_comm_cont_nrc_22_all_dis":
+                    if tx_result[3] == 0x7f:
+                        self.btn_comm_cont_nrc_7f_all_dis.setEnabled(False)
+                        self.label_comm_cont_nrc_7f_all_dis.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_comm_cont_nrc_22_all_dis.setEnabled(False)
+                        self.label_comm_cont_nrc_22_all_dis.setText("Success")
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()

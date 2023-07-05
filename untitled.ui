@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="mmi_messages">
      <attribute name="title">
@@ -1423,7 +1423,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sess_nrc_13">
@@ -1455,7 +1455,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
       </widget>
@@ -1488,7 +1488,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_sess_default">
@@ -1507,7 +1507,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
      </widget>
@@ -1551,7 +1551,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_12">
@@ -1603,7 +1603,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_7f_sw">
@@ -1639,7 +1639,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_reset_nrc_7f_hw">
@@ -1658,7 +1658,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_7f_hw">
@@ -1694,7 +1694,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_reset_nrc_22_hw">
@@ -1713,7 +1713,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_reset_nrc_22_hw">
@@ -1783,7 +1783,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_reset_hw">
@@ -1802,7 +1802,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_reset_hw">
@@ -1918,7 +1918,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_tester_nrc_13">
@@ -1950,7 +1950,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
       </widget>
@@ -1970,7 +1970,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QCheckBox" name="chkbox_tester_present">
@@ -2093,7 +2093,7 @@
          <string>default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_id_nrc_31">
@@ -2112,7 +2112,7 @@
          <string>default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_id_nrc_31">
@@ -2145,7 +2145,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_ecu_num">
@@ -2190,7 +2190,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_vin">
@@ -2222,7 +2222,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_install_date">
@@ -2241,7 +2241,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_install_date">
@@ -2325,7 +2325,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_diag_ver">
@@ -2344,7 +2344,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_sys_name">
@@ -2363,7 +2363,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_veh_name">
@@ -2382,7 +2382,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_ecu_manu_date">
@@ -2415,7 +2415,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_ecu_serial">
@@ -2448,7 +2448,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_sw_ver">
@@ -2493,7 +2493,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_hw_ver">
@@ -2512,7 +2512,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_assy_num">
@@ -2545,7 +2545,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_id_net_config">
@@ -2564,7 +2564,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_id_net_config">
@@ -2691,7 +2691,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sec_nrc_13">
@@ -2723,7 +2723,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sec_nrc_35">
@@ -2755,7 +2755,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_sec_nrc_36">
@@ -2774,7 +2774,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sec_nrc_36">
@@ -2820,7 +2820,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sec_nrc_37">
@@ -2853,7 +2853,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_sec_nrc_7f_req">
@@ -2900,7 +2900,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_sec_nrc_7f_req">
@@ -2919,7 +2919,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
       </widget>
@@ -2939,7 +2939,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_sec_req_seed">
@@ -2984,7 +2984,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
      </widget>
@@ -3105,7 +3105,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_7f_install_date">
@@ -3138,7 +3138,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_7f_veh_name">
@@ -3171,7 +3171,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_7f_sys_name">
@@ -3190,7 +3190,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_7f_sys_name">
@@ -3237,7 +3237,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_22_vin">
@@ -3256,7 +3256,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_22_vin">
@@ -3303,7 +3303,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_22_install_date">
@@ -3336,7 +3336,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_33_install_date">
@@ -3369,7 +3369,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_22_veh_name">
@@ -3388,7 +3388,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_22_veh_name">
@@ -3435,7 +3435,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_22_sys_name">
@@ -3454,7 +3454,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_22_sys_name">
@@ -3501,7 +3501,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_22_net_config">
@@ -3520,7 +3520,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_22_net_config">
@@ -3567,7 +3567,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_13">
@@ -3600,7 +3600,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_write_nrc_31">
@@ -3619,7 +3619,7 @@
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_write_nrc_31">
@@ -3665,7 +3665,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_write_install_date">
@@ -3684,7 +3684,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_write_install_date">
@@ -3742,7 +3742,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_write_veh_name">
@@ -3761,7 +3761,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_write_net_config">
@@ -3780,7 +3780,7 @@
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_write_net_config">
@@ -3926,11 +3926,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_13">
@@ -3955,11 +3958,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_31">
@@ -3984,11 +3990,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_en">
@@ -4028,11 +4037,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_comm_cont_nrc_7f_all_en">
@@ -4044,11 +4056,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_comm_cont_nrc_7f_all_dis">
@@ -4060,11 +4075,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_dis">
@@ -4104,11 +4122,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QLabel" name="label_comm_cont_nrc_22_all_dis">
@@ -4120,11 +4141,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_dis">
@@ -4150,11 +4174,14 @@
           <height>20</height>
          </rect>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: gray</string>
+        </property>
         <property name="text">
          <string>Default</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
        <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_en">
@@ -4181,11 +4208,14 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
+       </property>
        <property name="text">
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_comm_cont_all_en">
@@ -4218,33 +4248,39 @@
       <widget class="QLabel" name="label_comm_cont_tx_dis">
        <property name="geometry">
         <rect>
-         <x>340</x>
+         <x>330</x>
          <y>130</y>
-         <width>171</width>
-         <height>20</height>
+         <width>191</width>
+         <height>41</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
        </property>
        <property name="text">
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QLabel" name="label_comm_cont_all_dis">
        <property name="geometry">
         <rect>
-         <x>570</x>
+         <x>560</x>
          <y>130</y>
-         <width>171</width>
-         <height>20</height>
+         <width>191</width>
+         <height>41</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: gray</string>
        </property>
        <property name="text">
         <string>Default</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
       <widget class="QPushButton" name="btn_comm_cont_all_dis">
@@ -4257,7 +4293,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Tx /Rx Disable</string>
+        <string>Tx / Rx Disable</string>
        </property>
       </widget>
      </widget>
@@ -4288,6 +4324,38 @@
       </property>
       <property name="text">
        <string>Test Mode</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_compression_bit_comm_cont">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>30</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Compression Bit</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkbox_diag_functional_domain_comm_cont">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>30</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="text">
+       <string>Functional Domain</string>
       </property>
      </widget>
     </widget>

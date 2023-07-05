@@ -52,14 +52,18 @@ class ThreadWorker(NodeThread):
         self.parent = parent
         self._isRunning = True
         self.reservoir = []
-        self.period = 0.050
+        self.period = 0.010
 
     def run(self):
         while self._isRunning:
             a = self.parent.c_can_bus.recv()
             if a.arbitration_id == 0x18daf141:
+                # print(a)
                 self.reservoir.append(a)
+            # self.parent.main_console.appendPlainText(str(a))
             self.sig2.emit(a)
+            # if a.arbitration_id == 0x18ffd841:
+            #     print(a)
             QtCore.QCoreApplication.processEvents()
 
     def thread_func(self):
