@@ -98,23 +98,18 @@ class ThreadWorker(NodeThread):
             self.parent.battery_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
 
-class Hvac(NodeThread):
+class Node_PMS_S(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.sig = '0x00'
 
-    def run(self):
-        while self._isRunning:
-            if self.parent.c_can_bus:
-                a = self.parent.c_can_bus.recv()
-                if a.arbitration_id == 0x18ffd741:  # 100ms
-                    self.data[0] = a.data[1]
-                    self.thread_func()
-            else:
-                print("no good hvac")
-                self._isRunning = False
-
     def thread_func(self):
+        self.hvsm_mmiFbSts_func()
+
+    def hvsm_mmiFbSts_func(self):
+        a = self.parent.c_can_bus.recv()
+        if a.arbitration_id == 0x18ffd741:  # 100ms
+            self.data[0] = a.data[1]
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
 

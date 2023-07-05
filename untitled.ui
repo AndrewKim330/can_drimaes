@@ -4248,9 +4248,9 @@
       <widget class="QLabel" name="label_comm_cont_tx_dis">
        <property name="geometry">
         <rect>
-         <x>330</x>
+         <x>320</x>
          <y>130</y>
-         <width>191</width>
+         <width>211</width>
          <height>41</height>
         </rect>
        </property>

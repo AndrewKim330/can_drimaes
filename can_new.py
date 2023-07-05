@@ -54,7 +54,7 @@ class Main(QMainWindow, form_class):
 
         self.flow_control_len = 0
 
-        self.hvac_worker = worker.Hvac(parent=self)
+        self.pms_s_worker = worker.Node_PMS_S(parent=self)
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
@@ -267,7 +267,7 @@ class Main(QMainWindow, form_class):
     def thread_start(self):
         if self.bus_flag:
             self.thread_worker._isRunning = True
-            self.hvac_worker._isRunning = True
+            self.pms_s_worker._isRunning = True
             self.swrc_worker._isRunning = True
             self.power_train_worker._isRunning = True
             self.bcm_state_worker._isRunning = True
@@ -282,7 +282,7 @@ class Main(QMainWindow, form_class):
             self.charge_worker._isRunning = True
 
             self.thread_worker.start()
-            self.hvac_worker.start()
+            self.pms_s_worker.start()
             self.swrc_worker.start()
             self.power_train_worker.start()
             self.bcm_state_worker.start()
@@ -339,7 +339,7 @@ class Main(QMainWindow, form_class):
         time.sleep(0.1)
 
         self.thread_worker.stop()
-        self.hvac_worker.stop()
+        self.pms_s_worker.stop()
         self.swrc_worker.stop()
         self.power_train_worker.stop()
         self.bcm_state_worker.stop()
@@ -353,7 +353,7 @@ class Main(QMainWindow, form_class):
         self.charge_worker.stop()
 
         self.thread_worker.quit()
-        self.hvac_worker.quit()
+        self.pms_s_worker.quit()
         self.swrc_worker.quit()
         self.power_train_worker.quit()
         self.bcm_state_worker.quit()
@@ -369,7 +369,7 @@ class Main(QMainWindow, form_class):
     def set_drv_state(self):
         if not self.drv_state:
             self.btn_gear_n.setChecked(True)
-            self.btn_ign.setChecked(True)
+            self.btn_acc.setChecked(True)
             self.chkbox_pt_ready.setChecked(False)
         else:
             self.btn_gear_d.setChecked(True)
@@ -778,9 +778,6 @@ class Main(QMainWindow, form_class):
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
         self.raw_data = []
-        self.drv_state = False
-        self.set_drv_state()
-        self.thread_worker.slider_speed_func(0)
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
 
@@ -883,7 +880,7 @@ class Main(QMainWindow, form_class):
     def write_data_not_correct(self, txt):
         if txt == "btn_write_vin":
             err = "Length Error"
-            message = "Incorrect length of VIN number"
+            message = "Incorrect length of VIN number \n (Need to 17 Character)"
         elif txt == "btn_write_install_date":
             pass
         elif txt == "btn_write_veh_name":
@@ -897,11 +894,6 @@ class Main(QMainWindow, form_class):
 
     @pyqtSlot(can.Message)
     def sig2(self, tx_single):
-        pass
-        # if tx_single.arbitration_id == 0x18ffd741:  # 100ms
-        #     print(tx_single)
-        # a = list(tx_single.data)
-        # print(str(a))
         self.main_console.appendPlainText(str(tx_single))
 
     def diag_func(self):
@@ -1043,6 +1035,9 @@ class Main(QMainWindow, form_class):
                 break
             QtCore.QCoreApplication.processEvents()
             self.diag_data_collector(sig_li)
+        self.drv_state = False
+        self.set_drv_state()
+        self.thread_worker.slider_speed_func(0)
         tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_basic.isChecked():
             if tx_result[1] == self.diag_success_byte:
@@ -1514,6 +1509,9 @@ class Main(QMainWindow, form_class):
             sig_li = [0x03, 0x28, 0x03, 0x01]
         time.sleep(0.1)
         self.diag_data_collector(sig_li)
+        self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
+        self.set_drv_state()
         tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_comm_cont.isChecked():
             if tx_result[1] == self.diag_success_byte:
@@ -1521,9 +1519,9 @@ class Main(QMainWindow, form_class):
                     self.btn_comm_cont_all_en.setEnabled(False)
                     self.label_comm_cont_all_en.setText("Success")
                 elif tx_result[2] == 0x01:
-                    self.label_comm_cont_tx_dis.setText("Data Success \n Check the Rx available")
+                    self.label_comm_cont_tx_dis.setText("Data Success \n Check the Rx availability")
                 elif tx_result[2] == 0x03:
-                    self.label_comm_cont_all_dis.setText("Data Success \n Check the Rx disable")
+                    self.label_comm_cont_all_dis.setText("Data Success \n Check the Rx disability")
             else:
                 if tx_result[3] == 0x12:
                     self.btn_comm_cont_nrc_12.setEnabled(False)
@@ -1587,7 +1585,6 @@ class Main(QMainWindow, form_class):
                 dtc_name = dtc_id.dtc_identifier(single_dtc)
                 self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         elif txt == "btn_mem_fault_reset":
-            self.diag_initialization()
             sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             self.diag_data_collector(sig_li)
 
