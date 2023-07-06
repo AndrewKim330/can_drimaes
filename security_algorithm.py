@@ -1,6 +1,5 @@
 def secu_algo(seed):
     xor = [0x69, 0x1d, 0xbe, 0x55]
-    print(seed[0], seed[1], seed[2], seed[3])
     cal_data = []
     res = []
 

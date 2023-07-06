@@ -1,6 +1,4 @@
-import copy
 import time
-import uptime
 
 import can
 import can.interfaces.vector
@@ -8,8 +6,6 @@ import can.interfaces.pcan
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QPixmap
-
-import threading
 
 import images_rc
 
@@ -35,7 +31,7 @@ class NodeThread(QThread):
     def run(self):
         while self._isRunning:
             self.thread_func()
-            time.sleep(self.period)
+            QtCore.QCoreApplication.processEvents()
 
     def thread_func(self):
         pass
@@ -52,7 +48,6 @@ class ThreadWorker(NodeThread):
         self.parent = parent
         self._isRunning = True
         self.reservoir = []
-        self.period = 0.010
 
     def run(self):
         while self._isRunning:
@@ -65,6 +60,7 @@ class ThreadWorker(NodeThread):
             # if a.arbitration_id == 0x18ffd841:
             #     print(a)
             QtCore.QCoreApplication.processEvents()
+            time.sleep(0.010)
 
     def thread_func(self):
         # driving state check
@@ -104,14 +100,6 @@ class Node_PMS_S(NodeThread):
         self.sig = '0x00'
 
     def thread_func(self):
-        message = can.Message(arbitration_id=0x18fac490, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("ACU Node is not working")
-            self._isRunning = False
-
-    def thread_func(self):
         self.hvsm_mmiFbSts_func()
 
     def hvsm_mmiFbSts_func(self):
@@ -120,6 +108,23 @@ class Node_PMS_S(NodeThread):
             self.data[0] = a.data[1]
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
+
+
+class Node_PMS_C(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.period = 0.010
+
+    def thread_func(self):
+        self.sas_chas1Fr01_func()
+
+    def sas_chas1Fr01_func(self):
+        self.data[0] = 0x00
+        self.data[1] = 0x80
+        message = can.Message(arbitration_id=0x0cffb291, data=self.data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class Swrc(NodeThread):
@@ -194,11 +199,8 @@ class Swrc(NodeThread):
             elif btn_text == "btn_vol_down":
                 self.data[1] = 0x40
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good swrc")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class PowerTrain(NodeThread):
@@ -217,11 +219,8 @@ class PowerTrain(NodeThread):
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good powertrain")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class BCMState(NodeThread):
@@ -245,59 +244,56 @@ class BCMState(NodeThread):
         if self.parent.c_can_bus:
             self.parent.c_can_bus.send(message)
         else:
-            print("no good bcmstate")
+            print("BCM Node Error")
             self._isRunning = False
+        time.sleep(self.period)
 
 
 class BCMMMI(NodeThread):
     def thread_func(self):
         if self.data[3] == 0xFF:
             self.data[3] = 0x01
-        if self.parent.c_can_bus:
-            a = self.parent.c_can_bus.recv()
-            if a.arbitration_id == 0x18ffd741:
-                if a.data[2] == 0xf4:
-                    self.data[3] = sig_generator(self.data[3], 0, 2, 1)
-                elif a.data[2] == 0xf8:
-                    self.data[3] = sig_generator(self.data[3], 0, 2, 2)
-            if a.arbitration_id == 0x18ffd841:
-                if a.data[3] == 0xcf:
-                    self.data[1] = 0xE7
-                elif a.data[3] == 0xd7:
-                    self.data[1] = 0xEB
-                elif a.data[3] == 0xdf:
-                    self.data[1] = 0xEF
-                else:
-                    self.data[1] = 0xE3
+        a = self.parent.c_can_bus.recv()
+        if a.arbitration_id == 0x18ffd741:
+            if a.data[2] == 0xf4:
+                self.data[3] = sig_generator(self.data[3], 0, 2, 1)
+            elif a.data[2] == 0xf8:
+                self.data[3] = sig_generator(self.data[3], 0, 2, 2)
+        if a.arbitration_id == 0x18ffd841:
+            if a.data[3] == 0xcf:
+                self.data[1] = 0xE7
+            elif a.data[3] == 0xd7:
+                self.data[1] = 0xEB
+            elif a.data[3] == 0xdf:
+                self.data[1] = 0xEF
+            else:
+                self.data[1] = 0xE3
 
-                if a.data[7] == 0x7f:
-                    self.data[3] = sig_generator(self.data[3], 2, 2, 1)
-                elif a.data[7] == 0xbf:
-                    self.data[3] = sig_generator(self.data[3], 2, 2, 2)
+            if a.data[7] == 0x7f:
+                self.data[3] = sig_generator(self.data[3], 2, 2, 1)
+            elif a.data[7] == 0xbf:
+                self.data[3] = sig_generator(self.data[3], 2, 2, 2)
 
-            if self.parent.btn_mscs_ok.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 0)
-            elif self.parent.btn_mscs_CmnFail.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 1)
-            elif self.parent.btn_mscs_NotEdgePress.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 2)
-            elif self.parent.btn_mscs_EdgeSho.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 3)
-            elif self.parent.btn_mscs_SnsrFltT.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 4)
-            elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 5)
-            elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 6)
-            elif self.parent.btn_mscs_SigFailr.isChecked():
-                self.data[3] = sig_generator(self.data[3], 4, 3, 7)
+        if self.parent.btn_mscs_ok.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 0)
+        elif self.parent.btn_mscs_CmnFail.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 1)
+        elif self.parent.btn_mscs_NotEdgePress.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 2)
+        elif self.parent.btn_mscs_EdgeSho.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 3)
+        elif self.parent.btn_mscs_SnsrFltT.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 4)
+        elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 5)
+        elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 6)
+        elif self.parent.btn_mscs_SigFailr.isChecked():
+            self.data[3] = sig_generator(self.data[3], 4, 3, 7)
 
-            message = can.Message(arbitration_id=0x18ffd521, data=self.data)
-
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good bcm mmi")
-            self._isRunning = False
+        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class TachoSpeed(NodeThread):
@@ -310,11 +306,8 @@ class TachoSpeed(NodeThread):
         self.data[6] = int(self.value[2:4], 16)
         self.data[7] = int(self.value[0:2], 16)
         message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good tachospeed")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class Node_ESC(NodeThread):
@@ -331,11 +324,8 @@ class Node_ESC(NodeThread):
             elif btn_text == "btn_tpms_fail":
                 self.data[7] = 0xEF
         message = can.Message(arbitration_id=0x18f0120B, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good tire pressure")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class AEB(NodeThread):
@@ -344,18 +334,15 @@ class AEB(NodeThread):
         self.period = 0.050
 
     def thread_func(self):
-        if self.parent.c_can_bus:
-            a = self.parent.c_can_bus.recv()
-            if a.arbitration_id == 0x0c0ba021:
-                if a.data[0] == "fd":
-                    self.data[0] = 0xF1
-                elif a.data[0] == "fc":
-                    self.data[0] = 0xF2
-            message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
-            self.parent.c_can_bus.send(message)
-        else:
-            print("no good AEB")
-            self._isRunning = False
+        a = self.parent.c_can_bus.recv()
+        if a.arbitration_id == 0x0c0ba021:
+            if a.data[0] == "fd":
+                self.data[0] = 0xF1
+            elif a.data[0] == "fc":
+                self.data[0] = 0xF2
+        message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class Node_ACU(NodeThread):
@@ -365,11 +352,8 @@ class Node_ACU(NodeThread):
 
     def thread_func(self):
         message = can.Message(arbitration_id=0x18fac490, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("ACU Node is not working")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
     def drv_invalid(self):
         if self.parent.chkbox_drv_invalid.isChecked():
@@ -384,7 +368,7 @@ class Node_ACU(NodeThread):
             self.data[1] = sig_generator(self.data[1], 6, 1, 0)
 
 
-class BatteryManage(NodeThread):
+class Node_BMS(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.value = '7D'
@@ -395,11 +379,8 @@ class BatteryManage(NodeThread):
         self.data[4] = int(self.value, 16)
         self.data[5] = 0x7D
         message = can.Message(arbitration_id=0x18fa40f4, data=self.data)
-        if self.parent.p_can_bus:
-            self.parent.p_can_bus.send(message)
-        else:
-            print("no good battery")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class ChargingState(NodeThread):
@@ -409,11 +390,8 @@ class ChargingState(NodeThread):
         if self.parent.chkbox_charge.isChecked():
             self.data[0] = 0x1F
         message = can.Message(arbitration_id=0x18fa3ef4, data=self.data)
-        if self.parent.p_can_bus:
-            self.parent.p_can_bus.send(message)
-        else:
-            print("no good charge")
-            self._isRunning = False
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class TesterPresent(NodeThread):
@@ -427,11 +405,8 @@ class TesterPresent(NodeThread):
             self.data[1] = 0x3E
             self.data[2] = 0x00
             message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            if self.parent.c_can_bus:
-                self.parent.c_can_bus.send(message)
-            else:
-                print("no good charge")
-                self._isRunning = False
+            self.parent.c_can_bus.send(message)
+            time.sleep(self.period)
 
         # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
         # self.sig_side_mirrorb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')

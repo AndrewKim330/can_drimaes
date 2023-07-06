@@ -1,5 +1,3 @@
-import copy
-
 import dtc_identifier as dtc_id
 
 import sys
@@ -10,7 +8,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
 from can import interfaces
-
 
 import can_thread as worker
 
@@ -55,6 +52,7 @@ class Main(QMainWindow, form_class):
         self.flow_control_len = 0
 
         self.pms_s_worker = worker.Node_PMS_S(parent=self)
+        self.pms_c_worker = worker.Node_PMS_C(parent=self)
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
@@ -87,8 +85,8 @@ class Main(QMainWindow, form_class):
 
         self.esc_worker = worker.Node_ESC(parent=self)
 
-        self.btn_tpms_success.clicked.connect(self.tire_worker.thread_func)
-        self.btn_tpms_fail.clicked.connect(self.tire_worker.thread_func)
+        self.btn_tpms_success.clicked.connect(self.esc_worker.thread_func)
+        self.btn_tpms_fail.clicked.connect(self.esc_worker.thread_func)
 
         self.btn_bright_afternoon.setChecked(True)
 
@@ -112,7 +110,7 @@ class Main(QMainWindow, form_class):
         self.chkbox_drv_invalid.stateChanged.connect(self.acu_worker.drv_invalid)
         self.chkbox_pass_invalid.stateChanged.connect(self.acu_worker.pass_invalid)
 
-        self.battery_worker = worker.BatteryManage(parent=self)
+        self.bms_worker = worker.Node_BMS(parent=self)
         self.charge_worker = worker.ChargingState(parent=self)
 
         self.tester_worker = worker.TesterPresent(parent=self)
@@ -287,7 +285,6 @@ class Main(QMainWindow, form_class):
             self.bcm_mmi_worker._isRunning = True
             self.tester_worker._isRunning = True
 
-            self.battery_worker._isRunning = True
             self.charge_worker._isRunning = True
 
             self.set_node()
@@ -302,7 +299,6 @@ class Main(QMainWindow, form_class):
             self.bcm_mmi_worker.start()
             self.tester_worker.start()
 
-            self.battery_worker.start()
             self.charge_worker.start()
 
             self.set_can_basic_btns_labels(True)
@@ -389,9 +385,17 @@ class Main(QMainWindow, form_class):
             self.pms_s_worker.stop()
 
         if self.chkbox_node_pms_c.isChecked():
-             pass
+            self.pms_c_worker._isRunning = True
+            self.pms_c_worker.start()
+        else:
+            self.pms_c_worker.stop()
+
         if self.chkbox_node_bms.isChecked():
-             pass
+            self.bms_worker._isRunning = True
+            self.bms_worker.start()
+        else:
+            self.bms_worker.stop()
+
         if self.chkbox_node_mcu.isChecked():
              pass
 
@@ -797,9 +801,9 @@ class Main(QMainWindow, form_class):
             self.diag_dtc_console.clear()
 
     def set_diag_tester_domain(self):
-        self.diag_tester = 0x18da41f1
+        self.diag_tester_id = 0x18da41f1
         if self.chkbox_diag_functional_domain_basic.isChecked():
-            self.diag_tester = 0x18db33f1
+            self.diag_tester_id = 0x18db33f1
 
     def diag_initialization(self):
         self.flow_control_len = 1
@@ -829,8 +833,8 @@ class Main(QMainWindow, form_class):
                 time.sleep(0.020)
                 self.data[0] = 0x30
                 self.diag_send_message()
-            time.sleep(0.2)
-            reservoir = copy.copy(self.thread_worker.reservoir)
+            time.sleep(0.3)
+            reservoir = self.thread_worker.reservoir[:]
             if multi:
                 if flag:
                     for qqq in reservoir:
@@ -860,10 +864,7 @@ class Main(QMainWindow, form_class):
         temp_li = []
         if len(self.res_data) == 1:
             if self.data_len > 0:
-                for i in range(4, 8):
-                    self.raw_data.append(self.res_data[0].data[i])
-                    if len(self.raw_data) == self.data_len:
-                        break
+                self.raw_data += self.res_data[0].data[4:8]
         else:
             for i in range(self.flow_control_len):
                 for j in range(self.flow_control_len):
@@ -1280,7 +1281,7 @@ class Main(QMainWindow, form_class):
                 sig_li = [0x06, 0x27, 0x02]
                 time.sleep(0.1)
                 self.diag_data_collector(sig_li + seed_converted)
-                if self.res_data[0].data[1] == self.diag_success_byte and self.res_data[0].data[2] == 0x02:
+                if self.res_data[0].data[1] == 0x67 and self.res_data[0].data[2] == 0x02:
                     break
                 else:
                     self.res_data = []
@@ -1306,6 +1307,7 @@ class Main(QMainWindow, form_class):
                     self.diag_sess("btn_sess_default")
                     self.diag_security_access("btn_sec_nrc_35")
                     count += 1
+                sig_li = [0x02, 0x27, 0x01]
             elif txt == "btn_sec_nrc_37":
                 self.diag_security_access("btn_sec_nrc_36")
                 sig_li = [0x02, 0x27, 0x01]
@@ -1358,12 +1360,12 @@ class Main(QMainWindow, form_class):
                         self.diag_send_message()
                         time.sleep(0.030)
                     time.sleep(1)
-                    zzz = copy.copy(self.tx_worker.reservoir)
-                    for qqq in zzz:
-                        if qqq[3] == "18daf141":
+                    reservoir = self.thread_worker.reservoir[:]
+                    for qqq in reservoir:
+                        if qqq.arbitration_id == 0x18daf141:
                             temp = qqq
                             count = self.flow_control_len
-                    self.tx_worker.reservoir = []
+                    self.thread_worker.reservoir = []
                     QtCore.QCoreApplication.processEvents()
                 self.diag_console.appendPlainText(str(temp))
         #     time.sleep(0.2)
@@ -1523,20 +1525,22 @@ class Main(QMainWindow, form_class):
             self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
+            time.sleep(0.2)
             sig_li = [0x03, 0x28, 0x00, 0x01]
         elif txt == "btn_comm_cont_nrc_22_tx_dis":
             self.diag_sess("btn_sess_extended")
             self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
+            time.sleep(0.2)
             sig_li = [0x03, 0x28, 0x01, 0x01]
         elif txt == "btn_comm_cont_nrc_22_all_dis":
             self.diag_sess("btn_sess_extended")
             self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
+            time.sleep(0.2)
             sig_li = [0x03, 0x28, 0x03, 0x01]
-        time.sleep(0.1)
         self.diag_data_collector(sig_li)
         self.drv_state = False
         self.thread_worker.slider_speed_func(0)
