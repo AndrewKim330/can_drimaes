@@ -375,18 +375,34 @@ class Node_FCS(NodeThread):
         time.sleep(self.period)
 
 
-class TachoSpeed(NodeThread):
+class Node_IC(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
-        self.period = 0.050
+        self.vd_period = 1.000
+        self.tc_period = 0.050
+        self.vd_data = self.data[:]
+        self.tc_data = self.data[:]
         self.value = '0000'
 
     def thread_func(self):
-        self.data[6] = int(self.value[2:4], 16)
-        self.data[7] = int(self.value[0:2], 16)
-        message = can.Message(arbitration_id=0x0cfe6c17, data=self.data)
+        self.tc01_func()
+        self.vdhr_func()
+
+    def tc01_func(self):
+        self.tc_data[6] = int(self.value[2:4], 16)
+        self.tc_data[7] = int(self.value[0:2], 16)
+        message = can.Message(arbitration_id=0x0cfe6c17, data=self.tc_data)
         self.parent.c_can_bus.send(message)
-        time.sleep(self.period)
+        time.sleep(self.tc_period)
+
+    def vdhr_func(self):
+        self.vd_data[0] = 0x00
+        self.vd_data[1] = 0x00
+        self.vd_data[2] = 0x00
+        self.vd_data[3] = 0x00
+        message = can.Message(arbitration_id=0x18fec117, data=self.vd_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.vd_period)
 
 
 class Node_ESC(NodeThread):

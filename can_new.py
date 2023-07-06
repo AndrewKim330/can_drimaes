@@ -75,7 +75,7 @@ class Main(QMainWindow, form_class):
         self.btn_vol_up.released.connect(self.bcm_worker.sws_lin_func)
         self.btn_vol_down.released.connect(self.bcm_worker.sws_lin_func)
 
-        self.speed_worker = worker.TachoSpeed(parent=self)
+        self.ic_worker = worker.Node_IC(parent=self)
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
@@ -275,9 +275,8 @@ class Main(QMainWindow, form_class):
             self.thread_worker.start()
             self.tester_worker.start()
 
-            self.speed_worker._isRunning = True
             self.charge_worker._isRunning = True
-            self.speed_worker.start()
+
             self.charge_worker.start()
 
             self.set_can_basic_btns_labels(True)
@@ -328,8 +327,8 @@ class Main(QMainWindow, form_class):
         self.esc_worker.stop()
         self.fcs_worker.stop()
         self.bms_worker.stop()
+        self.ic_worker.stop()
 
-        self.speed_worker.stop()
         self.charge_worker.stop()
 
         self.thread_worker.stop()
@@ -361,7 +360,10 @@ class Main(QMainWindow, form_class):
             self.fcs_worker.stop()
 
         if self.chkbox_node_ic.isChecked():
-             pass
+            self.ic_worker._isRunning = True
+            self.ic_worker.start()
+        else:
+            self.ic_worker.stop()
 
         if self.chkbox_node_pms.isChecked():
             self.pms_worker._isRunning = True
