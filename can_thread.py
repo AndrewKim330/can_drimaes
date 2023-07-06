@@ -295,24 +295,51 @@ class Node_BCM(NodeThread):
         time.sleep(self.period)
 
 
-class PowerTrain(NodeThread):
+class Node_PMS(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.bodycont_period = 0.010
+        self.bodycont_c_data = self.data[:]
+        self.ptinfo_data = self.data[:]
+        self.bodycont_p_data = self.data[:]
+        self.value = '0000'
+
     def thread_func(self):
-        self.data[0] = 0xCF
-        self.data[5] = 0xFC
-        self.data[6] = 0xF3
-        self.data[7] = 0x3F
+        self.bodycontrolinfo_c_func()
+        self.ptinfoindicate_func()
+        self.bodycontrolinfo_p_func()
+
+    def bodycontrolinfo_c_func(self):
+        self.bodycont_c_data[1] = 0x00
+        self.bodycont_c_data[2] = 0x00
+        self.bodycont_c_data[6] = 0xF7
+        message = can.Message(arbitration_id=0x0cfab127, data=self.bodycont_c_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.bodycont_period)
+
+    def ptinfoindicate_func(self):
+        self.ptinfo_data[0] = 0xCF
+        self.ptinfo_data[5] = 0xFC
+        self.ptinfo_data[6] = 0xF3
+        self.ptinfo_data[7] = 0x3F
         # initial value for gear N (for convenience)
         if self.parent.btn_gear_n.isChecked():
-            self.data[4] = 0x7D
+            self.ptinfo_data[4] = 0x7D
         elif self.parent.btn_gear_r.isChecked():
-            self.data[4] = 0xDF
+            self.ptinfo_data[4] = 0xDF
         elif self.parent.btn_gear_d.isChecked():
-            self.data[4] = 0xFC
+            self.ptinfo_data[4] = 0xFC
         if self.parent.chkbox_pt_ready.isChecked():
-            self.data[0] = 0xDF
-        message = can.Message(arbitration_id=0x18fab027, data=self.data)
+            self.ptinfo_data[0] = 0xDF
+        message = can.Message(arbitration_id=0x18fab027, data=self.ptinfo_data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
+
+    def bodycontrolinfo_p_func(self):
+        self.bodycont_p_data[4] = 0x00
+        message = can.Message(arbitration_id=0x0cfab127, data=self.bodycont_p_data)
+        self.parent.p_can_bus.send(message)
+        time.sleep(self.bodycont_period)
 
 
 class TachoSpeed(NodeThread):

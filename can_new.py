@@ -53,10 +53,9 @@ class Main(QMainWindow, form_class):
 
         self.pms_s_worker = worker.Node_PMS_S(parent=self)
         self.pms_c_worker = worker.Node_PMS_C(parent=self)
+        self.pms_worker = worker.Node_PMS(parent=self)
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
-
-        self.power_train_worker = worker.PowerTrain(parent=self)
 
         # Default value of Power mode radio button
         self.btn_acc.setChecked(True)
@@ -271,23 +270,16 @@ class Main(QMainWindow, form_class):
     def thread_start(self):
         if self.bus_flag:
             self.thread_worker._isRunning = True
-            self.power_train_worker._isRunning = True
-            self.speed_worker._isRunning = True
-
-            self.aeb_worker._isRunning = True
             self.tester_worker._isRunning = True
-
-            self.charge_worker._isRunning = True
-
             self.set_node()
-
             self.thread_worker.start()
-            self.power_train_worker.start()
-            self.speed_worker.start()
-
-            self.aeb_worker.start()
             self.tester_worker.start()
 
+            self.speed_worker._isRunning = True
+            self.aeb_worker._isRunning = True
+            self.charge_worker._isRunning = True
+            self.speed_worker.start()
+            self.aeb_worker.start()
             self.charge_worker.start()
 
             self.set_can_basic_btns_labels(True)
@@ -333,7 +325,9 @@ class Main(QMainWindow, form_class):
         time.sleep(0.1)
 
         self.thread_worker.stop()
-        self.power_train_worker.stop()
+        self.pms_s_worker.stop()
+        self.pms_c_worker.stop()
+        self.pms_worker.stop()
         self.speed_worker.stop()
         self.esc_worker.stop()
         self.aeb_worker.stop()
@@ -364,8 +358,12 @@ class Main(QMainWindow, form_class):
              pass
         if self.chkbox_node_ic.isChecked():
              pass
+
         if self.chkbox_node_pms.isChecked():
-             pass
+            self.pms_worker._isRunning = True
+            self.pms_worker.start()
+        else:
+            self.pms_worker.stop()
 
         if self.chkbox_node_pms_s.isChecked():
             self.pms_s_worker._isRunning = True
