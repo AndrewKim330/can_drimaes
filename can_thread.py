@@ -53,14 +53,16 @@ class ThreadWorker(NodeThread):
         while self._isRunning:
             a = self.parent.c_can_bus.recv()
             if a.arbitration_id == 0x18daf141:
-                # print(a)
                 self.reservoir.append(a)
-            # self.parent.main_console.appendPlainText(str(a))
+            if a.arbitration_id == 0x18ffd741:
+                self.parent.pms_s_worker.data[0] = a.data[1]
+                self.parent.bcm_worker.single_tx_showapp = a.data
+            if a.arbitration_id == 0x18ffd841:
+                self.parent.bcm_worker.single_tx_softswset = a.data
             self.sig2.emit(a)
             # if a.arbitration_id == 0x18ffd841:
             #     print(a)
             QtCore.QCoreApplication.processEvents()
-            time.sleep(0.010)
 
     def thread_func(self):
         # driving state check
@@ -100,12 +102,9 @@ class Node_PMS_S(NodeThread):
         self.sig = '0x00'
 
     def thread_func(self):
-        self.hvsm_mmiFbSts_func()
+        self.hvsm_mmifbsts_func()
 
-    def hvsm_mmiFbSts_func(self):
-        a = self.parent.c_can_bus.recv()
-        if a.arbitration_id == 0x18ffd741:  # 100ms
-            self.data[0] = a.data[1]
+    def hvsm_mmifbsts_func(self):
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
@@ -114,91 +113,184 @@ class Node_PMS_S(NodeThread):
 class Node_PMS_C(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
-        self.period = 0.010
+        self.strwhl_period = 0.010
 
     def thread_func(self):
-        self.sas_chas1Fr01_func()
+        self.sas_chas1fr01_func()
 
-    def sas_chas1Fr01_func(self):
+    def sas_chas1fr01_func(self):
         self.data[0] = 0x00
         self.data[1] = 0x80
         message = can.Message(arbitration_id=0x0cffb291, data=self.data)
         self.parent.c_can_bus.send(message)
-        time.sleep(self.period)
+        time.sleep(self.strwhl_period)
 
 
-class Swrc(NodeThread):
+class Node_BCM(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
-        self.period = 0.050
+        self.swrc_period = 0.050
         self.long_count = 0
         self.long_threshold = 40
+        self.stateupdate_data = self.data[:]
+        self.lightchime_data = self.data[:]
+        self.mmifbsts_data = self.data[:]
+        self.swm_data = self.data[:]
+        self.swrc_data = self.data[:]
+        self.single_tx_showapp = None
+        self.single_tx_softswset = None
 
     def thread_func(self):
-        self.data[0] = 0x00
-        self.data[1] = 0x00
+        self.stateupdate_func()
+        self.lightchime_func()
+        self.mmifbsts_func()
+        self.sws_lin_func()
+        self.swm_steerwhlheatgpwron_func()
+
+    def stateupdate_func(self):
+        self.stateupdate_data[0] = 0x97
+        self.stateupdate_data[1] = 0x7A
+        # Initial mode for ACC (for convenience)
+        if self.parent.btn_acc.isChecked():
+            self.stateupdate_data[4] = 0xF9
+        if self.parent.btn_acc_off.isChecked():
+            self.stateupdate_data[4] = 0xF8
+        elif self.parent.btn_ign.isChecked():
+            self.stateupdate_data[4] = 0xFA
+        elif self.parent.btn_start.isChecked():
+            self.stateupdate_data[4] = 0xFC
+        if self.parent.btn_bright_afternoon.isChecked():
+            self.stateupdate_data[2] = 0xDF
+        elif self.parent.btn_bright_night.isChecked():
+            self.stateupdate_data[2] = 0xFF
+        message = can.Message(arbitration_id=0x18ff8621, data=self.stateupdate_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
+
+    def lightchime_func(self):
+        self.lightchime_data[0] = 0xCF
+        self.lightchime_data[1] = 0xF7
+        message = can.Message(arbitration_id=0x18ff8721, data=self.lightchime_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.swrc_period)
+
+    def mmifbsts_func(self):
+        if self.mmifbsts_data[3] == 0xFF:
+            self.mmifbsts_data[3] = 0x01
+
+        if self.single_tx_showapp:
+            if self.single_tx_showapp[2] == 0xf4:
+                self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 0, 2, 1)
+            elif self.single_tx_showapp[2] == 0xf8:
+                self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 0, 2, 2)
+
+        if self.single_tx_softswset:
+            if self.single_tx_softswset[3] == 0xcf:
+                self.mmifbsts_data[1] = 0xE7
+            elif self.single_tx_softswset[3] == 0xd7:
+                self.mmifbsts_data[1] = 0xEB
+            elif self.single_tx_softswset[3] == 0xdf:
+                self.mmifbsts_data[1] = 0xEF
+            else:
+                self.mmifbsts_data[1] = 0xE3
+
+            if self.single_tx_softswset[7] == 0x7f:
+                self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 2, 2, 1)
+            elif self.single_tx_softswset[7] == 0xbf:
+                self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 2, 2, 2)
+
+        if self.parent.btn_mscs_ok.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 0)
+        elif self.parent.btn_mscs_CmnFail.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 1)
+        elif self.parent.btn_mscs_NotEdgePress.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 2)
+        elif self.parent.btn_mscs_EdgeSho.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 3)
+        elif self.parent.btn_mscs_SnsrFltT.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 4)
+        elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 5)
+        elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 6)
+        elif self.parent.btn_mscs_SigFailr.isChecked():
+            self.mmifbsts_data[3] = sig_generator(self.mmifbsts_data[3], 4, 3, 7)
+
+        message = can.Message(arbitration_id=0x18ffd521, data=self.mmifbsts_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
+
+    def swm_steerwhlheatgpwron_func(self):
+        self.swm_data[0] = 0xFB
+        message = can.Message(arbitration_id=0x18ff0721, data=self.swm_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
+
+    def sws_lin_func(self):
+        self.swrc_data[0] = 0x00
+        self.swrc_data[1] = 0x00
         if self.parent.btn_left_long.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[0] = 0x02
+                self.swrc_data[0] = 0x02
                 self.long_count += 1
             else:
-                self.data[0] = 0x04
+                self.swrc_data[0] = 0x04
         elif self.parent.btn_right_long.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[0] = 0x08
+                self.swrc_data[0] = 0x08
                 self.long_count += 1
             else:
-                self.data[0] = 0x10
+                self.swrc_data[0] = 0x10
         elif self.parent.btn_call_long.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[1] = 0x01
+                self.swrc_data[1] = 0x01
                 self.long_count += 1
             else:
-                self.data[1] = 0x02
+                self.swrc_data[1] = 0x02
         elif self.parent.btn_vol_up_long.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[1] = 0x10
+                self.swrc_data[1] = 0x10
                 self.long_count += 1
             else:
-                self.data[1] = 0x20
+                self.swrc_data[1] = 0x20
         elif self.parent.btn_vol_down_long.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[1] = 0x40
+                self.swrc_data[1] = 0x40
                 self.long_count += 1
             else:
-                self.data[1] = 0x80
+                self.swrc_data[1] = 0x80
         elif self.parent.btn_reset.isChecked():
             if self.long_count < self.long_threshold:
-                self.data[0] = 0x02
-                self.data[1] = 0x40
+                self.swrc_data[0] = 0x02
+                self.swrc_data[1] = 0x40
                 self.long_count += 1
             else:
-                self.data[0] = 0x04
-                self.data[1] = 0x80
+                self.swrc_data[0] = 0x04
+                self.swrc_data[1] = 0x80
         else:
             self.long_count = 0
 
         if self.sender():
             btn_text = self.sender().objectName()
             if btn_text == "btn_ok":
-                self.data[0] = 0x01
+                self.swrc_data[0] = 0x01
             elif btn_text == "btn_left":
-                self.data[0] = 0x02
+                self.swrc_data[0] = 0x02
             elif btn_text == "btn_right":
-                self.data[0] = 0x08
+                self.swrc_data[0] = 0x08
             elif btn_text == "btn_undo":
-                self.data[0] = 0x20
+                self.swrc_data[0] = 0x20
             elif btn_text == "btn_mode":
-                self.data[0] = 0x40
+                self.swrc_data[0] = 0x40
             elif btn_text == "btn_mute":
-                self.data[0] = 0x80
+                self.swrc_data[0] = 0x80
             elif btn_text == "btn_call":
-                self.data[1] = 0x01
+                self.swrc_data[1] = 0x01
             elif btn_text == "btn_vol_up":
-                self.data[1] = 0x10
+                self.swrc_data[1] = 0x10
             elif btn_text == "btn_vol_down":
-                self.data[1] = 0x40
-        message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
+                self.swrc_data[1] = 0x40
+        message = can.Message(arbitration_id=0x18fa7f21, data=self.swrc_data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
 
@@ -219,79 +311,6 @@ class PowerTrain(NodeThread):
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
         message = can.Message(arbitration_id=0x18fab027, data=self.data)
-        self.parent.c_can_bus.send(message)
-        time.sleep(self.period)
-
-
-class BCMState(NodeThread):
-    def thread_func(self):
-        self.data[0] = 0x97
-        self.data[1] = 0x7A
-        # Initial mode for ACC (for convenience)
-        if self.parent.btn_acc.isChecked():
-            self.data[4] = 0xF9
-        if self.parent.btn_acc_off.isChecked():
-            self.data[4] = 0xF8
-        elif self.parent.btn_ign.isChecked():
-            self.data[4] = 0xFA
-        elif self.parent.btn_start.isChecked():
-            self.data[4] = 0xFC
-        if self.parent.btn_bright_afternoon.isChecked():
-            self.data[2] = 0xDF
-        elif self.parent.btn_bright_night.isChecked():
-            self.data[2] = 0xFF
-        message = can.Message(arbitration_id=0x18ff8621, data=self.data)
-        if self.parent.c_can_bus:
-            self.parent.c_can_bus.send(message)
-        else:
-            print("BCM Node Error")
-            self._isRunning = False
-        time.sleep(self.period)
-
-
-class BCMMMI(NodeThread):
-    def thread_func(self):
-        if self.data[3] == 0xFF:
-            self.data[3] = 0x01
-        a = self.parent.c_can_bus.recv()
-        if a.arbitration_id == 0x18ffd741:
-            if a.data[2] == 0xf4:
-                self.data[3] = sig_generator(self.data[3], 0, 2, 1)
-            elif a.data[2] == 0xf8:
-                self.data[3] = sig_generator(self.data[3], 0, 2, 2)
-        if a.arbitration_id == 0x18ffd841:
-            if a.data[3] == 0xcf:
-                self.data[1] = 0xE7
-            elif a.data[3] == 0xd7:
-                self.data[1] = 0xEB
-            elif a.data[3] == 0xdf:
-                self.data[1] = 0xEF
-            else:
-                self.data[1] = 0xE3
-
-            if a.data[7] == 0x7f:
-                self.data[3] = sig_generator(self.data[3], 2, 2, 1)
-            elif a.data[7] == 0xbf:
-                self.data[3] = sig_generator(self.data[3], 2, 2, 2)
-
-        if self.parent.btn_mscs_ok.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 0)
-        elif self.parent.btn_mscs_CmnFail.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 1)
-        elif self.parent.btn_mscs_NotEdgePress.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 2)
-        elif self.parent.btn_mscs_EdgeSho.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 3)
-        elif self.parent.btn_mscs_SnsrFltT.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 4)
-        elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 5)
-        elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 6)
-        elif self.parent.btn_mscs_SigFailr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 7)
-
-        message = can.Message(arbitration_id=0x18ffd521, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
 

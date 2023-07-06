@@ -58,26 +58,23 @@ class Main(QMainWindow, form_class):
 
         self.power_train_worker = worker.PowerTrain(parent=self)
 
-        # Default value of Gear radio button
-        self.btn_gear_n.setChecked(True)
-
-        self.bcm_state_worker = worker.BCMState(parent=self)
-
         # Default value of Power mode radio button
         self.btn_acc.setChecked(True)
 
-        self.swrc_worker = worker.Swrc(parent=self)
+        self.bcm_worker = worker.Node_BCM(parent=self)
+        # Default value of Gear radio button
+        self.btn_gear_n.setChecked(True)
 
-        self.btn_ok.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_left.pressed.connect(self.swrc_worker.thread_func)
-        self.btn_right.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_undo.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_mode.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_mute.clicked.connect(self.swrc_worker.thread_func)
+        self.btn_ok.clicked.connect(self.bcm_worker.sws_lin_func)
+        self.btn_left.pressed.connect(self.bcm_worker.sws_lin_func)
+        self.btn_right.clicked.connect(self.bcm_worker.sws_lin_func)
+        self.btn_undo.clicked.connect(self.bcm_worker.sws_lin_func)
+        self.btn_mode.clicked.connect(self.bcm_worker.sws_lin_func)
+        self.btn_mute.clicked.connect(self.bcm_worker.sws_lin_func)
 
-        self.btn_call.clicked.connect(self.swrc_worker.thread_func)
-        self.btn_vol_up.released.connect(self.swrc_worker.thread_func)
-        self.btn_vol_down.released.connect(self.swrc_worker.thread_func)
+        self.btn_call.clicked.connect(self.bcm_worker.sws_lin_func)
+        self.btn_vol_up.released.connect(self.bcm_worker.sws_lin_func)
+        self.btn_vol_down.released.connect(self.bcm_worker.sws_lin_func)
 
         self.speed_worker = worker.TachoSpeed(parent=self)
 
@@ -92,18 +89,16 @@ class Main(QMainWindow, form_class):
 
         self.aeb_worker = worker.AEB(parent=self)
 
-        self.bcm_mmi_worker = worker.BCMMMI(parent=self)
-
         self.btn_mscs_ok.setChecked(True)
 
-        self.btn_mscs_ok.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_CmnFail.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_NotEdgePress.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_EdgeSho.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_SnsrFltT.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_FltPwrSplyErr.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_mmi_worker.thread_func)
-        self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.btn_mscs_ok.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_CmnFail.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_NotEdgePress.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_EdgeSho.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_SnsrFltT.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_FltPwrSplyErr.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_worker.mmifbsts_func)
+        self.btn_mscs_SigFailr.clicked.connect(self.bcm_worker.mmifbsts_func)
 
         self.acu_worker = worker.Node_ACU(parent=self)
 
@@ -276,13 +271,10 @@ class Main(QMainWindow, form_class):
     def thread_start(self):
         if self.bus_flag:
             self.thread_worker._isRunning = True
-            self.swrc_worker._isRunning = True
             self.power_train_worker._isRunning = True
-            self.bcm_state_worker._isRunning = True
             self.speed_worker._isRunning = True
 
             self.aeb_worker._isRunning = True
-            self.bcm_mmi_worker._isRunning = True
             self.tester_worker._isRunning = True
 
             self.charge_worker._isRunning = True
@@ -290,13 +282,10 @@ class Main(QMainWindow, form_class):
             self.set_node()
 
             self.thread_worker.start()
-            self.swrc_worker.start()
             self.power_train_worker.start()
-            self.bcm_state_worker.start()
             self.speed_worker.start()
 
             self.aeb_worker.start()
-            self.bcm_mmi_worker.start()
             self.tester_worker.start()
 
             self.charge_worker.start()
@@ -344,15 +333,12 @@ class Main(QMainWindow, form_class):
         time.sleep(0.1)
 
         self.thread_worker.stop()
-        self.swrc_worker.stop()
         self.power_train_worker.stop()
-        self.bcm_state_worker.stop()
         self.speed_worker.stop()
-        self.tire_worker.stop()
+        self.esc_worker.stop()
         self.aeb_worker.stop()
-        self.bcm_mmi_worker.stop()
         self.tester_worker.stop()
-        self.battery_worker.stop()
+        self.bms_worker.stop()
         self.charge_worker.stop()
 
     def set_node(self):
@@ -363,7 +349,10 @@ class Main(QMainWindow, form_class):
             self.acu_worker.stop()
 
         if self.chkbox_node_bcm.isChecked():
-             pass
+            self.bcm_worker.start()
+            self.bcm_worker._isRunning = True
+        else:
+            self.bcm_worker.stop()
 
         if self.chkbox_node_esc.isChecked():
             self.esc_worker._isRunning = True
@@ -863,8 +852,9 @@ class Main(QMainWindow, form_class):
                 return 0
         temp_li = []
         if len(self.res_data) == 1:
+            pass
             if self.data_len > 0:
-                self.raw_data += self.res_data[0].data[4:8]
+                self.raw_data += self.res_data[0].data[1:8]
         else:
             for i in range(self.flow_control_len):
                 for j in range(self.flow_control_len):
@@ -1609,12 +1599,10 @@ class Main(QMainWindow, form_class):
             self.diag_data_collector(sig_li, True)
             st = 3
             for i in range(dtc_num):
-                single_dtc = []
-                for j in range(4):
-                    single_dtc.append(self.raw_data[st])
-                    st += 1
                 if i == 0:
                     self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
+                single_dtc = self.raw_data[st:st+4]
+                st += 4
                 dtc_name = dtc_id.dtc_identifier(single_dtc)
                 self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         elif txt == "btn_mem_fault_reset":
