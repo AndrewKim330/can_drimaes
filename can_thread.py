@@ -302,15 +302,18 @@ class Node_PMS(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.bodycont_period = 0.010
+        self.vri_period = 1.000
         self.bodycont_c_data = self.data[:]
         self.ptinfo_data = self.data[:]
         self.bodycont_p_data = self.data[:]
+        self.vri_data = self.data[:]
         self.value = '0000'
 
     def thread_func(self):
         self.bodycontrolinfo_c_func()
         self.ptinfoindicate_func()
         self.bodycontrolinfo_p_func()
+        # self.vri_func()
 
     def bodycontrolinfo_c_func(self):
         self.bodycont_c_data[1] = int(self.value[2:4], 16)
@@ -344,6 +347,15 @@ class Node_PMS(NodeThread):
         message = can.Message(arbitration_id=0x0cfab127, data=self.bodycont_p_data)
         self.parent.p_can_bus.send(message)
         time.sleep(self.bodycont_period)
+
+    def vri_func(self):
+        self.vri_data[0] = 0x00
+        self.vri_data[1] = 0x00
+        self.vri_data[2] = 0x00
+        self.vri_data[3] = 0x00
+        message = can.Message(arbitration_id=0x18fab327, data=self.vri_data)
+        self.parent.p_can_bus.send(message)
+        time.sleep(self.vri_period)
 
 
 class Node_FCS(NodeThread):
@@ -449,26 +461,42 @@ class Node_ACU(NodeThread):
 class Node_BMS(NodeThread):
     def __init__(self, parent):
         super().__init__(parent)
+        self.batt_data = self.data[:]
+        self.chginfo_data = self.data[:]
         self.value = '7D'
 
     def thread_func(self):
-        self.data[2] = 0x00
-        self.data[3] = 0x7D
-        self.data[4] = int(self.value, 16)
-        self.data[5] = 0x7D
-        message = can.Message(arbitration_id=0x18fa40f4, data=self.data)
-        self.parent.c_can_bus.send(message)
+        self.battinfo_func()
+        self.chginfo_func()
+
+    def battinfo_func(self):
+        self.batt_data[2] = 0x00
+        self.batt_data[3] = 0x7D
+        self.batt_data[4] = int(self.value, 16)
+        self.batt_data[5] = 0x7D
+        message = can.Message(arbitration_id=0x18fa40f4, data=self.batt_data)
+        self.parent.p_can_bus.send(message)
+        time.sleep(self.period)
+
+    def chginfo_func(self):
+        self.chginfo_data[0] = 0x0F
+        self.chginfo_data[1] = 0xFC
+        if self.parent.chkbox_charge.isChecked():
+            self.chginfo_data[0] = 0x1F
+        message = can.Message(arbitration_id=0x18fa3ef4, data=self.chginfo_data)
+        self.parent.p_can_bus.send(message)
         time.sleep(self.period)
 
 
-class ChargingState(NodeThread):
+class Node_MCU(NodeThread):
     def thread_func(self):
-        self.data[0] = 0x0F
-        self.data[1] = 0xFC
-        if self.parent.chkbox_charge.isChecked():
-            self.data[0] = 0x1F
-        message = can.Message(arbitration_id=0x18fa3ef4, data=self.data)
-        self.parent.c_can_bus.send(message)
+        self.motor_func()
+
+    def motor_func(self):
+        self.data[4] = 0x00
+        self.data[5] = 0x00
+        message = can.Message(arbitration_id=0x0cfa01ef, data=self.data)
+        self.parent.p_can_bus.send(message)
         time.sleep(self.period)
 
 

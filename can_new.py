@@ -105,7 +105,8 @@ class Main(QMainWindow, form_class):
         self.chkbox_pass_invalid.stateChanged.connect(self.acu_worker.pass_invalid)
 
         self.bms_worker = worker.Node_BMS(parent=self)
-        self.charge_worker = worker.ChargingState(parent=self)
+
+        self.mcu_worker = worker.Node_MCU(parent=self)
 
         self.tester_worker = worker.TesterPresent(parent=self)
 
@@ -275,10 +276,6 @@ class Main(QMainWindow, form_class):
             self.thread_worker.start()
             self.tester_worker.start()
 
-            self.charge_worker._isRunning = True
-
-            self.charge_worker.start()
-
             self.set_can_basic_btns_labels(True)
             self.set_diag_basic_btns_labels(True)
             self.thread_worker.test_mode_flag_basic = True
@@ -328,8 +325,7 @@ class Main(QMainWindow, form_class):
         self.fcs_worker.stop()
         self.bms_worker.stop()
         self.ic_worker.stop()
-
-        self.charge_worker.stop()
+        self.mcu_worker.stop()
 
         self.thread_worker.stop()
         self.tester_worker.stop()
@@ -390,7 +386,10 @@ class Main(QMainWindow, form_class):
             self.bms_worker.stop()
 
         if self.chkbox_node_mcu.isChecked():
-             pass
+            self.mcu_worker._isRunning = True
+            self.mcu_worker.start()
+        else:
+            self.mcu_worker.stop()
 
     def set_drv_state(self):
         if not self.drv_state:
@@ -1600,6 +1599,8 @@ class Main(QMainWindow, form_class):
             self.res_data = []
             sig_li = [0x03, 0x19, 0x02, 0x09]
             self.diag_data_collector(sig_li, True)
+            if len(self.raw_data) == 0:
+                self.raw_data = self.res_data[0].data[1:8]
             st = 3
             for i in range(dtc_num):
                 if i == 0:
