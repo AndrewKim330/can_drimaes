@@ -59,6 +59,8 @@ class ThreadWorker(NodeThread):
                 self.parent.bcm_worker.single_tx_showapp = a.data
             if a.arbitration_id == 0x18ffd841:
                 self.parent.bcm_worker.single_tx_softswset = a.data
+            if a.arbitration_id == 0x0c0ba021:
+                self.parent.fcs_worker.single_tx = a.data
             self.sig2.emit(a)
             # if a.arbitration_id == 0x18ffd841:
             #     print(a)
@@ -82,6 +84,7 @@ class ThreadWorker(NodeThread):
         if self._isRunning:
             self.parent.slider_speed.setValue(value)
             self.parent.label_speed.setText(speed)
+            self.parent.pms_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
             self.parent.speed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
 
     def slider_battery_func(self, value):
@@ -310,9 +313,10 @@ class Node_PMS(NodeThread):
         self.bodycontrolinfo_p_func()
 
     def bodycontrolinfo_c_func(self):
-        self.bodycont_c_data[1] = 0x00
-        self.bodycont_c_data[2] = 0x00
+        self.bodycont_c_data[1] = int(self.value[2:4], 16)
+        self.bodycont_c_data[2] = int(self.value[2:4], 16)
         self.bodycont_c_data[6] = 0xF7
+        self.data[7] = int(self.value[2:4], 16)
         message = can.Message(arbitration_id=0x0cfab127, data=self.bodycont_c_data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.bodycont_period)
@@ -340,6 +344,35 @@ class Node_PMS(NodeThread):
         message = can.Message(arbitration_id=0x0cfab127, data=self.bodycont_p_data)
         self.parent.p_can_bus.send(message)
         time.sleep(self.bodycont_period)
+
+
+class Node_FCS(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.aeb_period = 0.050
+        self.aeb_data = self.data[:]
+        self.ldw_data = self.data[:]
+        self.single_tx = None
+
+    def thread_func(self):
+        self.aebs1_func()
+        self.fli2_func()
+
+    def aebs1_func(self):
+        if self.single_tx:
+            if self.single_tx[0] == 0xfd:
+                self.aeb_data[0] = 0xF1
+            elif self.single_tx[0] == 0xfc:
+                self.aeb_data[0] = 0xF2
+        message = can.Message(arbitration_id=0x0cf02fa0, data=self.aeb_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.aeb_period)
+
+    def fli2_func(self):
+        self.ldw_data[1] = 0xF0
+        message = can.Message(arbitration_id=0x18fe5be8, data=self.ldw_data)
+        self.parent.c_can_bus.send(message)
+        time.sleep(self.period)
 
 
 class TachoSpeed(NodeThread):
@@ -370,23 +403,6 @@ class Node_ESC(NodeThread):
             elif btn_text == "btn_tpms_fail":
                 self.data[7] = 0xEF
         message = can.Message(arbitration_id=0x18f0120B, data=self.data)
-        self.parent.c_can_bus.send(message)
-        time.sleep(self.period)
-
-
-class AEB(NodeThread):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.period = 0.050
-
-    def thread_func(self):
-        a = self.parent.c_can_bus.recv()
-        if a.arbitration_id == 0x0c0ba021:
-            if a.data[0] == "fd":
-                self.data[0] = 0xF1
-            elif a.data[0] == "fc":
-                self.data[0] = 0xF2
-        message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
 

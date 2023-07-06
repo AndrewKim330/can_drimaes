@@ -86,7 +86,7 @@ class Main(QMainWindow, form_class):
 
         self.btn_bright_afternoon.setChecked(True)
 
-        self.aeb_worker = worker.AEB(parent=self)
+        self.fcs_worker = worker.Node_FCS(parent=self)
 
         self.btn_mscs_ok.setChecked(True)
 
@@ -276,10 +276,8 @@ class Main(QMainWindow, form_class):
             self.tester_worker.start()
 
             self.speed_worker._isRunning = True
-            self.aeb_worker._isRunning = True
             self.charge_worker._isRunning = True
             self.speed_worker.start()
-            self.aeb_worker.start()
             self.charge_worker.start()
 
             self.set_can_basic_btns_labels(True)
@@ -324,16 +322,18 @@ class Main(QMainWindow, form_class):
 
         time.sleep(0.1)
 
-        self.thread_worker.stop()
         self.pms_s_worker.stop()
         self.pms_c_worker.stop()
         self.pms_worker.stop()
-        self.speed_worker.stop()
         self.esc_worker.stop()
-        self.aeb_worker.stop()
-        self.tester_worker.stop()
+        self.fcs_worker.stop()
         self.bms_worker.stop()
+
+        self.speed_worker.stop()
         self.charge_worker.stop()
+
+        self.thread_worker.stop()
+        self.tester_worker.stop()
 
     def set_node(self):
         if self.chkbox_node_acu.isChecked():
@@ -355,7 +355,11 @@ class Main(QMainWindow, form_class):
             self.esc_worker.stop()
 
         if self.chkbox_node_fcs.isChecked():
-             pass
+            self.fcs_worker._isRunning = True
+            self.fcs_worker.start()
+        else:
+            self.fcs_worker.stop()
+
         if self.chkbox_node_ic.isChecked():
              pass
 
@@ -850,7 +854,6 @@ class Main(QMainWindow, form_class):
                 return 0
         temp_li = []
         if len(self.res_data) == 1:
-            pass
             if self.data_len > 0:
                 self.raw_data += self.res_data[0].data[1:8]
         else:
