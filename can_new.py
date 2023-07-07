@@ -1251,28 +1251,25 @@ class Main(QMainWindow, form_class):
             sig_li = [0x04, 0x22, 0xF1, 0x01, 0x01]
         elif txt == "btn_id_nrc_31":
             sig_li = [0x03, 0x22, 0xFF, 0xFF]
-
         if self.flow_control_len > 1:
             multi = True
         else:
             multi = False
         self.diag_data_collector(sig_li, multi)
-        if self.data_type == "ascii":
-            self.ascii_convert('a2c')
-        elif self.data_type == "bcd":
-            temp_str = f'{str(hex(self.raw_data[0])[2:])}{str(hex(self.raw_data[1])[2:].zfill(2))}/{str(hex(self.raw_data[2])[2:].zfill(2))}/{str(hex(self.raw_data[3])[2:].zfill(2))}'
-            self.lineEdit_id_data.setText(temp_str)
-        elif self.data_type == "hex":
-            temp_str = ''
-            if multi:
-                print_li = self.raw_data[3:]
-            else:
-                print_li = self.raw_data
-            for temp_ch in print_li:
-                if temp_ch != 0xaa:
-                    temp_str += hex(temp_ch)[2:]
-                    temp_str += ' '
-            self.lineEdit_id_data.setText(temp_str)
+        if self.raw_data[0] == self.diag_success_byte:
+            if self.data_type == "ascii":
+                self.ascii_convert('a2c')
+            elif self.data_type == "bcd":
+                print(self.raw_data)
+                temp_str = f'{str(hex(self.raw_data[3])[2:].zfill(2))}{str(hex(self.raw_data[4])[2:].zfill(2))}/{str(hex(self.raw_data[5])[2:].zfill(2))}/{str(hex(self.raw_data[6])[2:].zfill(2))}'
+                self.lineEdit_id_data.setText(temp_str)
+            elif self.data_type == "hex":
+                temp_str = ''
+                for temp_ch in self.raw_data[3:]:
+                    if temp_ch != 0xaa:
+                        temp_str += hex(temp_ch)[2:]
+                        temp_str += ' '
+                self.lineEdit_id_data.setText(temp_str)
         if self.chkbox_diag_test_mode_did.isChecked():
             if multi:
                 if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[2] == sig_li[3]:
