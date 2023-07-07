@@ -222,6 +222,7 @@ class Main(QMainWindow, form_class):
         self.chkbox_node_bms.released.connect(self.set_node)
         self.chkbox_node_mcu.released.connect(self.set_node)
 
+        self.set_node_btns(False)
         self.set_can_basic_btns_labels(False)
         self.set_diag_basic_btns_labels(False)
         self.set_diag_did_btns_labels(False)
@@ -273,6 +274,7 @@ class Main(QMainWindow, form_class):
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
             self.set_node()
+            self.set_node_btns(True)
             self.thread_worker.start()
             self.tester_worker.start()
 
@@ -317,6 +319,8 @@ class Main(QMainWindow, form_class):
             self.chkbox_diag_functional_domain_comm_cont.toggle()
 
         time.sleep(0.1)
+
+        self.set_node_btns(False)
 
         self.pms_s_worker.stop()
         self.pms_c_worker.stop()
@@ -407,6 +411,18 @@ class Main(QMainWindow, form_class):
         else:
             self.btn_gear_n.setChecked(True)
             self.chkbox_h_brake.setChecked(True)
+
+    def set_node_btns(self, flag):
+        self.chkbox_node_acu.setEnabled(flag)
+        self.chkbox_node_bcm.setEnabled(flag)
+        self.chkbox_node_esc.setEnabled(flag)
+        self.chkbox_node_fcs.setEnabled(flag)
+        self.chkbox_node_ic.setEnabled(flag)
+        self.chkbox_node_pms.setEnabled(flag)
+        self.chkbox_node_pms_s.setEnabled(flag)
+        self.chkbox_node_pms_c.setEnabled(flag)
+        self.chkbox_node_bms.setEnabled(flag)
+        self.chkbox_node_mcu.setEnabled(flag)
 
     def set_can_basic_btns_labels(self, flag):
         if flag:
