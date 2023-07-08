@@ -1,4 +1,3 @@
-
 def dtc_identifier(dtc_li):
     if dtc_li[0] == 0x93:
         if dtc_li[1] == 0x81:
