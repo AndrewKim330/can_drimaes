@@ -5,9 +5,6 @@ import can.interfaces.vector
 import can.interfaces.pcan
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QPixmap
-
-import images_rc
 
 
 def sig_generator(hex_val, pos, bit_len, val):
@@ -56,17 +53,24 @@ class ThreadWorker(NodeThread):
                 self.reservoir.append(a)
             if a.arbitration_id == 0x18ffd741:
                 self.parent.pms_s_hvsm_worker.data[0] = a.data[1]
+                if a.data[0] == 0xc0:
+                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
+                elif a.data[0] == 0xc3:
+                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_3)
+                elif a.data[0] == 0xc2:
+                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_2)
+                elif a.data[0] == 0xc1:
+                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
                 self.parent.bcm_mmi_worker.single_tx_showapp = a.data
             if a.arbitration_id == 0x18ffd841:
                 self.parent.bcm_mmi_worker.single_tx_softswset = a.data
             if a.arbitration_id == 0x0c0ba021:
                 self.parent.fcs_aeb_worker.single_tx = a.data
             self.sig2.emit(a)
-            # if a.arbitration_id == 0x18ffd841:
-            #     print(a)
+            self.state_check()
             QtCore.QCoreApplication.processEvents()
 
-    def thread_func(self):
+    def state_check(self):
         # driving state check
         if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
             self.parent.btn_drv_state.setText("On Driving State")
@@ -100,7 +104,47 @@ class ThreadWorker(NodeThread):
 
 
 class PMS_S_HVSM(NodeThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+
     def thread_func(self):  # HVSM_MMIFbSts
+        hvsm = bin(self.data[0])[2:].zfill(8)
+        if int(hvsm[6:], 2) == 3:
+            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
+        elif int(hvsm[6:], 2) == 2:
+            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
+        elif int(hvsm[6:], 2) == 1:
+            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
+        elif int(hvsm[6:], 2) == 0:
+            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
+
+        if int(hvsm[2:4], 2) == 3:
+            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
+        elif int(hvsm[2:4], 2) == 2:
+            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
+        elif int(hvsm[2:4], 2) == 1:
+            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
+        elif int(hvsm[2:4], 2) == 0:
+            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
+
+        if int(hvsm[4:6], 2) == 3:
+            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
+        elif int(hvsm[4:6], 2) == 2:
+            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
+        elif int(hvsm[4:6], 2) == 1:
+            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
+        elif int(hvsm[4:6], 2) == 0:
+            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
+
+        if int(hvsm[:2], 2) == 3:
+            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
+        elif int(hvsm[:2], 2) == 2:
+            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
+        elif int(hvsm[:2], 2) == 1:
+            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
+        elif int(hvsm[:2], 2) == 0:
+            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
+
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
@@ -132,23 +176,35 @@ class BCM_MMI(NodeThread):
         if self.single_tx_showapp:
             if self.single_tx_showapp[2] == 0xf4:
                 self.data[3] = sig_generator(self.data[3], 0, 2, 1)
+                self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
             elif self.single_tx_showapp[2] == 0xf8:
                 self.data[3] = sig_generator(self.data[3], 0, 2, 2)
+                self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
+            # else:
+            #     self.parent.txt_res_side_mani.setText("None")
 
         if self.single_tx_softswset:
             if self.single_tx_softswset[3] == 0xcf:
                 self.data[1] = 0xE7
+                self.parent.txt_res_light.setText("30s")
             elif self.single_tx_softswset[3] == 0xd7:
                 self.data[1] = 0xEB
+                self.parent.txt_res_light.setText("60s")
             elif self.single_tx_softswset[3] == 0xdf:
                 self.data[1] = 0xEF
+                self.parent.txt_res_light.setText("90s")
             else:
                 self.data[1] = 0xE3
+                self.parent.txt_res_light.setText("OFF")
 
             if self.single_tx_softswset[7] == 0x7f:
                 self.data[3] = sig_generator(self.data[3], 2, 2, 1)
+                self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
             elif self.single_tx_softswset[7] == 0xbf:
                 self.data[3] = sig_generator(self.data[3], 2, 2, 2)
+                self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
+            # else:
+            #     self.parent.txt_res_side_heat.setText("None")
 
         if self.parent.btn_mscs_ok.isChecked():
             self.data[3] = sig_generator(self.data[3], 4, 3, 0)
@@ -178,6 +234,8 @@ class BCM_SWRC(NodeThread):
         self.period = 0.050
         self.long_count = 0
         self.long_threshold = 40
+        self.count = 0
+        self.btn_state = 0
 
     def thread_func(self):  # SWS-LIN
         self.data[0] = 0x00
@@ -244,8 +302,23 @@ class BCM_SWRC(NodeThread):
             elif btn_text == "btn_vol_down":
                 self.data[1] = 0x40
         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-        self.parent.c_can_bus.send(message)
         time.sleep(self.period)
+        self.parent.c_can_bus.send(message)
+
+    # def long_press(self):
+    #     while True:
+    #         print(self.btn_state, time.time())
+    #         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
+    #         self.parent.c_can_bus.send(message)
+    #         time.sleep(self.period)
+    #         QtCore.QCoreApplication.processEvents()
+    #         if self.btn_state == 2:
+    #             self.btn_state = 0
+    #             break
+    #
+    #     self.long_count = 0
+    #     # print("bbb", self.parent.btn_right.released.signal)
+    #     # print(self.parent.btn_right.released.signal, self.parent.btn_right.pressed.signal)
 
 
 class BCM_StrWhlHeat(NodeThread):
@@ -362,9 +435,13 @@ class FCS_AEB(NodeThread):
     def thread_func(self):  # FCS_AEBS1
         if self.single_tx:
             if self.single_tx[0] == 0xfd:
+                self.parent.txt_res_aeb.setText("ON")
                 self.data[0] = 0xF1
             elif self.single_tx[0] == 0xfc:
+                self.parent.txt_res_aeb.setText("OFF")
                 self.data[0] = 0xF2
+            else:
+                self.parent.txt_res_aeb.setText("None")
         message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)

@@ -1,20 +1,22 @@
-import dtc_identifier as dtc_id
-
+import os
 import sys
 import can
 import time
 import security_algorithm as algo
+import dtc_identifier as dtc_id
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
+from PyQt5.QtGui import *
 from can import interfaces
 
 import can_thread as worker
 
-form_class = uic.loadUiType("untitled.ui")[0]
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/untitled.ui")
 
 
-class Main(QMainWindow, form_class):
+class Main(QMainWindow, Ui_MainWindow):
     custom_signal = pyqtSignal("PyQt_PyObject")
 
     def __init__(self):
@@ -49,6 +51,10 @@ class Main(QMainWindow, form_class):
         self.drv_state = False
         self.test_mode_basic = False
 
+        self.txt_domain = 'Default'
+        self.color_domain = 'gray'
+        self.flag_domain = False
+
         self.flow_control_len = 0
 
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
@@ -68,7 +74,8 @@ class Main(QMainWindow, form_class):
         self.bcm_swrc_worker = worker.BCM_SWRC(parent=self)
         self.btn_ok.clicked.connect(self.bcm_swrc_worker.thread_func)
         self.btn_left.pressed.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_right.clicked.connect(self.bcm_swrc_worker.thread_func)
+        self.btn_right.pressed.connect(self.bcm_swrc_worker.thread_func)
+        self.btn_right.released.connect(self.bcm_swrc_worker.thread_func)
         self.btn_undo.clicked.connect(self.bcm_swrc_worker.thread_func)
         self.btn_mode.clicked.connect(self.bcm_swrc_worker.thread_func)
         self.btn_mute.clicked.connect(self.bcm_swrc_worker.thread_func)
@@ -146,7 +153,7 @@ class Main(QMainWindow, form_class):
         self.btn_tester_nrc_12.released.connect(self.diag_func)
         self.btn_tester_nrc_13.released.connect(self.diag_func)
 
-        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_tester_domain)
+        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_basic_btns_labels)
         self.chkbox_diag_test_mode_basic.released.connect(self.set_diag_basic_btns_labels)
         self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_labels)
 
@@ -169,6 +176,7 @@ class Main(QMainWindow, form_class):
         self.btn_id_nrc_31.released.connect(self.diag_func)
 
         self.chkbox_diag_test_mode_did.released.connect(self.set_diag_did_btns_labels)
+        self.chkbox_diag_functional_domain_did.released.connect(self.set_diag_did_btns_labels)
         self.btn_diag_reset_did.released.connect(self.set_diag_did_btns_labels)
 
         # Connect communication control buttons to diagnostic handling function
@@ -243,6 +251,9 @@ class Main(QMainWindow, form_class):
         self.set_diag_sec_btns_labels(False)
         self.set_diag_write_btns_labels(False)
         self.set_diag_comm_cont_btns_labels(False)
+        self.set_diag_mem_fault_btns_labels(False)
+
+        self.image_initialization()
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -251,7 +262,7 @@ class Main(QMainWindow, form_class):
                 self.bus_console.appendPlainText("1 Channel is connected")
                 try:
                     temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                    if temp1.recv(1):
+                    if temp1.recv(0.1):
                         self.c_can_bus = temp1
                         self.p_can_bus = temp2
                     else:
@@ -259,7 +270,7 @@ class Main(QMainWindow, form_class):
                         self.p_can_bus = temp1
                     self.bus_console.appendPlainText("2 Channel is connected")
                 except:
-                    if temp1.recv(1):
+                    if temp1.recv(0.1):
                         self.c_can_bus = temp1
                     else:
                         self.p_can_bus = temp1
@@ -299,6 +310,7 @@ class Main(QMainWindow, form_class):
             self.set_diag_sec_btns_labels(True)
             self.set_diag_write_btns_labels(True)
             self.set_diag_comm_cont_btns_labels(True)
+            self.set_diag_mem_fault_btns_labels(True)
             self.diag_initialization()
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
@@ -332,6 +344,8 @@ class Main(QMainWindow, form_class):
         if self.chkbox_diag_functional_domain_comm_cont.isChecked():
             self.chkbox_diag_functional_domain_comm_cont.toggle()
 
+        self.set_diag_mem_fault_btns_labels(False)
+
         time.sleep(0.1)
 
         self.set_node_btns(False)
@@ -360,6 +374,8 @@ class Main(QMainWindow, form_class):
 
         self.thread_worker.stop()
         self.tester_worker.stop()
+
+        self.set_mmi_labels_init()
 
     def set_node(self):
         if self.chkbox_node_acu.isChecked():
@@ -453,14 +469,15 @@ class Main(QMainWindow, form_class):
             self.mcu_motor_worker.stop()
 
     def set_drv_state(self):
-        if not self.drv_state:
-            self.btn_gear_n.setChecked(True)
-            self.btn_acc.setChecked(True)
-            self.chkbox_pt_ready.setChecked(False)
-        else:
+        if self.drv_state or self.sender().text() == 'Set Driving State':
             self.btn_gear_d.setChecked(True)
             self.btn_start.setChecked(True)
             self.chkbox_pt_ready.setChecked(True)
+        else:
+            self.btn_gear_n.setChecked(True)
+            self.btn_acc.setChecked(True)
+            self.chkbox_pt_ready.setChecked(False)
+            self.thread_worker.slider_speed_func(0)
 
     def set_ota_cond(self):
         if self.btn_ota_cond.text() == 'On OTA Condition':
@@ -468,6 +485,17 @@ class Main(QMainWindow, form_class):
         else:
             self.btn_gear_n.setChecked(True)
             self.chkbox_h_brake.setChecked(True)
+
+    def set_mmi_labels_init(self):
+        self.txt_res_aeb.setText("None")
+        self.txt_res_drv_heat.setText("OFF")
+        self.txt_res_drv_vent.setText("OFF")
+        self.txt_res_pass_heat.setText("OFF")
+        self.txt_res_pass_vent.setText("OFF")
+        self.txt_res_side_mani.setText("None")
+        self.txt_res_side_heat.setText("None")
+        self.txt_res_st_whl_heat.setText("OFF")
+        self.txt_res_light.setText("OFF")
 
     def set_node_btns(self, flag):
         self.chkbox_node_acu.setEnabled(flag)
@@ -564,7 +592,17 @@ class Main(QMainWindow, form_class):
             self.chkbox_diag_functional_domain_basic.setEnabled(True)
             color = 'black'
             txt = "Not tested"
+            if self.chkbox_diag_functional_domain_basic.isChecked():
+                self.diag_tester_id = 0x18db33f1
+            else:
+                self.diag_tester_id = 0x18da41f1
+
         else:
+            if self.chkbox_diag_functional_domain_basic.isChecked():
+                self.diag_tester_id = 0x18da41f1
+                self.chkbox_diag_functional_domain_basic.toggle()
+            if self.chkbox_diag_compression_bit_basic.isChecked():
+                self.chkbox_diag_compression_bit_basic.toggle()
             self.chkbox_diag_compression_bit_basic.setEnabled(False)
             self.chkbox_diag_functional_domain_basic.setEnabled(False)
             color = 'gray'
@@ -624,53 +662,72 @@ class Main(QMainWindow, form_class):
 
     def set_diag_did_btns_labels(self, flag=True):
         if self.chkbox_diag_test_mode_did.isChecked():
+            self.chkbox_diag_functional_domain_did.setEnabled(True)
             color = 'black'
             txt = "Not tested"
+            if self.chkbox_diag_functional_domain_did.isChecked():
+                self.diag_tester_id = 0x18db33f1
+                self.txt_domain = 'Test Unable on\nFunctional Domain'
+                self.color_domain = 'gray'
+                self.flag_domain = False
+            else:
+                self.diag_tester_id = 0x18da41f1
+                self.flag_domain = flag
+                self.txt_domain = txt
+                self.color_domain = color
         else:
+            if self.chkbox_diag_functional_domain_did.isChecked():
+                self.diag_tester_id = 0x18da41f1
+                self.chkbox_diag_functional_domain_did.toggle()
+            self.chkbox_diag_functional_domain_did.setEnabled(False)
             color = 'gray'
             txt = "Default"
-        self.btn_id_ecu_num.setEnabled(flag)
-        self.label_id_ecu_num.setText(f"{txt}")
-        self.label_id_ecu_num.setStyleSheet(f"color: {color}")
+            self.txt_domain = txt
+            self.flag_domain = flag
+            self.color_domain = color
+
+        self.btn_id_ecu_num.setEnabled(self.flag_domain)
+        self.label_id_ecu_num.setText(f"{self.txt_domain}")
+        self.label_id_ecu_num.setStyleSheet(f"color: {self.color_domain}")
         self.btn_id_ecu_supp.setEnabled(flag)
         self.label_id_ecu_supp.setText(f"{txt}")
         self.label_id_ecu_supp.setStyleSheet(f"color: {color}")
-        self.btn_id_vin.setEnabled(flag)
-        self.label_id_vin.setText(f"{txt}")
-        self.label_id_vin.setStyleSheet(f"color: {color}")
+        self.btn_id_vin.setEnabled(self.flag_domain)
+        self.label_id_vin.setText(f"{self.txt_domain}")
+        self.label_id_vin.setStyleSheet(f"color: {self.color_domain}")
         self.btn_id_install_date.setEnabled(flag)
         self.label_id_install_date.setText(f"{txt}")
         self.label_id_install_date.setStyleSheet(f"color: {color}")
         self.btn_id_diag_ver.setEnabled(flag)
         self.label_id_diag_ver.setText(f"{txt}")
         self.label_id_diag_ver.setStyleSheet(f"color: {color}")
-        self.btn_id_sys_name.setEnabled(flag)
-        self.label_id_sys_name.setText(f"{txt}")
-        self.label_id_sys_name.setStyleSheet(f"color: {color}")
+        self.btn_id_sys_name.setEnabled(self.flag_domain)
+        self.label_id_sys_name.setText(f"{self.txt_domain}")
+        self.label_id_sys_name.setStyleSheet(f"color: {self.color_domain}")
         self.btn_id_active_sess.setEnabled(flag)
         self.label_id_active_sess.setText(f"{txt}")
         self.label_id_active_sess.setStyleSheet(f"color: {color}")
-        self.btn_id_veh_name.setEnabled(flag)
-        self.label_id_veh_name.setText(f"{txt}")
-        self.label_id_veh_name.setStyleSheet(f"color: {color}")
-        self.btn_id_ecu_serial.setEnabled(flag)
-        self.label_id_ecu_serial.setText(f"{txt}")
-        self.label_id_ecu_serial.setStyleSheet(f"color: {color}")
-        self.btn_id_hw_ver.setEnabled(flag)
-        self.label_id_hw_ver.setText(f"{txt}")
-        self.label_id_hw_ver.setStyleSheet(f"color: {color}")
-        self.btn_id_sw_ver.setEnabled(flag)
-        self.label_id_sw_ver.setText(f"{txt}")
-        self.label_id_sw_ver.setStyleSheet(f"color: {color}")
+        self.btn_id_veh_name.setEnabled(self.flag_domain)
+        self.label_id_veh_name.setText(f"{self.txt_domain}")
+        self.label_id_veh_name.setStyleSheet(f"color: {self.color_domain}")
+        self.btn_id_ecu_serial.setEnabled(self.flag_domain)
+        self.label_id_ecu_serial.setText(f"{self.txt_domain}")
+        self.label_id_ecu_serial.setStyleSheet(f"color: {self.color_domain}")
+        self.btn_id_hw_ver.setEnabled(self.flag_domain)
+        self.label_id_hw_ver.setText(f"{self.txt_domain}")
+        self.label_id_hw_ver.setStyleSheet(f"color: {self.color_domain}")
+        self.btn_id_sw_ver.setEnabled(self.flag_domain)
+        self.label_id_sw_ver.setText(f"{self.txt_domain}")
+        self.label_id_sw_ver.setStyleSheet(f"color: {self.color_domain}")
         self.btn_id_ecu_manu_date.setEnabled(flag)
         self.label_id_ecu_manu_date.setText(f"{txt}")
         self.label_id_ecu_manu_date.setStyleSheet(f"color: {color}")
-        self.btn_id_assy_num.setEnabled(flag)
-        self.label_id_assy_num.setText(f"{txt}")
-        self.label_id_assy_num.setStyleSheet(f"color: {color}")
-        self.btn_id_net_config.setEnabled(flag)
-        self.label_id_net_config.setText(f"{txt}")
-        self.label_id_net_config.setStyleSheet(f"color: {color}")
+        self.btn_id_assy_num.setEnabled(self.flag_domain)
+        self.label_id_assy_num.setText(f"{self.txt_domain}")
+        self.label_id_assy_num.setStyleSheet(f"color: {self.color_domain}")
+        self.btn_id_net_config.setEnabled(self.flag_domain)
+        self.label_id_net_config.setText(f"{self.txt_domain}")
+        self.label_id_net_config.setStyleSheet(f"color: {self.color_domain}")
 
         self.btn_id_nrc_13.setEnabled(flag)
         self.label_id_nrc_13.setText(f"{txt}")
@@ -864,11 +921,6 @@ class Main(QMainWindow, form_class):
             self.lineEdit_write_data.clear()
         elif self.sender().objectName() == "btn_diag_dtc_console_clear":
             self.diag_dtc_console.clear()
-
-    def set_diag_tester_domain(self):
-        self.diag_tester_id = 0x18da41f1
-        if self.chkbox_diag_functional_domain_basic.isChecked():
-            self.diag_tester_id = 0x18db33f1
 
     def diag_initialization(self):
         self.flow_control_len = 1
@@ -1683,10 +1735,41 @@ class Main(QMainWindow, form_class):
             sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             self.diag_data_collector(sig_li)
 
+    def image_initialization(self):
+        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
+        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(100)
+        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(100)
+        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(100)
+        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(100)
+        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(100)
+        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(100)
+        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(100)
+        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(100)
+        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(100)
+        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(100)
+        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(100)
+        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(100)
+        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(100)
+        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(100)
+        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(100)
+
+        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(100)
+        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(100)
+        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(100)
+        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(100)
+
+        self.img_str_whl_heat_off = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_1 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_2 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
+            100)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mywindow = Main()
     mywindow.show()
     sys.exit(app.exec_())
-    # app.exec_()
