@@ -620,16 +620,5 @@ class TesterPresent(NodeThread):
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
-            message = can.Message(arbitration_id=0x18da41f1, data=self.data)
-            self.parent.c_can_bus.send(message)
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
             time.sleep(self.period)
-
-        # pixmap = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
-        # self.sig_side_mirrorb = QPixmap(':/icon/OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
-        # pixmap.save("aaa.jpg")
-        # pixmap2 = QPixmap()
-        # pixmap2.load('./OneDrive_2023-05-17/2x/btn_navi_heatedsteeringwheel_02_on.png')
-        # print(pixmap)
-        # self.parent.test_label.setPixmap(pixmap)
-        # self.parent.test_label.setPixmap(pixmap2)
-        # self.parent.test_label.setPixmap(self.sig_side_mirrorb)

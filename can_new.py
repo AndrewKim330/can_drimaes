@@ -232,6 +232,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_nrc_31_reset.clicked.connect(self.diag_func)
 
         self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
+        self.btn_diag_reset_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
@@ -242,8 +243,6 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
-
-        self.chkbox_diag_test_mode_sec.released.connect(self.set_diag_sec_btns_labels)
 
         self.chkbox_node_acu.released.connect(self.set_node)
         self.chkbox_node_bcm.released.connect(self.set_node)
@@ -994,14 +993,19 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(False)
                 color = 'gray'
                 txt = "Default"
+            self.btn_mem_fault_nrc_12.setEnabled(flag)
             self.label_mem_fault_nrc_12.setText(f"{txt}")
             self.label_mem_fault_nrc_12.setStyleSheet(f"color: {color}")
+            self.btn_mem_fault_nrc_13.setEnabled(flag)
             self.label_mem_fault_nrc_13.setText(f"{txt}")
             self.label_mem_fault_nrc_13.setStyleSheet(f"color: {color}")
+            self.btn_mem_fault_nrc_13_reset.setEnabled(flag)
             self.label_mem_fault_nrc_13_reset.setText(f"{txt}")
             self.label_mem_fault_nrc_13_reset.setStyleSheet(f"color: {color}")
+            self.btn_mem_fault_nrc_22_reset.setEnabled(flag)
             self.label_mem_fault_nrc_22_reset.setText(f"{txt}")
             self.label_mem_fault_nrc_22_reset.setStyleSheet(f"color: {color}")
+            self.btn_mem_fault_nrc_31_reset.setEnabled(flag)
             self.label_mem_fault_nrc_31_reset.setText(f"{txt}")
             self.label_mem_fault_nrc_31_reset.setStyleSheet(f"color: {color}")
 
@@ -1024,6 +1028,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.raw_data = []
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
+        self.drv_state = False
+        self.set_drv_state()
 
     def diag_data_collector(self, mess, multi=False):
         self.res_data = []
@@ -1228,55 +1234,39 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def diag_reset(self, txt):
         self.diag_initialization()
-        count = 0
-        while count < 50:
-            if txt == "btn_reset_sw":
-                mani_byte = self.diag_success_byte
-                self.diag_sess("btn_sess_extended")
-                sig_li = [0x02, 0x11, 0x01]
-            elif txt == "btn_reset_hw":
-                mani_byte = self.diag_success_byte
-                self.diag_sess("btn_sess_extended")
-                sig_li = [0x02, 0x11, 0x03]
-            elif txt == "btn_reset_nrc_12":
-                mani_byte = 0x12
-                self.diag_sess("btn_sess_extended")
-                sig_li = [0x02, 0x11, 0x07]
-            elif txt == "btn_reset_nrc_13":
-                mani_byte = 0x13
-                self.diag_sess("btn_sess_extended")
-                sig_li = [0x03, 0x11, 0x01, 0x01]
-            elif txt == "btn_reset_nrc_7f_sw":
-                mani_byte = 0x7f
-                self.diag_sess("btn_sess_default")
-                sig_li = [0x02, 0x11, 0x01]
-            elif txt == "btn_reset_nrc_7f_hw":
-                mani_byte = 0x7f
-                self.diag_sess("btn_sess_default")
-                sig_li = [0x02, 0x11, 0x03]
-            elif txt == "btn_reset_nrc_22_sw":
-                mani_byte = 0x22
-                self.diag_sess("btn_sess_extended")
-                self.drv_state = True
-                self.set_drv_state()
-                self.thread_worker.slider_speed_func(20)
-                sig_li = [0x02, 0x11, 0x01]
-            elif txt == "btn_reset_nrc_22_hw":
-                mani_byte = 0x22
-                self.diag_sess("btn_sess_extended")
-                self.drv_state = True
-                self.set_drv_state()
-                self.thread_worker.slider_speed_func(20)
-                sig_li = [0x02, 0x11, 0x03]
+        if txt == "btn_reset_sw":
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x11, 0x01]
+        elif txt == "btn_reset_hw":
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x11, 0x03]
+        elif txt == "btn_reset_nrc_12":
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x11, 0x07]
+        elif txt == "btn_reset_nrc_13":
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x11, 0x01, 0x01]
+        elif txt == "btn_reset_nrc_7f_sw":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x02, 0x11, 0x01]
+        elif txt == "btn_reset_nrc_7f_hw":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x02, 0x11, 0x03]
+        elif txt == "btn_reset_nrc_22_sw":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
             time.sleep(0.1)
-            self.diag_data_collector(sig_li)
-            if self.res_data[0].data[1] == mani_byte or self.res_data[0].data[3] == mani_byte:
-                break
-            QtCore.QCoreApplication.processEvents()
-            self.diag_data_collector(sig_li)
-        self.drv_state = False
-        self.set_drv_state()
-        self.thread_worker.slider_speed_func(0)
+            sig_li = [0x02, 0x11, 0x01]
+        elif txt == "btn_reset_nrc_22_hw":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            time.sleep(0.1)
+            sig_li = [0x02, 0x11, 0x03]
+        self.diag_data_collector(sig_li)
         tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_basic.isChecked():
             if tx_result[1] == self.diag_success_byte:
@@ -1837,10 +1827,30 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.drv_state = True
                 self.set_drv_state()
                 self.thread_worker.slider_speed_func(20)
+                time.sleep(0.1)
                 sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             elif txt == "btn_mem_fault_nrc_31_reset":
                 sig_li = [0x04, 0x14, 0x11, 0x11, 0x11]
             self.diag_data_collector(sig_li)
+        tx_result = self.res_data[0].data[:4]
+        if self.chkbox_diag_test_mode_mem_fault.isChecked():
+            if tx_result[2] == 0x19:
+                if tx_result[3] == 0x12:
+                    self.btn_mem_fault_nrc_12.setEnabled(False)
+                    self.label_mem_fault_nrc_12.setText("Success")
+                elif tx_result[3] == 0x13:
+                    self.btn_mem_fault_nrc_13.setEnabled(False)
+                    self.label_mem_fault_nrc_13.setText("Success")
+            elif tx_result[2] == 0x14:
+                if tx_result[3] == 0x13:
+                    self.btn_mem_fault_nrc_13_reset.setEnabled(False)
+                    self.label_mem_fault_nrc_13_reset.setText("Success")
+                elif tx_result[3] == 0x22:
+                    self.btn_mem_fault_nrc_22_reset.setEnabled(False)
+                    self.label_mem_fault_nrc_22_reset.setText("Success")
+                elif tx_result[3] == 0x31:
+                    self.btn_mem_fault_nrc_31_reset.setEnabled(False)
+                    self.label_mem_fault_nrc_31_reset.setText("Success")
 
     def image_initialization(self):
         self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)

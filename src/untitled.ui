@@ -4864,7 +4864,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="btn_diag_reset_comm_cont_2">
+     <widget class="QPushButton" name="btn_diag_reset_mem_fault">
       <property name="geometry">
        <rect>
         <x>710</x>
