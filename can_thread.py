@@ -1,20 +1,12 @@
 import time
 
+
 import can
 import can.interfaces.vector
 import can.interfaces.pcan
+import sig_generator as sig_gen
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
-
-
-def sig_generator(hex_val, pos, bit_len, val):
-    tt = bin(hex_val)[2:].zfill(8)
-    val_bin = bin(val)[2:].zfill(bit_len)
-    if pos > 0:
-        temp = tt[:pos] + val_bin + tt[pos + len(val_bin):]
-    else:
-        temp = val_bin + tt[pos + len(val_bin):]
-    return int(temp, 2)
 
 
 class NodeThread(QThread):
@@ -175,10 +167,10 @@ class BCM_MMI(NodeThread):
 
         if self.single_tx_showapp:
             if self.single_tx_showapp[2] == 0xf4:
-                self.data[3] = sig_generator(self.data[3], 0, 2, 1)
+                self.data[3] = sig_gen.binary_sig(self.data[3], 0, 2, 1)
                 self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
             elif self.single_tx_showapp[2] == 0xf8:
-                self.data[3] = sig_generator(self.data[3], 0, 2, 2)
+                self.data[3] = sig_gen.binary_sig(self.data[3], 0, 2, 2)
                 self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
             # else:
             #     self.parent.txt_res_side_mani.setText("None")
@@ -198,30 +190,30 @@ class BCM_MMI(NodeThread):
                 self.parent.txt_res_light.setText("OFF")
 
             if self.single_tx_softswset[7] == 0x7f:
-                self.data[3] = sig_generator(self.data[3], 2, 2, 1)
+                self.data[3] = sig_gen.binary_sig(self.data[3], 2, 2, 1)
                 self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
             elif self.single_tx_softswset[7] == 0xbf:
-                self.data[3] = sig_generator(self.data[3], 2, 2, 2)
+                self.data[3] = sig_gen.binary_sig(self.data[3], 2, 2, 2)
                 self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
             # else:
             #     self.parent.txt_res_side_heat.setText("None")
 
         if self.parent.btn_mscs_ok.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 0)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 0)
         elif self.parent.btn_mscs_CmnFail.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 1)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 1)
         elif self.parent.btn_mscs_NotEdgePress.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 2)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 2)
         elif self.parent.btn_mscs_EdgeSho.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 3)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 3)
         elif self.parent.btn_mscs_SnsrFltT.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 4)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 4)
         elif self.parent.btn_mscs_FltPwrSplyErr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 5)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 5)
         elif self.parent.btn_mscs_FltSwtHiSide.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 6)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 6)
         elif self.parent.btn_mscs_SigFailr.isChecked():
-            self.data[3] = sig_generator(self.data[3], 4, 3, 7)
+            self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 7)
 
         message = can.Message(arbitration_id=0x18ffd521, data=self.data)
         self.parent.c_can_bus.send(message)
@@ -514,15 +506,15 @@ class ACU_SeatBelt(NodeThread):
 
     def drv_invalid(self):
         if self.parent.chkbox_drv_invalid.isChecked():
-            self.data[1] = sig_generator(self.data[1], 7, 1, 1)
+            self.data[1] = sig_gen.binary_sig(self.data[1], 7, 1, 1)
         else:
-            self.data[1] = sig_generator(self.data[1], 7, 1, 0)
+            self.data[1] = sig_gen.binary_sig(self.data[1], 7, 1, 0)
 
     def pass_invalid(self):
         if self.parent.chkbox_pass_invalid.isChecked():
-            self.data[1] = sig_generator(self.data[1], 6, 1, 1)
+            self.data[1] = sig_gen.binary_sig(self.data[1], 6, 1, 1)
         else:
-            self.data[1] = sig_generator(self.data[1], 6, 1, 0)
+            self.data[1] = sig_gen.binary_sig(self.data[1], 6, 1, 0)
 
 
 class BMS_Batt(NodeThread):
