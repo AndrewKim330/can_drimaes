@@ -1,6 +1,5 @@
 import time
 
-
 import can
 import can.interfaces.vector
 import can.interfaces.pcan
@@ -37,6 +36,8 @@ class ThreadWorker(NodeThread):
         self.parent = parent
         self._isRunning = True
         self.reservoir = []
+        self.hvsm_tx = None
+        self.str_whl_heat_tx = None
 
     def run(self):
         while self._isRunning:
@@ -45,19 +46,88 @@ class ThreadWorker(NodeThread):
                 self.reservoir.append(a)
             if a.arbitration_id == 0x18ffd741:
                 self.parent.pms_s_hvsm_worker.data[0] = a.data[1]
-                if a.data[0] == 0xc0:
+                self.hvsm_tx = bin(a.data[1])[2:].zfill(8)
+                if int(self.hvsm_tx[6:], 2) == 3:
+                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
+                elif int(self.hvsm_tx[6:], 2) == 2:
+                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
+                elif int(self.hvsm_tx[6:], 2) == 1:
+                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
+                elif int(self.hvsm_tx[6:], 2) == 0:
+                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
+
+                if int(self.hvsm_tx[2:4], 2) == 3:
+                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
+                elif int(self.hvsm_tx[2:4], 2) == 2:
+                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
+                elif int(self.hvsm_tx[2:4], 2) == 1:
+                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
+                elif int(self.hvsm_tx[2:4], 2) == 0:
+                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
+
+                if int(self.hvsm_tx[4:6], 2) == 3:
+                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
+                elif int(self.hvsm_tx[4:6], 2) == 2:
+                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
+                elif int(self.hvsm_tx[4:6], 2) == 1:
+                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
+                elif int(self.hvsm_tx[4:6], 2) == 0:
+                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
+
+                if int(self.hvsm_tx[:2], 2) == 3:
+                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
+                elif int(self.hvsm_tx[:2], 2) == 2:
+                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
+                elif int(self.hvsm_tx[:2], 2) == 1:
+                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
+                elif int(self.hvsm_tx[:2], 2) == 0:
+                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
+
+                self.str_whl_heat_tx = a.data[0]
+                if self.str_whl_heat_tx == 0xc0:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
-                elif a.data[0] == 0xc3:
+                elif self.str_whl_heat_tx == 0xc3:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_3)
-                elif a.data[0] == 0xc2:
+                elif self.str_whl_heat_tx == 0xc2:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_2)
-                elif a.data[0] == 0xc1:
+                elif self.str_whl_heat_tx == 0xc1:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
+
                 self.parent.bcm_mmi_worker.single_tx_showapp = a.data
+
+                if a.data[2] == 0xf4:
+                    self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
+                elif a.data[2] == 0xf8:
+                    self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
+                # else:
+                #     self.parent.txt_res_side_mani.setText("None")
             if a.arbitration_id == 0x18ffd841:
                 self.parent.bcm_mmi_worker.single_tx_softswset = a.data
+
+                if a.data[3] == 0xcf:
+                    self.parent.txt_res_light.setText("30s")
+                elif a.data[3] == 0xd7:
+                    self.parent.txt_res_light.setText("60s")
+                elif a.data[3] == 0xdf:
+                    self.parent.txt_res_light.setText("90s")
+                else:
+                    self.parent.txt_res_light.setText("OFF")
+
+                if a.data[7] == 0x7f:
+                    self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
+                elif a.data[7] == 0xbf:
+                    self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
+                # else:
+                #     self.parent.txt_res_side_heat.setText("None")
+
             if a.arbitration_id == 0x0c0ba021:
                 self.parent.fcs_aeb_worker.single_tx = a.data
+                if a.data[0] == 0xfd:
+                    self.parent.txt_res_aeb.setText("ON")
+                elif a.data[0] == 0xfc:
+                    self.parent.txt_res_aeb.setText("OFF")
+                else:
+                    self.parent.txt_res_aeb.setText("None")
             self.sig2.emit(a)
             self.state_check()
             QtCore.QCoreApplication.processEvents()
@@ -100,43 +170,6 @@ class PMS_S_HVSM(NodeThread):
         super().__init__(parent)
 
     def thread_func(self):  # HVSM_MMIFbSts
-        hvsm = bin(self.data[0])[2:].zfill(8)
-        if int(hvsm[6:], 2) == 3:
-            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
-        elif int(hvsm[6:], 2) == 2:
-            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
-        elif int(hvsm[6:], 2) == 1:
-            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
-        elif int(hvsm[6:], 2) == 0:
-            self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
-
-        if int(hvsm[2:4], 2) == 3:
-            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
-        elif int(hvsm[2:4], 2) == 2:
-            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
-        elif int(hvsm[2:4], 2) == 1:
-            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
-        elif int(hvsm[2:4], 2) == 0:
-            self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
-
-        if int(hvsm[4:6], 2) == 3:
-            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
-        elif int(hvsm[4:6], 2) == 2:
-            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
-        elif int(hvsm[4:6], 2) == 1:
-            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
-        elif int(hvsm[4:6], 2) == 0:
-            self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
-
-        if int(hvsm[:2], 2) == 3:
-            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
-        elif int(hvsm[:2], 2) == 2:
-            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
-        elif int(hvsm[:2], 2) == 1:
-            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
-        elif int(hvsm[:2], 2) == 0:
-            self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
-
         message = can.Message(arbitration_id=0x18ffa57f, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)
@@ -168,35 +201,23 @@ class BCM_MMI(NodeThread):
         if self.single_tx_showapp:
             if self.single_tx_showapp[2] == 0xf4:
                 self.data[3] = sig_gen.binary_sig(self.data[3], 0, 2, 1)
-                self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
             elif self.single_tx_showapp[2] == 0xf8:
                 self.data[3] = sig_gen.binary_sig(self.data[3], 0, 2, 2)
-                self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
-            # else:
-            #     self.parent.txt_res_side_mani.setText("None")
 
         if self.single_tx_softswset:
             if self.single_tx_softswset[3] == 0xcf:
                 self.data[1] = 0xE7
-                self.parent.txt_res_light.setText("30s")
             elif self.single_tx_softswset[3] == 0xd7:
                 self.data[1] = 0xEB
-                self.parent.txt_res_light.setText("60s")
             elif self.single_tx_softswset[3] == 0xdf:
                 self.data[1] = 0xEF
-                self.parent.txt_res_light.setText("90s")
             else:
                 self.data[1] = 0xE3
-                self.parent.txt_res_light.setText("OFF")
 
             if self.single_tx_softswset[7] == 0x7f:
                 self.data[3] = sig_gen.binary_sig(self.data[3], 2, 2, 1)
-                self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
             elif self.single_tx_softswset[7] == 0xbf:
                 self.data[3] = sig_gen.binary_sig(self.data[3], 2, 2, 2)
-                self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
-            # else:
-            #     self.parent.txt_res_side_heat.setText("None")
 
         if self.parent.btn_mscs_ok.isChecked():
             self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 0)
@@ -427,13 +448,9 @@ class FCS_AEB(NodeThread):
     def thread_func(self):  # FCS_AEBS1
         if self.single_tx:
             if self.single_tx[0] == 0xfd:
-                self.parent.txt_res_aeb.setText("ON")
                 self.data[0] = 0xF1
             elif self.single_tx[0] == 0xfc:
-                self.parent.txt_res_aeb.setText("OFF")
                 self.data[0] = 0xF2
-            else:
-                self.parent.txt_res_aeb.setText("None")
         message = can.Message(arbitration_id=0x0cf02fa0, data=self.data)
         self.parent.c_can_bus.send(message)
         time.sleep(self.period)

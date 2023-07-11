@@ -4,11 +4,14 @@ import can
 import time
 import security_algorithm as algo
 import dtc_identifier as dtc_id
+import send_can_message
+import send_can_message as send_mess
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
 from PyQt5.QtGui import *
 from can import interfaces
+
 
 import can_thread as worker
 
@@ -296,6 +299,8 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def thread_start(self):
         if self.bus_flag:
+            # self.data_sender_main = SendDiagMessage(self.c_can_bus)
+            # print(self.data_sender_main)
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
             self.set_node()
@@ -1098,10 +1103,12 @@ class Main(QMainWindow, Ui_MainWindow):
                     or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
                 self.diag_success_byte = 0x68
                 self.diag_comm_cont(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_mem_fault_num_check" or self.diag_btn_text == "btn_mem_fault_list_check":
+            elif self.diag_btn_text == "btn_mem_fault_num_check" or self.diag_btn_text == "btn_mem_fault_list_check" \
+                    or self.diag_btn_text == 'btn_mem_fault_nrc_12' or self.diag_btn_text == 'btn_mem_fault_nrc_13':
                 self.diag_success_byte = 0x59
                 self.diag_memory_fault(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_mem_fault_reset":
+            elif self.diag_btn_text == "btn_mem_fault_reset" or self.diag_btn_text == 'btn_mem_fault_nrc_13_reset' \
+                    or self.diag_btn_text == 'btn_mem_fault_nrc_7f_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset':
                 self.diag_success_byte = 0x54
                 self.diag_memory_fault(self.diag_btn_text)
 
@@ -1766,6 +1773,11 @@ class Main(QMainWindow, Ui_MainWindow):
             100)
         self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
             100)
+
+
+class SendDiagMessage(send_can_message.CANMessageSend):
+    def send_message_1(self, sig_id, send_data):
+        print("bbbb")
 
 
 if __name__ == '__main__':
