@@ -4,6 +4,7 @@ import can
 import time
 import security_algorithm as algo
 import dtc_identifier as dtc_id
+import sig_generator as sig_gen
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
@@ -329,8 +330,6 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def thread_start(self):
         if self.bus_flag:
-            # self.data_sender_main = SendDiagMessage(self.c_can_bus)
-            # print(self.data_sender_main)
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
             self.set_node()
@@ -387,8 +386,6 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_compression_bit_dtc_cont.toggle()
         if self.chkbox_diag_functional_domain_dtc_cont.isChecked():
             self.chkbox_diag_functional_domain_dtc_cont.toggle()
-
-        time.sleep(0.1)
 
         self.comboBox_log_format.setEnabled(False)
         self.set_node_btns(False)
@@ -1093,7 +1090,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.thread_worker.slider_speed_func(0)
         self.set_drv_state()
 
-    def diag_data_collector(self, mess, multi=False):
+    def diag_data_collector(self, mess, multi=False, comp_bit=False):
         self.res_data = []
         self.raw_data = []
         flag = False
@@ -1103,6 +1100,8 @@ class Main(QMainWindow, Ui_MainWindow):
             for i, mess_data in zip(range(len(mess)), mess):
                 self.data[i] = mess_data
             self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+            if comp_bit:
+                break
             if multi:
                 time.sleep(0.020)
                 self.data[0] = 0x30
@@ -1139,7 +1138,7 @@ class Main(QMainWindow, Ui_MainWindow):
         if len(self.res_data) == 1:
             if self.data_len > 0:
                 self.raw_data += self.res_data[0].data[1:8]
-        else:
+        elif len(self.res_data) > 1:
             for i in range(self.flow_control_len):
                 for j in range(self.flow_control_len):
                     a = self.res_data[j].data[0] % 0x10
@@ -1276,29 +1275,49 @@ class Main(QMainWindow, Ui_MainWindow):
         self.diag_initialization()
         if txt == "btn_sess_default":
             sig_li = [0x02, 0x10, 0x01]
+            if self.chkbox_diag_compression_bit_basic.isChecked():
+                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_extended":
             sig_li = [0x02, 0x10, 0x03]
+            if self.chkbox_diag_compression_bit_basic.isChecked():
+                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_nrc_12":
-            sig_li = [0x02, 0x10, 0xFF]
+            sig_li = [0x02, 0x10, 0x04]
+            if self.chkbox_diag_compression_bit_basic.isChecked():
+                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_nrc_13":
             sig_li = [0x03, 0x10, 0x01, 0x01]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
-        if self.chkbox_diag_test_mode_basic.isChecked():
-            if tx_result[1] == self.diag_success_byte:
-                if tx_result[2] == 0x01:
-                    self.btn_sess_default.setEnabled(False)
-                    self.label_sess_default.setText("Success")
-                elif tx_result[2] == 0x03:
-                    self.btn_sess_extended.setEnabled(False)
-                    self.label_sess_extended.setText("Success")
-            else:
-                if tx_result[3] == 0x12:
-                    self.btn_sess_nrc_12.setEnabled(False)
-                    self.label_sess_nrc_12.setText("Success")
-                elif tx_result[3] == 0x13:
-                    self.btn_sess_nrc_13.setEnabled(False)
-                    self.label_sess_nrc_13.setText("Success")
+        if txt == "btn_sess_default" or txt == "btn_sess_extended":
+            if self.chkbox_diag_compression_bit_basic.isChecked():
+                self.diag_data_collector(sig_li, comp_bit=True)
+                if txt == "btn_sess_default":
+                    self.diag_did("btn_id_active_sess")
+                    if self.raw_data[3] == 0x01:
+                        self.btn_sess_default.setEnabled(False)
+                        self.label_sess_default.setText("Success")
+                elif txt == "btn_sess_extended":
+                    self.diag_did("btn_id_active_sess")
+                    if self.raw_data[3] == 0x03:
+                        self.btn_sess_extended.setEnabled(False)
+                        self.label_sess_extended.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
+            tx_result = self.res_data[0].data[:4]
+            if self.chkbox_diag_test_mode_basic.isChecked():
+                if tx_result[1] == self.diag_success_byte:
+                    if tx_result[2] == 0x01:
+                        self.btn_sess_default.setEnabled(False)
+                        self.label_sess_default.setText("Success")
+                    elif tx_result[2] == 0x03:
+                        self.btn_sess_extended.setEnabled(False)
+                        self.label_sess_extended.setText("Success")
+                else:
+                    if tx_result[3] == 0x12:
+                        self.btn_sess_nrc_12.setEnabled(False)
+                        self.label_sess_nrc_12.setText("Success")
+                    elif tx_result[3] == 0x13:
+                        self.btn_sess_nrc_13.setEnabled(False)
+                        self.label_sess_nrc_13.setText("Success")
 
     def diag_reset(self, txt):
         self.diag_initialization()
