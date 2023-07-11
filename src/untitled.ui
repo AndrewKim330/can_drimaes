@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>8</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -2931,7 +2931,7 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="diagnosis_secu_acc">
+    <widget class="QWidget" name="diagnosis_sec_acc">
      <attribute name="title">
       <string>Diagnosis - Security Access</string>
      </attribute>
@@ -4173,7 +4173,7 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_2">
+    <widget class="QWidget" name="diagnosis_comm_cont">
      <attribute name="title">
       <string>Diagnosis - Comm Control</string>
      </attribute>
@@ -4657,7 +4657,7 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="diagnosis">
+    <widget class="QWidget" name="diagnosis_dtc_check">
      <attribute name="title">
       <string>DTC Check</string>
      </attribute>
@@ -4963,11 +4963,11 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_3">
+    <widget class="QWidget" name="diagnosis_dtc_cont">
      <attribute name="title">
       <string>DTC Control</string>
      </attribute>
-     <widget class="QPushButton" name="btn_diag_reset_diag_cont">
+     <widget class="QPushButton" name="btn_diag_reset_dtc_cont">
       <property name="geometry">
        <rect>
         <x>710</x>
@@ -4980,7 +4980,7 @@
        <string>Diagnosis Reset</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_compression_bit_diag_cont">
+     <widget class="QCheckBox" name="chkbox_diag_compression_bit_dtc_cont">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -4996,7 +4996,7 @@
        <string>Compression Bit</string>
       </property>
      </widget>
-     <widget class="QGroupBox" name="comm_cont_box_3">
+     <widget class="QGroupBox" name="dtc_cont_box">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -5008,7 +5008,7 @@
       <property name="title">
        <string>DTC Control</string>
       </property>
-      <widget class="QGroupBox" name="comm_cont_nrc_box_3">
+      <widget class="QGroupBox" name="dtc_cont_nrc_box">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -5020,7 +5020,7 @@
        <property name="title">
         <string>NRC</string>
        </property>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_16">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_12">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -5034,7 +5034,7 @@
  Subfunction</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_26">
+       <widget class="QLabel" name="label_dtc_cont_nrc_12">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -5053,7 +5053,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_17">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_13">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -5066,7 +5066,7 @@
          <string>Data Length Error</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_27">
+       <widget class="QLabel" name="label_dtc_cont_nrc_13">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -5085,7 +5085,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_en_3">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_7f_en">
         <property name="geometry">
          <rect>
           <x>260</x>
@@ -5096,10 +5096,10 @@
         </property>
         <property name="text">
          <string>Session Error 
- (All Enable)</string>
+ (DTC Enable)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_7f_all_en_3">
+       <widget class="QLabel" name="label_dtc_cont_nrc_7f_en">
         <property name="geometry">
          <rect>
           <x>260</x>
@@ -5118,7 +5118,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_7f_all_dis_3">
+       <widget class="QLabel" name="label_dtc_cont_nrc_7f_dis">
         <property name="geometry">
          <rect>
           <x>260</x>
@@ -5137,7 +5137,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_7f_all_dis_3">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_7f_dis">
         <property name="geometry">
          <rect>
           <x>260</x>
@@ -5148,10 +5148,10 @@
         </property>
         <property name="text">
          <string>Session Error 
- (All Diable)</string>
+ (DTC Diable)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_22_all_dis_3">
+       <widget class="QLabel" name="label_dtc_cont_nrc_22_dis">
         <property name="geometry">
          <rect>
           <x>490</x>
@@ -5170,7 +5170,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_dis_3">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_22_dis">
         <property name="geometry">
          <rect>
           <x>490</x>
@@ -5181,10 +5181,10 @@
         </property>
         <property name="text">
          <string>Driving State 
- (H/W Reset)</string>
+ (DTC Disable)</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_comm_cont_nrc_22_all_en_3">
+       <widget class="QLabel" name="label_dtc_cont_nrc_22_en">
         <property name="geometry">
          <rect>
           <x>490</x>
@@ -5203,7 +5203,7 @@
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
        </widget>
-       <widget class="QPushButton" name="btn_comm_cont_nrc_22_all_en_3">
+       <widget class="QPushButton" name="btn_dtc_cont_nrc_22_en">
         <property name="geometry">
          <rect>
           <x>490</x>
@@ -5214,11 +5214,11 @@
         </property>
         <property name="text">
          <string>Driving State 
- (S/W Reset)</string>
+ (DTC Enable)</string>
         </property>
        </widget>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_all_en_3">
+      <widget class="QLabel" name="label_dtc_cont_en">
        <property name="geometry">
         <rect>
          <x>200</x>
@@ -5237,7 +5237,7 @@
         <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="btn_comm_cont_all_en_3">
+      <widget class="QPushButton" name="btn_dtc_cont_en">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -5250,7 +5250,7 @@
         <string>DTC Enable</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_all_dis_3">
+      <widget class="QLabel" name="label_dtc_cont_dis">
        <property name="geometry">
         <rect>
          <x>460</x>
@@ -5269,7 +5269,7 @@
         <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
-      <widget class="QPushButton" name="btn_comm_cont_all_dis_3">
+      <widget class="QPushButton" name="btn_dtc_cont_dis">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -5283,7 +5283,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_functional_domain_diag_cont">
+     <widget class="QCheckBox" name="chkbox_diag_functional_domain_dtc_cont">
       <property name="geometry">
        <rect>
         <x>310</x>
@@ -5299,7 +5299,7 @@
        <string>Functional Domain</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chkbox_diag_test_mode_diag_cont">
+     <widget class="QCheckBox" name="chkbox_diag_test_mode_dtc_cont">
       <property name="geometry">
        <rect>
         <x>510</x>

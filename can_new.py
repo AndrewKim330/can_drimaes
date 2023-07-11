@@ -234,6 +234,19 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
         self.btn_diag_reset_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
 
+        # Connect dtc control buttons to diagnostic handling function
+        self.btn_dtc_cont_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_dis.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_12.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_13.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_7f_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_7f_dis.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_22_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_22_dis.clicked.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.btn_diag_reset_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
         self.btn_main_console_clear.clicked.connect(self.console_text_clear)
@@ -271,6 +284,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.set_diag_write_btns_labels(False)
         self.set_diag_comm_cont_btns_labels(False)
         self.set_diag_mem_fault_btns_labels(False)
+        self.set_diag_dtc_cont_btns_labels(False)
 
         self.image_initialization()
 
@@ -332,6 +346,7 @@ class Main(QMainWindow, Ui_MainWindow):
             self.set_diag_write_btns_labels(True)
             self.set_diag_comm_cont_btns_labels(True)
             self.set_diag_mem_fault_btns_labels(True)
+            self.set_diag_dtc_cont_btns_labels(True)
             self.diag_initialization()
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
@@ -366,6 +381,12 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_functional_domain_comm_cont.toggle()
 
         self.set_diag_mem_fault_btns_labels(False)
+
+        self.set_diag_dtc_cont_btns_labels(False)
+        if self.chkbox_diag_compression_bit_dtc_cont.isChecked():
+            self.chkbox_diag_compression_bit_dtc_cont.toggle()
+        if self.chkbox_diag_functional_domain_dtc_cont.isChecked():
+            self.chkbox_diag_functional_domain_dtc_cont.toggle()
 
         time.sleep(0.1)
 
@@ -1009,6 +1030,46 @@ class Main(QMainWindow, Ui_MainWindow):
             self.label_mem_fault_nrc_31_reset.setText(f"{txt}")
             self.label_mem_fault_nrc_31_reset.setStyleSheet(f"color: {color}")
 
+    def set_diag_dtc_cont_btns_labels(self, flag=True):
+        if self.chkbox_diag_test_mode_dtc_cont.isChecked():
+            self.chkbox_diag_compression_bit_dtc_cont.setEnabled(True)
+            self.chkbox_diag_functional_domain_dtc_cont.setEnabled(True)
+            color = 'black'
+            txt = "Not tested"
+        else:
+            self.chkbox_diag_compression_bit_dtc_cont.setEnabled(False)
+            self.chkbox_diag_functional_domain_dtc_cont.setEnabled(False)
+            color = 'gray'
+            txt = "Default"
+
+        self.btn_dtc_cont_en.setEnabled(flag)
+        self.label_dtc_cont_en.setText(f"{txt}")
+        self.label_dtc_cont_en.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_dis.setEnabled(flag)
+        self.label_dtc_cont_dis.setText(f"{txt}")
+        self.label_dtc_cont_dis.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_12.setEnabled(flag)
+        self.label_dtc_cont_nrc_12.setText(f"{txt}")
+        self.label_dtc_cont_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_13.setEnabled(flag)
+        self.label_dtc_cont_nrc_13.setText(f"{txt}")
+        self.label_dtc_cont_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_7f_en.setEnabled(flag)
+        self.label_dtc_cont_nrc_7f_en.setText(f"{txt}")
+        self.label_dtc_cont_nrc_7f_en.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_7f_dis.setEnabled(flag)
+        self.label_dtc_cont_nrc_7f_dis.setText(f"{txt}")
+        self.label_dtc_cont_nrc_7f_dis.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_22_en.setEnabled(flag)
+        self.label_dtc_cont_nrc_22_en.setText(f"{txt}")
+        self.label_dtc_cont_nrc_22_en.setStyleSheet(f"color: {color}")
+        self.btn_dtc_cont_nrc_22_dis.setEnabled(flag)
+        self.label_dtc_cont_nrc_22_dis.setText(f"{txt}")
+        self.label_dtc_cont_nrc_22_dis.setStyleSheet(f"color: {color}")
+
+        self.btn_diag_reset_dtc_cont.setEnabled(flag)
+        self.chkbox_diag_test_mode_dtc_cont.setEnabled(flag)
+
     def console_text_clear(self, txt=None):
         if self.sender().objectName() == "btn_main_console_clear":
             self.main_console.clear()
@@ -1029,6 +1090,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
         self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
         self.set_drv_state()
 
     def diag_data_collector(self, mess, multi=False):
@@ -1202,6 +1264,12 @@ class Main(QMainWindow, Ui_MainWindow):
                     or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_31_reset':
                 self.diag_success_byte = 0x54
                 self.diag_memory_fault(self.diag_btn_text)
+            elif self.diag_btn_text == 'btn_dtc_cont_en' or self.diag_btn_text == 'btn_dtc_cont_dis' \
+                    or self.diag_btn_text == 'btn_dtc_cont_nrc_12' or self.diag_btn_text == 'btn_dtc_cont_nrc_13' \
+                    or self.diag_btn_text == 'btn_dtc_cont_nrc_22_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_22_dis' \
+                    or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_dis':
+                self.diag_success_byte = 0xC5
+                self.diag_dtc_cont(self.diag_btn_text)
 
     def diag_sess(self, txt):
         # **need to add test failed scenario
@@ -1738,9 +1806,6 @@ class Main(QMainWindow, Ui_MainWindow):
             time.sleep(0.2)
             sig_li = [0x03, 0x28, 0x03, 0x01]
         self.diag_data_collector(sig_li)
-        self.drv_state = False
-        self.thread_worker.slider_speed_func(0)
-        self.set_drv_state()
         tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_comm_cont.isChecked():
             if tx_result[1] == self.diag_success_byte:
@@ -1851,6 +1916,70 @@ class Main(QMainWindow, Ui_MainWindow):
                 elif tx_result[3] == 0x31:
                     self.btn_mem_fault_nrc_31_reset.setEnabled(False)
                     self.label_mem_fault_nrc_31_reset.setText("Success")
+
+    def diag_dtc_cont(self, txt):
+        self.diag_initialization()
+        if txt == 'btn_dtc_cont_en':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x85, 0x01]
+        elif txt == 'btn_dtc_cont_dis':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x85, 0x02]
+        elif txt == 'btn_dtc_cont_nrc_12':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x02, 0x85, 0x07]
+        elif txt == 'btn_dtc_cont_nrc_13':
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x03, 0x85, 0x01, 0x01]
+        elif txt == "btn_dtc_cont_nrc_7f_en":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x02, 0x85, 0x01]
+        elif txt == "btn_dtc_cont_nrc_7f_dis":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x02, 0x85, 0x02]
+        elif txt == "btn_dtc_cont_nrc_22_en":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            time.sleep(0.2)
+            sig_li = [0x02, 0x85, 0x01]
+        elif txt == "btn_dtc_cont_nrc_22_dis":
+            self.diag_sess("btn_sess_extended")
+            self.drv_state = True
+            self.set_drv_state()
+            self.thread_worker.slider_speed_func(20)
+            time.sleep(0.2)
+            sig_li = [0x02, 0x85, 0x02]
+        self.diag_data_collector(sig_li)
+        tx_result = self.res_data[0].data[:4]
+        if self.chkbox_diag_test_mode_dtc_cont.isChecked():
+            if tx_result[1] == self.diag_success_byte:
+                if tx_result[2] == 0x01:
+                    self.label_dtc_cont_en.setText("Data Success \n Check the DTC availability")
+                elif tx_result[2] == 0x02:
+                    self.label_dtc_cont_dis.setText("Data Success \n Check the DTC disability")
+            else:
+                if tx_result[3] == 0x12:
+                    self.btn_dtc_cont_nrc_12.setEnabled(False)
+                    self.label_dtc_cont_nrc_12.setText("Success")
+                elif tx_result[3] == 0x13:
+                    self.btn_dtc_cont_nrc_13.setEnabled(False)
+                    self.label_dtc_cont_nrc_13.setText("Success")
+                elif txt == "btn_dtc_cont_nrc_7f_en" or txt == "btn_dtc_cont_nrc_22_en":
+                    if tx_result[3] == 0x7f:
+                        self.btn_dtc_cont_nrc_7f_en.setEnabled(False)
+                        self.label_dtc_cont_nrc_7f_en.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_dtc_cont_nrc_22_en.setEnabled(False)
+                        self.label_dtc_cont_nrc_22_en.setText("Success")
+                elif txt == "btn_dtc_cont_nrc_7f_dis" or txt == "btn_dtc_cont_nrc_22_dis":
+                    if tx_result[3] == 0x7f:
+                        self.btn_dtc_cont_nrc_7f_dis.setEnabled(False)
+                        self.label_dtc_cont_nrc_7f_dis.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_dtc_cont_nrc_22_dis.setEnabled(False)
+                        self.label_dtc_cont_nrc_22_dis.setText("Success")
 
     def image_initialization(self):
         self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
