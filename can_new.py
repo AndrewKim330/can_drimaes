@@ -4,8 +4,6 @@ import can
 import time
 import security_algorithm as algo
 import dtc_identifier as dtc_id
-import send_can_message
-import send_can_message as send_mess
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
@@ -36,6 +34,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.temp_list = []
         self.data_len = 0
         self.data_type = None
+        self.log_data = []
 
         self.diag_tester_id = 0x18da41f1
 
@@ -225,6 +224,14 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
         self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
         self.btn_mem_fault_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_avail_sts_mask.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_12.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_13.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_13_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_22_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_31_reset.clicked.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
@@ -236,6 +243,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
+        self.chkbox_diag_test_mode_sec.released.connect(self.set_diag_sec_btns_labels)
+
         self.chkbox_node_acu.released.connect(self.set_node)
         self.chkbox_node_bcm.released.connect(self.set_node)
         self.chkbox_node_esc.released.connect(self.set_node)
@@ -246,6 +255,14 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_node_pms_c.released.connect(self.set_node)
         self.chkbox_node_bms.released.connect(self.set_node)
         self.chkbox_node_mcu.released.connect(self.set_node)
+
+        self.btn_save_log.released.connect(self.save_log)
+        self.chkbox_save_log.released.connect(self.save_log)
+        self.comboBox_log_format.addItem(".blf")
+        self.comboBox_log_format.addItem(".asc")
+        self.comboBox_log_format.setEnabled(False)
+
+        self.chkbox_can_dump.released.connect(self.can_dump_mode)
 
         self.set_node_btns(False)
         self.set_can_basic_btns_labels(False)
@@ -353,6 +370,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
         time.sleep(0.1)
 
+        self.comboBox_log_format.setEnabled(False)
         self.set_node_btns(False)
 
         self.pms_s_hvsm_worker.stop()
@@ -381,6 +399,53 @@ class Main(QMainWindow, Ui_MainWindow):
         self.tester_worker.stop()
 
         self.set_mmi_labels_init()
+
+    def send_message(self, bus, sig_id, send_data):
+        if sig_id == 0x18da41f1 or sig_id == 0x18db33f1:
+            self.diag_console.appendPlainText("Tester sends the diagnosis message")
+        message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data)
+        if self.chkbox_save_log.isChecked():
+            self.log_data.append(message)
+        bus.send(message)
+
+    def can_dump_mode(self):
+        self.chkbox_node_acu.toggle()
+        self.chkbox_node_bcm.toggle()
+        self.chkbox_node_esc.toggle()
+        self.chkbox_node_fcs.toggle()
+        self.chkbox_node_ic.toggle()
+        self.chkbox_node_pms.toggle()
+        self.chkbox_node_pms_s.toggle()
+        self.chkbox_node_pms_c.toggle()
+        self.chkbox_node_bms.toggle()
+        self.chkbox_node_mcu.toggle()
+
+    def save_log(self):
+        if self.sender().objectName() == "btn_save_log":
+            if len(self.log_data) > 0:
+                self.bus_console.appendPlainText("Can Log saving Start")
+                log_dir = BASE_DIR + f"./log{self.comboBox_log_format.currentText()}"
+                f = open(log_dir, 'w')
+                count = 0
+                while count < len(self.log_data):
+                    sig_id = self.log_data[count].arbitration_id
+                    if sig_id == 0x18ffd741 or sig_id == 0x18ffd841 or sig_id == 0x0c0ba021 or sig_id == 0x18a9e821 or sig_id == 0x18ff6341 or sig_id == 0x18ff4b41:
+                        data = 'tx ' + str(self.log_data[count])
+                    else:
+                        data = 'rx ' + str(self.log_data[count])
+                    f.write(data)
+                    f.write('\n')
+                    count += 1
+                f.close()
+                self.bus_console.appendPlainText("Can Log saving End")
+                QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
+                self.log_data = []
+        elif self.sender().objectName() == "chkbox_save_log":
+            if self.chkbox_save_log.isChecked():
+                self.bus_console.appendPlainText("Can Log Writing Start")
+            else:
+                self.bus_console.appendPlainText("Can Log Writing Stop")
+                self.comboBox_log_format.setEnabled(True)
 
     def set_node(self):
         if self.chkbox_node_acu.isChecked():
@@ -915,6 +980,30 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_num_check.setEnabled(flag)
         self.btn_mem_fault_list_check.setEnabled(flag)
         self.btn_mem_fault_reset.setEnabled(flag)
+        self.btn_mem_fault_avail_sts_mask.setEnabled(flag)
+        if self.sender():
+            if self.chkbox_diag_test_mode_mem_fault.isChecked():
+                self.chkbox_diag_functional_domain_mem_fault.setEnabled(True)
+                color = 'black'
+                txt = "Not tested"
+                self.btn_mem_fault_num_check.setEnabled(not flag)
+                self.btn_mem_fault_list_check.setEnabled(not flag)
+                self.btn_mem_fault_reset.setEnabled(not flag)
+                self.btn_mem_fault_avail_sts_mask.setEnabled(not flag)
+            else:
+                self.chkbox_diag_functional_domain_mem_fault.setEnabled(False)
+                color = 'gray'
+                txt = "Default"
+            self.label_mem_fault_nrc_12.setText(f"{txt}")
+            self.label_mem_fault_nrc_12.setStyleSheet(f"color: {color}")
+            self.label_mem_fault_nrc_13.setText(f"{txt}")
+            self.label_mem_fault_nrc_13.setStyleSheet(f"color: {color}")
+            self.label_mem_fault_nrc_13_reset.setText(f"{txt}")
+            self.label_mem_fault_nrc_13_reset.setStyleSheet(f"color: {color}")
+            self.label_mem_fault_nrc_22_reset.setText(f"{txt}")
+            self.label_mem_fault_nrc_22_reset.setStyleSheet(f"color: {color}")
+            self.label_mem_fault_nrc_31_reset.setText(f"{txt}")
+            self.label_mem_fault_nrc_31_reset.setStyleSheet(f"color: {color}")
 
     def console_text_clear(self, txt=None):
         if self.sender().objectName() == "btn_main_console_clear":
@@ -936,11 +1025,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
 
-    def diag_send_message(self):
-        message = can.Message(arbitration_id=self.diag_tester_id, data=self.data)
-        self.diag_console.appendPlainText("Thread trying to send message")
-        self.c_can_bus.send(message)
-
     def diag_data_collector(self, mess, multi=False):
         self.res_data = []
         self.raw_data = []
@@ -950,11 +1034,11 @@ class Main(QMainWindow, Ui_MainWindow):
         while len(self.res_data) < self.flow_control_len:
             for i, mess_data in zip(range(len(mess)), mess):
                 self.data[i] = mess_data
-            self.diag_send_message()
+            self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
             if multi:
                 time.sleep(0.020)
                 self.data[0] = 0x30
-                self.diag_send_message()
+                self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
             time.sleep(0.3)
             reservoir = self.thread_worker.reservoir[:]
             if multi:
@@ -1103,12 +1187,13 @@ class Main(QMainWindow, Ui_MainWindow):
                     or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
                 self.diag_success_byte = 0x68
                 self.diag_comm_cont(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_mem_fault_num_check" or self.diag_btn_text == "btn_mem_fault_list_check" \
+            elif self.diag_btn_text == "btn_mem_fault_num_check" \
+                    or self.diag_btn_text == "btn_mem_fault_list_check" or self.diag_btn_text == "btn_mem_fault_avail_sts_mask"\
                     or self.diag_btn_text == 'btn_mem_fault_nrc_12' or self.diag_btn_text == 'btn_mem_fault_nrc_13':
                 self.diag_success_byte = 0x59
                 self.diag_memory_fault(self.diag_btn_text)
             elif self.diag_btn_text == "btn_mem_fault_reset" or self.diag_btn_text == 'btn_mem_fault_nrc_13_reset' \
-                    or self.diag_btn_text == 'btn_mem_fault_nrc_7f_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset':
+                    or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_31_reset':
                 self.diag_success_byte = 0x54
                 self.diag_memory_fault(self.diag_btn_text)
 
@@ -1710,10 +1795,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()
-        if txt == "btn_mem_fault_num_check":
-            sig_li = [0x03, 0x19, 0x01, 0x09]
-            self.diag_data_collector(sig_li)
-        elif txt == "btn_mem_fault_list_check":
+        if txt == "btn_mem_fault_list_check":
             self.diag_memory_fault("btn_mem_fault_num_check")
             dtc_num = self.res_data[0].data[6]
             if dtc_num > 1:
@@ -1738,8 +1820,26 @@ class Main(QMainWindow, Ui_MainWindow):
                 st += 4
                 dtc_name = dtc_id.dtc_identifier(single_dtc)
                 self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
-        elif txt == "btn_mem_fault_reset":
-            sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
+        else:
+            if txt == "btn_mem_fault_num_check":
+                sig_li = [0x03, 0x19, 0x01, 0x09]
+            elif txt == "btn_mem_fault_reset":
+                sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
+            elif txt == "btn_mem_fault_avail_sts_mask":
+                sig_li = [0x02, 0x19, 0x0A]
+            elif txt == "btn_mem_fault_nrc_12":
+                sig_li = [0x03, 0x19, 0xFF, 0x01]
+            elif txt == "btn_mem_fault_nrc_13":
+                sig_li = [0x04, 0x19, 0x01, 0x01, 0x01]
+            elif txt == "btn_mem_fault_nrc_13_reset":
+                sig_li = [0x02, 0x14, 0xFF]
+            elif txt == "btn_mem_fault_nrc_22_reset":
+                self.drv_state = True
+                self.set_drv_state()
+                self.thread_worker.slider_speed_func(20)
+                sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
+            elif txt == "btn_mem_fault_nrc_31_reset":
+                sig_li = [0x04, 0x14, 0x11, 0x11, 0x11]
             self.diag_data_collector(sig_li)
 
     def image_initialization(self):
@@ -1773,11 +1873,6 @@ class Main(QMainWindow, Ui_MainWindow):
             100)
         self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
             100)
-
-
-class SendDiagMessage(send_can_message.CANMessageSend):
-    def send_message_1(self, sig_id, send_data):
-        print("bbbb")
 
 
 if __name__ == '__main__':

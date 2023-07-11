@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1166</width>
-    <height>1045</height>
+    <width>1164</width>
+    <height>1038</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -34,7 +34,7 @@
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>50</y>
+        <y>30</y>
         <width>811</width>
         <height>381</height>
        </rect>
@@ -335,9 +335,9 @@
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>460</y>
+        <y>430</y>
         <width>811</width>
-        <height>221</height>
+        <height>131</height>
        </rect>
       </property>
       <property name="title">
@@ -362,9 +362,9 @@
       <widget class="QCheckBox" name="chkbox_node_ic">
        <property name="geometry">
         <rect>
-         <x>590</x>
+         <x>500</x>
          <y>40</y>
-         <width>141</width>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -378,9 +378,9 @@
       <widget class="QCheckBox" name="chkbox_node_pms_s">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>100</y>
-         <width>141</width>
+         <x>80</x>
+         <y>90</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -394,9 +394,9 @@
       <widget class="QCheckBox" name="chkbox_node_pms">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>100</y>
-         <width>141</width>
+         <x>640</x>
+         <y>40</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -410,9 +410,9 @@
       <widget class="QCheckBox" name="chkbox_node_bms">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>160</y>
-         <width>141</width>
+         <x>500</x>
+         <y>90</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -426,9 +426,9 @@
       <widget class="QCheckBox" name="chkbox_node_bcm">
        <property name="geometry">
         <rect>
-         <x>250</x>
+         <x>220</x>
          <y>40</y>
-         <width>141</width>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -442,9 +442,9 @@
       <widget class="QCheckBox" name="chkbox_node_esc">
        <property name="geometry">
         <rect>
-         <x>420</x>
+         <x>360</x>
          <y>40</y>
-         <width>141</width>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -458,9 +458,9 @@
       <widget class="QCheckBox" name="chkbox_node_mcu">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>160</y>
-         <width>141</width>
+         <x>640</x>
+         <y>90</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -474,9 +474,9 @@
       <widget class="QCheckBox" name="chkbox_node_pms_c">
        <property name="geometry">
         <rect>
-         <x>420</x>
-         <y>100</y>
-         <width>141</width>
+         <x>220</x>
+         <y>90</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -492,7 +492,7 @@
         <rect>
          <x>80</x>
          <y>40</y>
-         <width>141</width>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -506,9 +506,9 @@
       <widget class="QCheckBox" name="chkbox_node_fcs">
        <property name="geometry">
         <rect>
-         <x>590</x>
-         <y>100</y>
-         <width>141</width>
+         <x>360</x>
+         <y>90</y>
+         <width>121</width>
          <height>20</height>
         </rect>
        </property>
@@ -517,6 +517,77 @@
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="general_group">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>580</y>
+        <width>811</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>General</string>
+      </property>
+      <widget class="QCheckBox" name="chkbox_can_dump">
+       <property name="geometry">
+        <rect>
+         <x>460</x>
+         <y>40</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CAN dump</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_log_format">
+       <property name="geometry">
+        <rect>
+         <x>59</x>
+         <y>60</y>
+         <width>101</width>
+         <height>22</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkbox_save_log">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>30</y>
+         <width>121</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Save Log</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_save_log">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>40</y>
+         <width>111</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Save</string>
        </property>
       </widget>
      </widget>
@@ -4588,25 +4659,28 @@
     </widget>
     <widget class="QWidget" name="diagnosis">
      <attribute name="title">
-      <string>CAN Diagnosis</string>
+      <string>DTC Check</string>
      </attribute>
      <widget class="QPlainTextEdit" name="diag_dtc_console">
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>210</y>
-        <width>721</width>
+        <y>200</y>
+        <width>741</width>
         <height>91</height>
        </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QPushButton" name="btn_diag_dtc_console_clear">
       <property name="geometry">
        <rect>
-        <x>740</x>
-        <y>330</y>
-        <width>75</width>
-        <height>23</height>
+        <x>754</x>
+        <y>320</y>
+        <width>81</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -4616,8 +4690,8 @@
      <widget class="QGroupBox" name="mem_fault_nrc_box">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>400</y>
+        <x>100</x>
+        <y>420</y>
         <width>741</width>
         <height>251</height>
        </rect>
@@ -4639,7 +4713,7 @@
  Subfunction</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_nrc_14">
+      <widget class="QLabel" name="label_mem_fault_nrc_12">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -4671,7 +4745,7 @@
         <string>Data Length Error</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_nrc_15">
+      <widget class="QLabel" name="label_mem_fault_nrc_13">
        <property name="geometry">
         <rect>
          <x>290</x>
@@ -4704,7 +4778,7 @@
  (DTC Reset)</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_nrc_16">
+      <widget class="QLabel" name="label_mem_fault_nrc_13_reset">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -4737,7 +4811,7 @@
  (DTC Reset)</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_nrc_17">
+      <widget class="QLabel" name="label_mem_fault_nrc_22_reset">
        <property name="geometry">
         <rect>
          <x>290</x>
@@ -4756,7 +4830,7 @@
         <set>Qt::AlignHCenter|Qt::AlignTop</set>
        </property>
       </widget>
-      <widget class="QLabel" name="label_comm_cont_nrc_18">
+      <widget class="QLabel" name="label_mem_fault_nrc_31_reset">
        <property name="geometry">
         <rect>
          <x>510</x>
@@ -4822,8 +4896,8 @@
      <widget class="QPushButton" name="btn_mem_fault_reset">
       <property name="geometry">
        <rect>
-        <x>650</x>
-        <y>120</y>
+        <x>480</x>
+        <y>110</y>
         <width>171</width>
         <height>61</height>
        </rect>
@@ -4835,8 +4909,8 @@
      <widget class="QPushButton" name="btn_mem_fault_list_check">
       <property name="geometry">
        <rect>
-        <x>380</x>
-        <y>120</y>
+        <x>290</x>
+        <y>110</y>
         <width>171</width>
         <height>61</height>
        </rect>
@@ -4849,7 +4923,7 @@
       <property name="geometry">
        <rect>
         <x>100</x>
-        <y>120</y>
+        <y>110</y>
         <width>171</width>
         <height>61</height>
        </rect>
@@ -4875,10 +4949,23 @@
        <string>Functional Domain</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="btn_mem_fault_avail_sts_mask">
+      <property name="geometry">
+       <rect>
+        <x>670</x>
+        <y>110</y>
+        <width>171</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Available Status Mask</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
-      <string>Diagnosis Control</string>
+      <string>DTC Control</string>
      </attribute>
      <widget class="QPushButton" name="btn_diag_reset_diag_cont">
       <property name="geometry">
@@ -5239,6 +5326,9 @@
       <height>141</height>
      </rect>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_bus_connect">
     <property name="geometry">
@@ -5274,6 +5364,9 @@
       <width>171</width>
       <height>331</height>
      </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_bus_start">
@@ -5311,6 +5404,9 @@
       <height>71</height>
      </rect>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QPushButton" name="btn_diag_console_clear">
     <property name="geometry">
@@ -5331,7 +5427,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1166</width>
+     <width>1164</width>
      <height>18</height>
     </rect>
    </property>
