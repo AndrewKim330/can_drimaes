@@ -156,8 +156,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_tester_nrc_12.released.connect(self.diag_func)
         self.btn_tester_nrc_13.released.connect(self.diag_func)
 
-        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_basic_btns_labels)
         self.chkbox_diag_test_mode_basic.released.connect(self.set_diag_basic_btns_labels)
+        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_basic_btns_labels)
+        self.chkbox_diag_compression_bit_basic.released.connect(self.set_diag_basic_btns_labels)
         self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_labels)
 
         # Connect data identification buttons to diagnostic handling function
@@ -1275,35 +1276,29 @@ class Main(QMainWindow, Ui_MainWindow):
         self.diag_initialization()
         if txt == "btn_sess_default":
             sig_li = [0x02, 0x10, 0x01]
-            if self.chkbox_diag_compression_bit_basic.isChecked():
-                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_extended":
             sig_li = [0x02, 0x10, 0x03]
-            if self.chkbox_diag_compression_bit_basic.isChecked():
-                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_nrc_12":
             sig_li = [0x02, 0x10, 0x04]
-            if self.chkbox_diag_compression_bit_basic.isChecked():
-                sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
         elif txt == "btn_sess_nrc_13":
             sig_li = [0x03, 0x10, 0x01, 0x01]
-        if txt == "btn_sess_default" or txt == "btn_sess_extended":
-            if self.chkbox_diag_compression_bit_basic.isChecked():
+        if self.chkbox_diag_compression_bit_basic.isChecked():
+            sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
+
+        if self.chkbox_diag_test_mode_basic.isChecked():
+            if self.chkbox_diag_compression_bit_basic.isChecked() and (txt == "btn_sess_default" or txt == "btn_sess_extended"):
                 self.diag_data_collector(sig_li, comp_bit=True)
-                if txt == "btn_sess_default":
-                    self.diag_did("btn_id_active_sess")
-                    if self.raw_data[3] == 0x01:
+                self.diag_did("btn_id_active_sess")
+                if self.raw_data[3] == (sig_li[2] % 0x80):
+                    if txt == "btn_sess_default":
                         self.btn_sess_default.setEnabled(False)
                         self.label_sess_default.setText("Success")
-                elif txt == "btn_sess_extended":
-                    self.diag_did("btn_id_active_sess")
-                    if self.raw_data[3] == 0x03:
+                    elif txt == "btn_sess_extended":
                         self.btn_sess_extended.setEnabled(False)
                         self.label_sess_extended.setText("Success")
-        else:
-            self.diag_data_collector(sig_li)
-            tx_result = self.res_data[0].data[:4]
-            if self.chkbox_diag_test_mode_basic.isChecked():
+            else:
+                self.diag_data_collector(sig_li)
+                tx_result = self.res_data[0].data[:4]
                 if tx_result[1] == self.diag_success_byte:
                     if tx_result[2] == 0x01:
                         self.btn_sess_default.setEnabled(False)
@@ -1318,6 +1313,8 @@ class Main(QMainWindow, Ui_MainWindow):
                     elif tx_result[3] == 0x13:
                         self.btn_sess_nrc_13.setEnabled(False)
                         self.label_sess_nrc_13.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
 
     def diag_reset(self, txt):
         self.diag_initialization()
@@ -1358,11 +1355,9 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.chkbox_diag_test_mode_basic.isChecked():
             if tx_result[1] == self.diag_success_byte:
                 if tx_result[2] == 0x01:
-                    self.btn_reset_sw.setEnabled(False)
-                    self.label_reset_sw.setText("Success")
+                    self.label_reset_sw.setText("Check s/w reset is executed")
                 elif tx_result[2] == 0x03:
-                    self.btn_reset_hw.setEnabled(False)
-                    self.label_reset_hw.setText("Success")
+                    self.label_reset_hw.setText("Check h/w reset is executed")
             else:
                 if tx_result[3] == 0x12:
                     self.btn_reset_nrc_12.setEnabled(False)
