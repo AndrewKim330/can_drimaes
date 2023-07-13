@@ -2023,6 +2023,10 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.btn_dtc_cont_nrc_22_dis.setEnabled(False)
                         self.label_dtc_cont_nrc_22_dis.setText("Success")
 
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key.Key_Enter:
+            self.ascii_convert()
+
     def image_initialization(self):
         self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
         self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(100)
