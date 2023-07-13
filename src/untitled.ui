@@ -2155,7 +2155,8 @@
         </rect>
        </property>
        <property name="text">
-        <string>Tester Present</string>
+        <string>Tester
+Present</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="tester_nrc_box">

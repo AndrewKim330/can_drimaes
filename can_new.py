@@ -1283,7 +1283,7 @@ class Main(QMainWindow, Ui_MainWindow):
         elif txt == "btn_sess_nrc_13":
             sig_li = [0x03, 0x10, 0x01, 0x01]
         if self.chkbox_diag_compression_bit_basic.isChecked():
-            sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
+            sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
         if self.chkbox_diag_test_mode_basic.isChecked():
             if self.chkbox_diag_compression_bit_basic.isChecked() and (txt == "btn_sess_default" or txt == "btn_sess_extended"):
@@ -1352,7 +1352,7 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x02, 0x11, 0x03]
 
         if self.chkbox_diag_compression_bit_basic.isChecked():
-            sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
+            sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
         if self.chkbox_diag_test_mode_basic.isChecked():
             if self.chkbox_diag_compression_bit_basic.isChecked() and (
@@ -1403,20 +1403,32 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x02, 0x3E, 0x03]
         elif txt == "btn_tester_nrc_13":
             sig_li = [0x03, 0x3E, 0x00, 0x01]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
+
+        if self.chkbox_diag_compression_bit_basic.isChecked():
+            sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
+
         if self.chkbox_diag_test_mode_basic.isChecked():
-            if tx_result[1] == self.diag_success_byte:
-                if tx_result[2] == 0x00:
-                    self.btn_tester.setEnabled(False)
-                    self.label_tester.setText("Success")
+            if self.chkbox_diag_compression_bit_basic.isChecked() and txt == "btn_tester":
+                self.diag_data_collector(sig_li, comp_bit=True)
+                time.sleep(0.1)
+                self.btn_tester.setEnabled(False)
+                self.label_tester.setText("Success")
             else:
-                if tx_result[3] == 0x12:
-                    self.btn_tester_nrc_12.setEnabled(False)
-                    self.label_tester_nrc_12.setText("Success")
-                elif tx_result[3] == 0x13:
-                    self.btn_tester_nrc_13.setEnabled(False)
-                    self.label_tester_nrc_13.setText("Success")
+                self.diag_data_collector(sig_li)
+                tx_result = self.res_data[0].data[:4]
+                if tx_result[1] == self.diag_success_byte:
+                    if tx_result[2] == 0x00:
+                        self.btn_tester.setEnabled(False)
+                        self.label_tester.setText("Success")
+                else:
+                    if tx_result[3] == 0x12:
+                        self.btn_tester_nrc_12.setEnabled(False)
+                        self.label_tester_nrc_12.setText("Success")
+                    elif tx_result[3] == 0x13:
+                        self.btn_tester_nrc_13.setEnabled(False)
+                        self.label_tester_nrc_13.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
 
     def diag_did(self, txt):
         # **need to add test failed scenario
