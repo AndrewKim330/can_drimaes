@@ -1186,7 +1186,8 @@ class Main(QMainWindow, Ui_MainWindow):
             err = "Length Error"
             message = "Incorrect length of VIN number \n (Need to 17 Character)"
         elif txt == "btn_write_install_date":
-            pass
+            err = "Data Format Error"
+            message = "Incorrect data format \n (Format should be yy yy mm dd style)"
         elif txt == "btn_write_veh_name":
             pass
         elif txt == "btn_write_sys_name":
@@ -1625,53 +1626,54 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def diag_write(self, txt):
         self.diag_initialization()
-        if self.chkbox_diag_test_mode_write.isChecked():
-            test_mode = True
-        else:
-            test_mode = False
+        write_flag = None
         if txt == "btn_write_vin":
+            sig_li = [0x2E, 0xF1, 0x90]
             data_len = len(self.write_txt_ascii)
-            if data_len != 17:
-                self.write_data_not_correct(txt)
+            if data_len == 17:
+                write_flag = True
             else:
-                count = 0
-                while count < self.flow_control_len:
-                    self.diag_security_access("btn_sec_send_key")
-                    self.flow_control_len = 3
-                    temp_li = []
-                    for i in range(self.flow_control_len):
-                        self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
-                        if i == 0:
-                            self.write_data[0] = 0x10
-                            self.write_data[1] = 0x14
-                            self.write_data[2] = 0x2E
-                            self.write_data[3] = 0xF1
-                            self.write_data[4] = 0x90
-                            self.write_data[5] = self.write_txt_ascii.pop(0)
-                            self.write_data[6] = self.write_txt_ascii.pop(0)
-                            self.write_data[7] = self.write_txt_ascii.pop(0)
-                        else:
-                            for j in range(8):
-                                if len(self.write_txt_ascii) > 0:
-                                    if j == 0:
-                                        self.write_data[0] = (0x20 + i)
-                                    else:
-                                        self.write_data[j] = self.write_txt_ascii.pop(0)
+                self.write_data_not_correct(txt)
+        if write_flag:
+            count = 0
+            while count < self.flow_control_len:
+                self.diag_security_access("btn_sec_send_key")
+                self.flow_control_len = 3
+                temp_li = []
+                for i in range(self.flow_control_len):
+                    self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+                    if i == 0:
+                        self.write_data[0] = 0x10
+                        self.write_data[1] = 3 + data_len
+                        self.write_data[2] = sig_li[0]
+                        self.write_data[3] = sig_li[1]
+                        self.write_data[4] = sig_li[2]
+                        self.write_data[5] = self.write_txt_ascii.pop(0)
+                        self.write_data[6] = self.write_txt_ascii.pop(0)
+                        self.write_data[7] = self.write_txt_ascii.pop(0)
+                    else:
+                        for j in range(8):
+                            if len(self.write_txt_ascii) > 0:
+                                if j == 0:
+                                    self.write_data[0] = (0x20 + i)
+                                else:
+                                    self.write_data[j] = self.write_txt_ascii.pop(0)
 
-                        temp_li.append(self.write_data)
-                    for w_data in temp_li:
-                        self.data = w_data
-                        self.diag_send_message()
-                        time.sleep(0.030)
-                    time.sleep(1)
-                    reservoir = self.thread_worker.reservoir[:]
-                    for qqq in reservoir:
-                        if qqq.arbitration_id == 0x18daf141:
-                            temp = qqq
-                            count = self.flow_control_len
-                    self.thread_worker.reservoir = []
-                    QtCore.QCoreApplication.processEvents()
-                self.diag_console.appendPlainText(str(temp))
+                    temp_li.append(self.write_data)
+                for w_data in temp_li:
+                    self.data = w_data
+                    self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+                    # time.sleep(0.030)
+                time.sleep(0.3)
+                reservoir = self.thread_worker.reservoir[:]
+                for qqq in reservoir:
+                    if qqq.arbitration_id == 0x18daf141:
+                        temp = qqq
+                        count = self.flow_control_len
+                self.thread_worker.reservoir = []
+                QtCore.QCoreApplication.processEvents()
+            self.diag_console.appendPlainText(str(temp))
+        self.label_flag_convert.setText(f'Fill the data')
         #     time.sleep(0.2)
         #     zzz = copy.copy(self.tx_worker.ggg)
         #     for qqq in zzz:
