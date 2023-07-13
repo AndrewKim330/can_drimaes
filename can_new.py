@@ -59,6 +59,8 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.flow_control_len = 0
 
+        self.write_secu_nrc = True
+
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
         self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
         self.pms_bodycont_c_worker = worker.PMS_BodyCont_C(parent=self)
@@ -221,6 +223,22 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_write_veh_name.released.connect(self.diag_func)
         self.btn_write_sys_name.released.connect(self.diag_func)
         self.btn_write_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_13.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_33_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_33_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_33_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_33_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_33_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_22_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_22_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_22_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_22_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_22_net_config.released.connect(self.diag_func)
 
         self.chkbox_diag_test_mode_write.released.connect(self.set_diag_write_btns_labels)
         self.btn_write_data_send.clicked.connect(self.write_data_sender)
@@ -937,9 +955,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_write_nrc_13.setEnabled(flag)
         self.label_write_nrc_13.setText(f"{txt}")
         self.label_write_nrc_13.setStyleSheet(f"color: {color}")
-        self.btn_write_nrc_31.setEnabled(flag)
-        self.label_write_nrc_31.setText(f"{txt}")
-        self.label_write_nrc_31.setStyleSheet(f"color: {color}")
 
         self.btn_diag_reset_write.setEnabled(flag)
         self.chkbox_diag_test_mode_write.setEnabled(flag)
@@ -1090,9 +1105,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.raw_data = []
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
-        self.drv_state = False
-        self.thread_worker.slider_speed_func(0)
-        self.set_drv_state()
 
     def diag_data_collector(self, mess, multi=False, comp_bit=False):
         self.res_data = []
@@ -1270,7 +1282,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     or self.diag_btn_text == "btn_write_nrc_33_net_config" or self.diag_btn_text == "btn_write_nrc_22_vin" \
                     or self.diag_btn_text == "btn_write_nrc_22_install_date" or self.diag_btn_text == "btn_write_nrc_22_veh_name" \
                     or self.diag_btn_text == "btn_write_nrc_22_sys_name" or self.diag_btn_text == "btn_write_nrc_22_net_config" \
-                    or self.diag_btn_text == "btn_write_nrc_13" or self.diag_btn_text == "btn_write_nrc_31":
+                    or self.diag_btn_text == "btn_write_nrc_13":
                 self.diag_success_byte = 0x6e
                 self.diag_write(self.diag_btn_text)
             elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
@@ -1419,6 +1431,10 @@ class Main(QMainWindow, Ui_MainWindow):
                             self.label_reset_nrc_22_hw.setText("Success")
         else:
             self.diag_data_collector(sig_li)
+
+        self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
+        self.set_drv_state()
 
     def diag_tester(self, txt):
         # **need to add test failed scenario
@@ -1652,14 +1668,9 @@ class Main(QMainWindow, Ui_MainWindow):
         # **need to add test failed scenario
         self.diag_initialization()
         write_flag = None
-        if self.write_txt == '':
-            self.write_data_not_correct(txt)
-            return 0
-        else:
-            data_len = len(self.write_txt)
-
+        data_len = len(self.write_txt)
         if txt == "btn_write_vin":
-            sig_li = [0x2E, 0xF1, 0x90]
+            sig_li = [0x03, 0x2E, 0xF1, 0x90]
             if data_len == 17:
                 write_flag = True
                 self.data_converter('c2a')
@@ -1671,13 +1682,13 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.write_data_not_correct(txt)
                 return 0
             if self.data_converter('bcd'):
-                sig_li = [0x2E, 0xF1, 0xA2]
+                sig_li = [0x03, 0x2E, 0xF1, 0xA2]
                 write_flag = True
             else:
                 self.write_data_not_correct(txt)
                 return 0
         elif txt == "btn_write_veh_name":
-            sig_li = [0x2E, 0xF1, 0x12]
+            sig_li = [0x03, 0x2E, 0xF1, 0x12]
             if data_len == 8:
                 write_flag = True
                 self.data_converter('c2a')
@@ -1685,7 +1696,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.write_data_not_correct(txt)
                 return 0
         elif txt == "btn_write_sys_name":
-            sig_li = [0x2E, 0xF1, 0x97]
+            sig_li = [0x03, 0x2E, 0xF1, 0x97]
             if data_len == 8:
                 write_flag = True
                 self.data_converter('c2a')
@@ -1697,15 +1708,88 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.write_data_not_correct(txt)
                 return 0
             if self.data_converter('hex'):
-                sig_li = [0x2E, 0xF1, 0x10]
+                sig_li = [0x03, 0x2E, 0xF1, 0x10]
                 write_flag = True
             else:
                 self.write_data_not_correct(txt)
                 return 0
+        elif txt == "btn_write_nrc_13":
+            self.diag_sess("btn_sess_extended")
+            sig_li = [0x04, 0x2E, 0xF1, 0x01, 0x01]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_7f_vin":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x2E, 0xF1, 0x90]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_7f_install_date":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x2E, 0xF1, 0xA2]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_7f_veh_name":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x2E, 0xF1, 0x12]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_7f_sys_name":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x2E, 0xF1, 0x97]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_7f_net_config":
+            self.diag_sess("btn_sess_default")
+            sig_li = [0x03, 0x2E, 0xF1, 0x10]
+            self.diag_data_collector(sig_li)
+        elif txt == "btn_write_nrc_33_vin":
+            self.diag_sess("btn_sess_extended")
+            self.write_txt = 'abcdefghijklmnopq'
+            self.write_secu_nrc = False
+            self.diag_write("btn_write_vin")
+        elif txt == "btn_write_nrc_33_install_date":
+            self.write_txt = '12345678'
+            self.write_secu_nrc = False
+            self.diag_write("btn_write_install_date")
+        elif txt == "btn_write_nrc_33_veh_name":
+            self.write_txt = 'rstuvwxy'
+            self.write_secu_nrc = False
+            self.diag_write("btn_write_veh_name")
+        elif txt == "btn_write_nrc_33_sys_name":
+            self.write_txt = 'zabcdefg'
+            self.write_secu_nrc = False
+            self.diag_write("btn_write_sys_name")
+        elif txt == "btn_write_nrc_33_net_config":
+            self.write_txt = '01 23 45 67 89 ab cd ef'
+            self.write_secu_nrc = False
+            self.diag_write("btn_write_net_config")
+        elif txt == "btn_write_nrc_22_vin":
+            self.drv_state = True
+            self.write_txt = 'abcdefghijklmnopq'
+            self.diag_write("btn_write_vin")
+        elif txt == "btn_write_nrc_22_install_date":
+            self.drv_state = True
+            self.write_txt = '12345678'
+            self.diag_write("btn_write_install_date")
+        elif txt == "btn_write_nrc_22_veh_name":
+            self.drv_state = True
+            self.write_txt = 'rstuvwxy'
+            self.diag_write("btn_write_veh_name")
+        elif txt == "btn_write_nrc_22_sys_name":
+            self.drv_state = True
+            self.write_txt = 'zabcdefg'
+            self.diag_write("btn_write_veh_name")
+        elif txt == "btn_write_nrc_22_net_config":
+            self.drv_state = True
+            self.write_txt = '01 23 45 67 89 ab cd ef'
+            self.diag_write("btn_write_net_config")
 
         data_len = len(self.write_txt)
         if write_flag:
-            self.diag_security_access("btn_sec_send_key")
+            if self.write_secu_nrc:
+                self.diag_security_access("btn_sec_send_key")
+            else:
+                self.diag_sess("btn_sess_default")
+                self.diag_sess("btn_sess_extended")
+            if self.drv_state:
+                self.set_drv_state()
+                self.thread_worker.slider_speed_func(20)
+                time.sleep(0.1)
             temp_li = []
             if len(self.write_txt) > 4:
                 while True:
@@ -1713,9 +1797,9 @@ class Main(QMainWindow, Ui_MainWindow):
                     if self.flow_control_len == 1:
                         self.write_data[0] = 0x10
                         self.write_data[1] = 3 + data_len
-                        self.write_data[2] = sig_li[0]
-                        self.write_data[3] = sig_li[1]
-                        self.write_data[4] = sig_li[2]
+                        self.write_data[2] = sig_li[1]
+                        self.write_data[3] = sig_li[2]
+                        self.write_data[4] = sig_li[3]
                         self.write_data[5] = self.write_txt.pop(0)
                         self.write_data[6] = self.write_txt.pop(0)
                         self.write_data[7] = self.write_txt.pop(0)
@@ -1732,9 +1816,9 @@ class Main(QMainWindow, Ui_MainWindow):
                         break
             else:
                 self.write_data[0] = 0x07
-                self.write_data[1] = sig_li[0]
-                self.write_data[2] = sig_li[1]
-                self.write_data[3] = sig_li[2]
+                self.write_data[1] = sig_li[1]
+                self.write_data[2] = sig_li[2]
+                self.write_data[3] = sig_li[3]
                 self.write_data[4] = self.write_txt.pop(0)
                 self.write_data[5] = self.write_txt.pop(0)
                 self.write_data[6] = self.write_txt.pop(0)
@@ -1755,7 +1839,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
         tx_result = self.res_data[-1].data[:4]
         if self.chkbox_diag_test_mode_write.isChecked():
-            if tx_result[1] == self.diag_success_byte and tx_result[2] == sig_li[1] and tx_result[3] == sig_li[2]:
+            if tx_result[1] == self.diag_success_byte and tx_result[2] == sig_li[2] and tx_result[3] == sig_li[3]:
                 if txt == "btn_write_vin":
                     self.btn_write_vin.setEnabled(False)
                     self.label_write_vin.setText("Success")
@@ -1771,17 +1855,65 @@ class Main(QMainWindow, Ui_MainWindow):
                 elif txt == "btn_write_net_config":
                     self.btn_write_net_config.setEnabled(False)
                     self.label_write_net_config.setText("Success")
-            # else:
-            #     if self.res_data[0].data[1] == self.diag_failure_byte:
-            #         if self.res_data[0].data[3] == 0x13:
-            #             self.btn_id_nrc_13.setEnabled(False)
-            #             self.label_id_nrc_13.setText("Success")
-            #         elif self.res_data[0].data[3] == 0x31:
-            #             self.btn_id_nrc_31.setEnabled(False)
-            #             self.label_id_nrc_31.setText("Success")
+            else:
+                if tx_result[3] == 0x13:
+                    self.btn_write_nrc_13.setEnabled(False)
+                    self.label_write_nrc_13.setText("Success")
+                elif txt == "btn_write_nrc_7f_vin" or txt == "btn_write_nrc_22_vin" or txt == "btn_write_nrc_33_vin":
+                    if tx_result[3] == 0x7f:
+                        self.btn_write_nrc_7f_vin.setEnabled(False)
+                        self.label_write_nrc_7f_vin.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_write_nrc_22_vin.setEnabled(False)
+                        self.label_write_nrc_22_vin.setText("Success")
+                    elif tx_result[3] == 0x33:
+                        self.btn_write_nrc_33_vin.setEnabled(False)
+                        self.label_write_nrc_33_vin.setText("Success")
+                elif txt == "btn_write_nrc_7f_install_date" or txt == "btn_write_nrc_22_install_date" or txt == "btn_write_nrc_33_install_date":
+                    if tx_result[3] == 0x7f:
+                        self.btn_write_nrc_7f_install_date.setEnabled(False)
+                        self.label_write_nrc_7f_install_date.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_write_nrc_22_install_date.setEnabled(False)
+                        self.label_write_nrc_22_install_date.setText("Success")
+                    elif tx_result[3] == 0x33:
+                        self.btn_write_nrc_33_install_date.setEnabled(False)
+                        self.label_write_nrc_33_install_date.setText("Success")
+                elif txt == "btn_write_nrc_7f_veh_name" or txt == "btn_write_nrc_22_veh_name" or txt == "btn_write_nrc_33_veh_name":
+                    if tx_result[3] == 0x7f:
+                        self.btn_write_nrc_7f_veh_name.setEnabled(False)
+                        self.label_write_nrc_7f_veh_name.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_write_nrc_22_veh_name.setEnabled(False)
+                        self.label_write_nrc_22_veh_name.setText("Success")
+                    elif tx_result[3] == 0x33:
+                        self.btn_write_nrc_33_veh_name.setEnabled(False)
+                        self.label_write_nrc_33_veh_name.setText("Success")
+                elif txt == "btn_write_nrc_7f_sys_name" or txt == "btn_write_nrc_22_sys_name" or txt == "btn_write_nrc_33_sys_name":
+                    if tx_result[3] == 0x7f:
+                        self.btn_write_nrc_7f_sys_name.setEnabled(False)
+                        self.label_write_nrc_7f_sys_name.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_write_nrc_22_sys_name.setEnabled(False)
+                        self.label_write_nrc_22_sys_name.setText("Success")
+                    elif tx_result[3] == 0x33:
+                        self.btn_write_nrc_33_sys_name.setEnabled(False)
+                        self.label_write_nrc_33_sys_name.setText("Success")
+                elif txt == "btn_write_nrc_7f_net_config" or txt == "btn_write_nrc_22_net_config" or txt == "btn_write_nrc_33_net_config":
+                    if tx_result[3] == 0x7f:
+                        self.btn_write_nrc_7f_net_config.setEnabled(False)
+                        self.label_write_nrc_7f_net_config.setText("Success")
+                    elif tx_result[3] == 0x22:
+                        self.btn_write_nrc_22_net_config.setEnabled(False)
+                        self.label_write_nrc_22_net_config.setText("Success")
+                    elif tx_result[3] == 0x33:
+                        self.btn_write_nrc_33_net_config.setEnabled(False)
+                        self.label_write_nrc_33_net_config.setText("Success")
 
-
-
+        self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
+        self.set_drv_state()
+        self.write_secu_nrc = True
 
     def diag_comm_cont(self, txt):
         self.diag_initialization()
