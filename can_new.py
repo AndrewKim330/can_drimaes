@@ -1528,7 +1528,6 @@ class Main(QMainWindow, Ui_MainWindow):
             if self.data_type == "ascii":
                 self.data_converter('a2c')
             elif self.data_type == "bcd":
-                print(self.raw_data)
                 temp_str = f'{str(hex(self.raw_data[3])[2:].zfill(2))}{str(hex(self.raw_data[4])[2:].zfill(2))}/{str(hex(self.raw_data[5])[2:].zfill(2))}/{str(hex(self.raw_data[6])[2:].zfill(2))}'
                 self.lineEdit_id_data.setText(temp_str)
             elif self.data_type == "hex":
@@ -1748,11 +1747,41 @@ class Main(QMainWindow, Ui_MainWindow):
             reservoir = self.thread_worker.reservoir[:]
             for qqq in reservoir:
                 if qqq.arbitration_id == 0x18daf141:
-                    temp = qqq
+                    self.res_data.append(qqq)
             self.thread_worker.reservoir = []
             QtCore.QCoreApplication.processEvents()
-            self.diag_console.appendPlainText(str(temp))
+            self.diag_console.appendPlainText(str(self.res_data[-1]))
         self.label_flag_convert.setText(f'Fill the data')
+
+        tx_result = self.res_data[-1].data[:4]
+        if self.chkbox_diag_test_mode_write.isChecked():
+            if tx_result[1] == self.diag_success_byte and tx_result[2] == sig_li[1] and tx_result[3] == sig_li[2]:
+                if txt == "btn_write_vin":
+                    self.btn_write_vin.setEnabled(False)
+                    self.label_write_vin.setText("Success")
+                elif txt == "btn_write_install_date":
+                    self.btn_write_install_date.setEnabled(False)
+                    self.label_write_install_date.setText("Success")
+                elif txt == "btn_write_sys_name":
+                    self.btn_write_sys_name.setEnabled(False)
+                    self.label_write_sys_name.setText("Success")
+                elif txt == "btn_write_veh_name":
+                    self.btn_write_veh_name.setEnabled(False)
+                    self.label_write_veh_name.setText("Success")
+                elif txt == "btn_write_net_config":
+                    self.btn_write_net_config.setEnabled(False)
+                    self.label_write_net_config.setText("Success")
+            # else:
+            #     if self.res_data[0].data[1] == self.diag_failure_byte:
+            #         if self.res_data[0].data[3] == 0x13:
+            #             self.btn_id_nrc_13.setEnabled(False)
+            #             self.label_id_nrc_13.setText("Success")
+            #         elif self.res_data[0].data[3] == 0x31:
+            #             self.btn_id_nrc_31.setEnabled(False)
+            #             self.label_id_nrc_31.setText("Success")
+
+
+
 
     def diag_comm_cont(self, txt):
         self.diag_initialization()
