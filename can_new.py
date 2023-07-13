@@ -1350,35 +1350,49 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker.slider_speed_func(20)
             time.sleep(0.1)
             sig_li = [0x02, 0x11, 0x03]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
+
+        if self.chkbox_diag_compression_bit_basic.isChecked():
+            sig_li[-1] = sig_gen.binary_sig(sig_li[-1], 0, 1, 1)
+
         if self.chkbox_diag_test_mode_basic.isChecked():
-            if tx_result[1] == self.diag_success_byte:
-                if tx_result[2] == 0x01:
-                    self.label_reset_sw.setText("Check s/w reset is executed")
-                elif tx_result[2] == 0x03:
-                    self.label_reset_hw.setText("Check h/w reset is executed")
+            if self.chkbox_diag_compression_bit_basic.isChecked() and (
+                    txt == "btn_reset_sw" or txt == "btn_reset_hw"):
+                self.diag_data_collector(sig_li, comp_bit=True)
+                if txt == "btn_reset_sw":
+                    self.label_reset_sw.setText("Check s/w reset\nis executed")
+                elif txt == "btn_reset_hw":
+                    self.label_reset_hw.setText("Check h/w reset\nis executed")
             else:
-                if tx_result[3] == 0x12:
-                    self.btn_reset_nrc_12.setEnabled(False)
-                    self.label_reset_nrc_12.setText("Success")
-                elif tx_result[3] == 0x13:
-                    self.btn_reset_nrc_13.setEnabled(False)
-                    self.label_reset_nrc_13.setText("Success")
-                elif txt == "btn_reset_nrc_7f_sw" or txt == "btn_reset_nrc_22_sw":
-                    if tx_result[3] == 0x7f:
-                        self.btn_reset_nrc_7f_sw.setEnabled(False)
-                        self.label_reset_nrc_7f_sw.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_reset_nrc_22_sw.setEnabled(False)
-                        self.label_reset_nrc_22_sw.setText("Success")
-                elif txt == "btn_reset_nrc_7f_hw" or txt == "btn_reset_nrc_22_hw":
-                    if tx_result[3] == 0x7f:
-                        self.btn_reset_nrc_7f_hw.setEnabled(False)
-                        self.label_reset_nrc_7f_hw.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_reset_nrc_22_hw.setEnabled(False)
-                        self.label_reset_nrc_22_hw.setText("Success")
+                self.diag_data_collector(sig_li)
+                tx_result = self.res_data[0].data[:4]
+                if tx_result[1] == self.diag_success_byte:
+                    if tx_result[2] == 0x01:
+                        self.label_reset_sw.setText("Check s/w\nreset is executed")
+                    elif tx_result[2] == 0x03:
+                        self.label_reset_hw.setText("Check h/w\nreset is executed")
+                else:
+                    if tx_result[3] == 0x12:
+                        self.btn_reset_nrc_12.setEnabled(False)
+                        self.label_reset_nrc_12.setText("Success")
+                    elif tx_result[3] == 0x13:
+                        self.btn_reset_nrc_13.setEnabled(False)
+                        self.label_reset_nrc_13.setText("Success")
+                    elif txt == "btn_reset_nrc_7f_sw" or txt == "btn_reset_nrc_22_sw":
+                        if tx_result[3] == 0x7f:
+                            self.btn_reset_nrc_7f_sw.setEnabled(False)
+                            self.label_reset_nrc_7f_sw.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_reset_nrc_22_sw.setEnabled(False)
+                            self.label_reset_nrc_22_sw.setText("Success")
+                    elif txt == "btn_reset_nrc_7f_hw" or txt == "btn_reset_nrc_22_hw":
+                        if tx_result[3] == 0x7f:
+                            self.btn_reset_nrc_7f_hw.setEnabled(False)
+                            self.label_reset_nrc_7f_hw.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_reset_nrc_22_hw.setEnabled(False)
+                            self.label_reset_nrc_22_hw.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
 
     def diag_tester(self, txt):
         # **need to add test failed scenario

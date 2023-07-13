@@ -2040,7 +2040,7 @@
        <property name="geometry">
         <rect>
          <x>40</x>
-         <y>60</y>
+         <y>40</y>
          <width>121</width>
          <height>41</height>
         </rect>
@@ -2052,10 +2052,10 @@
       <widget class="QLabel" name="label_reset_sw">
        <property name="geometry">
         <rect>
-         <x>40</x>
-         <y>110</y>
-         <width>121</width>
-         <height>20</height>
+         <x>30</x>
+         <y>90</y>
+         <width>141</width>
+         <height>41</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -2071,10 +2071,10 @@
       <widget class="QLabel" name="label_reset_hw">
        <property name="geometry">
         <rect>
-         <x>40</x>
+         <x>30</x>
          <y>200</y>
-         <width>121</width>
-         <height>20</height>
+         <width>141</width>
+         <height>41</height>
         </rect>
        </property>
        <property name="styleSheet">
