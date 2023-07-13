@@ -1,7 +1,5 @@
 import time
 
-import can
-import can.interfaces.vector
 import can.interfaces.pcan
 import sig_generator as sig_gen
 from PyQt5 import QtCore

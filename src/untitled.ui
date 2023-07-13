@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -4140,7 +4140,7 @@ Present</string>
         <string>Clear</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btn_write_data_convert">
+      <widget class="QPushButton" name="btn_write_data_send">
        <property name="geometry">
         <rect>
          <x>480</x>
@@ -4150,7 +4150,7 @@ Present</string>
         </rect>
        </property>
        <property name="text">
-        <string>Convert</string>
+        <string>Send</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_flag_convert">
