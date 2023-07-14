@@ -254,6 +254,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_nrc_22_reset.clicked.connect(self.diag_func)
         self.btn_mem_fault_nrc_31_reset.clicked.connect(self.diag_func)
 
+        self.chkbox_diag_functional_domain_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
         self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
         self.btn_diag_reset_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
 
@@ -965,8 +966,17 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_functional_domain_comm_cont.setEnabled(True)
             color = 'black'
             txt = "Not tested"
+            if self.chkbox_diag_functional_domain_comm_cont.isChecked():
+                self.diag_tester_id = 0x18db33f1
+            else:
+                self.diag_tester_id = 0x18da41f1
         else:
+            if self.chkbox_diag_compression_bit_comm_cont.isChecked():
+                self.diag_tester_id = 0x18da41f1
+                self.chkbox_diag_compression_bit_comm_cont.toggle()
             self.chkbox_diag_compression_bit_comm_cont.setEnabled(False)
+            if self.chkbox_diag_functional_domain_comm_cont.isChecked():
+                self.chkbox_diag_functional_domain_comm_cont.toggle()
             self.chkbox_diag_functional_domain_comm_cont.setEnabled(False)
             color = 'gray'
             txt = "Default"
@@ -1026,7 +1036,14 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.btn_mem_fault_list_check.setEnabled(not flag)
                 self.btn_mem_fault_reset.setEnabled(not flag)
                 self.btn_mem_fault_avail_sts_mask.setEnabled(not flag)
+                if self.chkbox_diag_functional_domain_mem_fault.isChecked():
+                    self.diag_tester_id = 0x18db33f1
+                else:
+                    self.diag_tester_id = 0x18da41f1
             else:
+                if self.chkbox_diag_functional_domain_mem_fault.isChecked():
+                    self.diag_tester_id = 0x18da41f1
+                    self.chkbox_diag_functional_domain_mem_fault.toggle()
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(False)
                 color = 'gray'
                 txt = "Default"
@@ -1052,8 +1069,17 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_functional_domain_dtc_cont.setEnabled(True)
             color = 'black'
             txt = "Not tested"
+            if self.chkbox_diag_functional_domain_dtc_cont.isChecked():
+                self.diag_tester_id = 0x18db33f1
+            else:
+                self.diag_tester_id = 0x18da41f1
         else:
+            if self.chkbox_diag_compression_bit_dtc_cont.isChecked():
+                self.diag_tester_id = 0x18da41f1
+                self.chkbox_diag_compression_bit_dtc_cont.toggle()
             self.chkbox_diag_compression_bit_dtc_cont.setEnabled(False)
+            if self.chkbox_diag_functional_domain_dtc_cont.isChecked():
+                self.chkbox_diag_functional_domain_dtc_cont.toggle()
             self.chkbox_diag_functional_domain_dtc_cont.setEnabled(False)
             color = 'gray'
             txt = "Default"
