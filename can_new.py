@@ -199,6 +199,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_comm_cont_nrc_7f_all_dis.released.connect(self.diag_func)
 
         self.chkbox_diag_functional_domain_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+        self.chkbox_diag_compression_bit_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
         self.chkbox_diag_test_mode_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
         self.btn_diag_reset_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
 
@@ -269,6 +270,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_dtc_cont_nrc_22_dis.clicked.connect(self.diag_func)
 
         self.chkbox_diag_test_mode_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.chkbox_diag_functional_domain_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.chkbox_diag_compression_bit_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
         self.btn_diag_reset_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
@@ -2153,35 +2156,50 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker.slider_speed_func(20)
             time.sleep(0.2)
             sig_li = [0x02, 0x85, 0x02]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
+
         if self.chkbox_diag_test_mode_dtc_cont.isChecked():
-            if tx_result[1] == self.diag_success_byte:
-                if tx_result[2] == 0x01:
+            if self.chkbox_diag_compression_bit_comm_cont.isChecked() and (
+                    txt == "btn_dtc_cont_en" or txt == "btn_dtc_cont_dis"):
+                self.diag_data_collector(sig_li, comp_bit=True)
+                if txt == "btn_dtc_cont_en":
                     self.label_dtc_cont_en.setText("Data Success \n Check the DTC availability")
-                elif tx_result[2] == 0x02:
+                elif txt == "btn_dtc_cont_dis":
                     self.label_dtc_cont_dis.setText("Data Success \n Check the DTC disability")
             else:
-                if tx_result[3] == 0x12:
-                    self.btn_dtc_cont_nrc_12.setEnabled(False)
-                    self.label_dtc_cont_nrc_12.setText("Success")
-                elif tx_result[3] == 0x13:
-                    self.btn_dtc_cont_nrc_13.setEnabled(False)
-                    self.label_dtc_cont_nrc_13.setText("Success")
-                elif txt == "btn_dtc_cont_nrc_7f_en" or txt == "btn_dtc_cont_nrc_22_en":
-                    if tx_result[3] == 0x7f:
-                        self.btn_dtc_cont_nrc_7f_en.setEnabled(False)
-                        self.label_dtc_cont_nrc_7f_en.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_dtc_cont_nrc_22_en.setEnabled(False)
-                        self.label_dtc_cont_nrc_22_en.setText("Success")
-                elif txt == "btn_dtc_cont_nrc_7f_dis" or txt == "btn_dtc_cont_nrc_22_dis":
-                    if tx_result[3] == 0x7f:
-                        self.btn_dtc_cont_nrc_7f_dis.setEnabled(False)
-                        self.label_dtc_cont_nrc_7f_dis.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_dtc_cont_nrc_22_dis.setEnabled(False)
-                        self.label_dtc_cont_nrc_22_dis.setText("Success")
+                self.diag_data_collector(sig_li)
+                tx_result = self.res_data[0].data[:4]
+                if tx_result[1] == self.diag_success_byte:
+                    if tx_result[2] == 0x01:
+                        self.label_dtc_cont_en.setText("Data Success \n Check the DTC availability")
+                    elif tx_result[2] == 0x02:
+                        self.label_dtc_cont_dis.setText("Data Success \n Check the DTC disability")
+                else:
+                    if tx_result[3] == 0x12:
+                        self.btn_dtc_cont_nrc_12.setEnabled(False)
+                        self.label_dtc_cont_nrc_12.setText("Success")
+                    elif tx_result[3] == 0x13:
+                        self.btn_dtc_cont_nrc_13.setEnabled(False)
+                        self.label_dtc_cont_nrc_13.setText("Success")
+                    elif txt == "btn_dtc_cont_nrc_7f_en" or txt == "btn_dtc_cont_nrc_22_en":
+                        if tx_result[3] == 0x7f:
+                            self.btn_dtc_cont_nrc_7f_en.setEnabled(False)
+                            self.label_dtc_cont_nrc_7f_en.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_dtc_cont_nrc_22_en.setEnabled(False)
+                            self.label_dtc_cont_nrc_22_en.setText("Success")
+                    elif txt == "btn_dtc_cont_nrc_7f_dis" or txt == "btn_dtc_cont_nrc_22_dis":
+                        if tx_result[3] == 0x7f:
+                            self.btn_dtc_cont_nrc_7f_dis.setEnabled(False)
+                            self.label_dtc_cont_nrc_7f_dis.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_dtc_cont_nrc_22_dis.setEnabled(False)
+                            self.label_dtc_cont_nrc_22_dis.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
+
+        self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
+        self.set_drv_state()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_Enter:
