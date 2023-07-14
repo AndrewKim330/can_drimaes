@@ -1965,48 +1965,64 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker.slider_speed_func(20)
             time.sleep(0.2)
             sig_li = [0x03, 0x28, 0x03, 0x01]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
+
         if self.chkbox_diag_test_mode_comm_cont.isChecked():
-            if tx_result[1] == self.diag_success_byte:
-                if tx_result[2] == 0x00:
-                    self.btn_comm_cont_all_en.setEnabled(False)
-                    self.label_comm_cont_all_en.setText("Success")
-                elif tx_result[2] == 0x01:
+            if self.chkbox_diag_compression_bit_comm_cont.isChecked() and (
+                    txt == "btn_comm_cont_all_en" or txt == "btn_comm_cont_tx_dis" or txt == "btn_comm_cont_all_dis"):
+                self.diag_data_collector(sig_li, comp_bit=True)
+                if txt == "btn_comm_cont_all_en":
+                    self.label_comm_cont_all_en.setText("Data Success \n Check the Tx/Rx availability")
+                elif txt == "btn_comm_cont_tx_dis":
                     self.label_comm_cont_tx_dis.setText("Data Success \n Check the Rx availability")
-                elif tx_result[2] == 0x03:
+                elif txt == "btn_comm_cont_all_dis":
                     self.label_comm_cont_all_dis.setText("Data Success \n Check the Rx disability")
             else:
-                if tx_result[3] == 0x12:
-                    self.btn_comm_cont_nrc_12.setEnabled(False)
-                    self.label_comm_cont_nrc_12.setText("Success")
-                elif tx_result[3] == 0x13:
-                    self.btn_comm_cont_nrc_13.setEnabled(False)
-                    self.label_comm_cont_nrc_13.setText("Success")
-                elif tx_result[3] == 0x31:
-                    self.btn_comm_cont_nrc_31.setEnabled(False)
-                    self.label_comm_cont_nrc_31.setText("Success")
-                elif txt == "btn_comm_cont_nrc_7f_all_en" or txt == "btn_comm_cont_nrc_22_all_en":
-                    if tx_result[3] == 0x7f:
-                        self.btn_comm_cont_nrc_7f_all_en.setEnabled(False)
-                        self.label_comm_cont_nrc_7f_all_en.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_comm_cont_nrc_22_all_en.setEnabled(False)
-                        self.label_comm_cont_nrc_22_all_en.setText("Success")
-                elif txt == "btn_comm_cont_nrc_7f_tx_dis" or txt == "btn_comm_cont_nrc_22_tx_dis":
-                    if tx_result[3] == 0x7f:
-                        self.btn_comm_cont_nrc_7f_tx_dis.setEnabled(False)
-                        self.label_comm_cont_nrc_7f_tx_dis.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_comm_cont_nrc_22_tx_dis.setEnabled(False)
-                        self.label_comm_cont_nrc_22_tx_dis.setText("Success")
-                elif txt == "btn_comm_cont_nrc_7f_all_dis" or txt == "btn_comm_cont_nrc_22_all_dis":
-                    if tx_result[3] == 0x7f:
-                        self.btn_comm_cont_nrc_7f_all_dis.setEnabled(False)
-                        self.label_comm_cont_nrc_7f_all_dis.setText("Success")
-                    elif tx_result[3] == 0x22:
-                        self.btn_comm_cont_nrc_22_all_dis.setEnabled(False)
-                        self.label_comm_cont_nrc_22_all_dis.setText("Success")
+                self.diag_data_collector(sig_li)
+                tx_result = self.res_data[0].data[:4]
+                if tx_result[1] == self.diag_success_byte:
+                    if tx_result[2] == 0x00:
+                        self.label_comm_cont_all_en.setText("Data Success \n Check the Tx/Rx availability")
+                    elif tx_result[2] == 0x01:
+                        self.label_comm_cont_tx_dis.setText("Data Success \n Check the Rx availability")
+                    elif tx_result[2] == 0x03:
+                        self.label_comm_cont_all_dis.setText("Data Success \n Check the Rx disability")
+                else:
+                    if tx_result[3] == 0x12:
+                        self.btn_comm_cont_nrc_12.setEnabled(False)
+                        self.label_comm_cont_nrc_12.setText("Success")
+                    elif tx_result[3] == 0x13:
+                        self.btn_comm_cont_nrc_13.setEnabled(False)
+                        self.label_comm_cont_nrc_13.setText("Success")
+                    elif tx_result[3] == 0x31:
+                        self.btn_comm_cont_nrc_31.setEnabled(False)
+                        self.label_comm_cont_nrc_31.setText("Success")
+                    elif txt == "btn_comm_cont_nrc_7f_all_en" or txt == "btn_comm_cont_nrc_22_all_en":
+                        if tx_result[3] == 0x7f:
+                            self.btn_comm_cont_nrc_7f_all_en.setEnabled(False)
+                            self.label_comm_cont_nrc_7f_all_en.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_comm_cont_nrc_22_all_en.setEnabled(False)
+                            self.label_comm_cont_nrc_22_all_en.setText("Success")
+                    elif txt == "btn_comm_cont_nrc_7f_tx_dis" or txt == "btn_comm_cont_nrc_22_tx_dis":
+                        if tx_result[3] == 0x7f:
+                            self.btn_comm_cont_nrc_7f_tx_dis.setEnabled(False)
+                            self.label_comm_cont_nrc_7f_tx_dis.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_comm_cont_nrc_22_tx_dis.setEnabled(False)
+                            self.label_comm_cont_nrc_22_tx_dis.setText("Success")
+                    elif txt == "btn_comm_cont_nrc_7f_all_dis" or txt == "btn_comm_cont_nrc_22_all_dis":
+                        if tx_result[3] == 0x7f:
+                            self.btn_comm_cont_nrc_7f_all_dis.setEnabled(False)
+                            self.label_comm_cont_nrc_7f_all_dis.setText("Success")
+                        elif tx_result[3] == 0x22:
+                            self.btn_comm_cont_nrc_22_all_dis.setEnabled(False)
+                            self.label_comm_cont_nrc_22_all_dis.setText("Success")
+        else:
+            self.diag_data_collector(sig_li)
+
+        self.drv_state = False
+        self.thread_worker.slider_speed_func(0)
+        self.set_drv_state()
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()

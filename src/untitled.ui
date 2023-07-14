@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -4162,7 +4162,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>80</x>
-         <y>180</y>
+         <y>190</y>
          <width>691</width>
          <height>371</height>
         </rect>
@@ -4469,10 +4469,10 @@ Present</string>
       <widget class="QLabel" name="label_comm_cont_all_en">
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>70</x>
          <y>130</y>
-         <width>171</width>
-         <height>20</height>
+         <width>231</width>
+         <height>51</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -4488,7 +4488,7 @@ Present</string>
       <widget class="QPushButton" name="btn_comm_cont_all_en">
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>100</x>
          <y>60</y>
          <width>171</width>
          <height>61</height>
@@ -4518,7 +4518,7 @@ Present</string>
          <x>320</x>
          <y>130</y>
          <width>211</width>
-         <height>41</height>
+         <height>51</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -4534,10 +4534,10 @@ Present</string>
       <widget class="QLabel" name="label_comm_cont_all_dis">
        <property name="geometry">
         <rect>
-         <x>560</x>
+         <x>570</x>
          <y>130</y>
          <width>191</width>
-         <height>41</height>
+         <height>51</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -4553,7 +4553,7 @@ Present</string>
       <widget class="QPushButton" name="btn_comm_cont_all_dis">
        <property name="geometry">
         <rect>
-         <x>570</x>
+         <x>580</x>
          <y>60</y>
          <width>171</width>
          <height>61</height>
