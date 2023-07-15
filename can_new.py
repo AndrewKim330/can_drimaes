@@ -2,8 +2,9 @@ import os
 import sys
 import can
 import time
+from datetime import datetime
 import security_algorithm as algo
-import dtc_identifier as dtc_id
+import data_identifier as data_id
 import sig_generator as sig_gen
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -37,6 +38,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.data_type = None
         self.log_data = []
 
+        self.tx_chronicle = False
+
         self.diag_tester_id = 0x18da41f1
 
         self.flow = False
@@ -60,6 +63,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.flow_control_len = 0
 
         self.write_secu_nrc = True
+
+        self.tx_set = set()
+        self.tx_dict = dict()
 
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
         self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
@@ -276,10 +282,11 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
-        self.btn_main_console_clear.clicked.connect(self.console_text_clear)
+        self.btn_tx_console_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
         self.btn_write_data_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
+        self.chkbox_tx_chronicle.released.connect(self.console_text_clear)
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
@@ -297,12 +304,12 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
+        self.chkbox_can_dump.released.connect(self.can_dump_mode)
         self.comboBox_log_format.addItem(".blf")
         self.comboBox_log_format.addItem(".asc")
-        self.comboBox_log_format.setEnabled(False)
 
-        self.chkbox_can_dump.released.connect(self.can_dump_mode)
-
+        self.set_mmi_labels_init(False)
+        self.set_general_btns_labels(False)
         self.set_node_btns(False)
         self.set_can_basic_btns_labels(False)
         self.set_diag_basic_btns_labels(False)
@@ -363,9 +370,10 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker.start()
             self.tester_worker.start()
 
+            self.set_mmi_labels_init(True)
+            self.set_general_btns_labels(True)
             self.set_can_basic_btns_labels(True)
             self.set_diag_basic_btns_labels(True)
-            self.thread_worker.test_mode_flag_basic = True
             self.set_diag_did_btns_labels(True)
             self.set_diag_sec_btns_labels(True)
             self.set_diag_write_btns_labels(True)
@@ -377,6 +385,8 @@ class Main(QMainWindow, Ui_MainWindow):
             self.bus_console.appendPlainText("Can bus is not connected")
 
     def thread_stop(self):
+        self.set_mmi_labels_init(False)
+        self.set_general_btns_labels(False)
         self.set_can_basic_btns_labels(False)
 
         self.set_diag_basic_btns_labels(False)
@@ -441,15 +451,17 @@ class Main(QMainWindow, Ui_MainWindow):
         self.thread_worker.stop()
         self.tester_worker.stop()
 
-        self.set_mmi_labels_init()
-
     def send_message(self, bus, sig_id, send_data):
-        if sig_id == 0x18da41f1 or sig_id == 0x18db33f1:
-            self.diag_console.appendPlainText("Tester sends the diagnosis message")
+        if sig_id == 0x18da41f1:
+            self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
+        elif sig_id == 0x18db33f1:
+            self.diag_console.appendPlainText("Tester sends the (functional) diagnosis message")
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
+        self.sig2(message)
         bus.send(message)
+
 
     def can_dump_mode(self):
         self.chkbox_node_acu.toggle()
@@ -599,16 +611,40 @@ class Main(QMainWindow, Ui_MainWindow):
             self.btn_gear_n.setChecked(True)
             self.chkbox_h_brake.setChecked(True)
 
-    def set_mmi_labels_init(self):
+    def set_mmi_labels_init(self, flag):
+        if flag:
+            color = "black"
+        else:
+            color = "gray"
+
+        self.txt_aeb.setStyleSheet(f"color: {color}")
+        self.txt_drv_heat.setStyleSheet(f"color: {color}")
+        self.txt_drv_vent.setStyleSheet(f"color: {color}")
+        self.txt_pass_heat.setStyleSheet(f"color: {color}")
+        self.txt_pass_vent.setStyleSheet(f"color: {color}")
+        self.txt_side_mani.setStyleSheet(f"color: {color}")
+        self.txt_side_heat.setStyleSheet(f"color: {color}")
+        self.txt_st_whl_heat.setStyleSheet(f"color: {color}")
+        self.txt_light.setStyleSheet(f"color: {color}")
+
         self.txt_res_aeb.setText("None")
+        self.txt_res_aeb.setStyleSheet(f"color: {color}")
         self.txt_res_drv_heat.setText("OFF")
+        self.txt_res_drv_heat.setStyleSheet(f"color: {color}")
         self.txt_res_drv_vent.setText("OFF")
+        self.txt_res_drv_vent.setStyleSheet(f"color: {color}")
         self.txt_res_pass_heat.setText("OFF")
+        self.txt_res_pass_heat.setStyleSheet(f"color: {color}")
         self.txt_res_pass_vent.setText("OFF")
+        self.txt_res_pass_vent.setStyleSheet(f"color: {color}")
         self.txt_res_side_mani.setText("None")
+        self.txt_res_side_mani.setStyleSheet(f"color: {color}")
         self.txt_res_side_heat.setText("None")
+        self.txt_res_side_heat.setStyleSheet(f"color: {color}")
         self.txt_res_st_whl_heat.setText("OFF")
+        self.txt_res_st_whl_heat.setStyleSheet(f"color: {color}")
         self.txt_res_light.setText("OFF")
+        self.txt_res_light.setStyleSheet(f"color: {color}")
 
     def set_node_btns(self, flag):
         self.chkbox_node_acu.setEnabled(flag)
@@ -621,6 +657,12 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_node_pms_c.setEnabled(flag)
         self.chkbox_node_bms.setEnabled(flag)
         self.chkbox_node_mcu.setEnabled(flag)
+
+    def set_general_btns_labels(self, flag):
+        self.chkbox_save_log.setEnabled(flag)
+        self.btn_save_log.setEnabled(flag)
+        self.chkbox_can_dump.setEnabled(flag)
+        self.comboBox_log_format.setEnabled(flag)
 
     def set_can_basic_btns_labels(self, flag):
         if flag:
@@ -683,6 +725,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_FltSwtHiSide.setEnabled(flag)
         self.btn_mscs_SigFailr.setEnabled(flag)
 
+        self.slider_speed.setEnabled(flag)
         self.slider_battery.setEnabled(flag)
         self.chkbox_charge.setEnabled(flag)
 
@@ -795,10 +838,18 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_functional_domain_did.setEnabled(False)
             color = 'gray'
             txt = "Default"
+            id_color = color
             self.txt_domain = txt
             self.flag_domain = flag
             self.color_domain = color
 
+        if self.sender():
+            if self.sender().objectName() == "btn_bus_start":
+                self.label_id.setStyleSheet(f"color: black")
+            elif self.sender().objectName() == "btn_bus_stop":
+                self.label_id.setStyleSheet(f"color: gray")
+
+        self.lineEdit_id_data.setEnabled(flag)
         self.btn_id_ecu_num.setEnabled(self.flag_domain)
         self.label_id_ecu_num.setText(f"{self.txt_domain}")
         self.label_id_ecu_num.setStyleSheet(f"color: {self.color_domain}")
@@ -890,6 +941,14 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             color = 'gray'
             txt = "Default"
+
+        if self.sender():
+            if self.sender().objectName() == "btn_bus_start":
+                self.label_write.setStyleSheet(f"color: black")
+                self.label_flag_send.setStyleSheet(f"color: black")
+            elif self.sender().objectName() == "btn_bus_stop":
+                self.label_write.setStyleSheet(f"color: gray")
+                self.label_flag_send.setStyleSheet(f"color: gray")
 
         self.lineEdit_write_data.setEnabled(flag)
         self.btn_write_data_clear.setEnabled(flag)
@@ -1026,6 +1085,18 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_comm_cont.setEnabled(flag)
 
     def set_diag_mem_fault_btns_labels(self, flag=True):
+        if self.chkbox_diag_test_mode_mem_fault.isChecked():
+            color = 'black'
+            txt = "Not tested"
+        else:
+            color = 'gray'
+            txt = "Default"
+
+        self.btn_diag_reset_mem_fault.setEnabled(flag)
+        self.chkbox_diag_test_mode_mem_fault.setEnabled(flag)
+        self.chkbox_diag_functional_domain_mem_fault.setEnabled(flag)
+        self.diag_dtc_console.setEnabled(flag)
+        self.btn_diag_dtc_console_clear.setEnabled(flag)
         self.btn_mem_fault_num_check.setEnabled(flag)
         self.btn_mem_fault_list_check.setEnabled(flag)
         self.btn_mem_fault_reset.setEnabled(flag)
@@ -1033,8 +1104,8 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.sender():
             if self.chkbox_diag_test_mode_mem_fault.isChecked():
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(True)
-                color = 'black'
-                txt = "Not tested"
+                # color = 'black'
+                # txt = "Not tested"
                 self.btn_mem_fault_num_check.setEnabled(not flag)
                 self.btn_mem_fault_list_check.setEnabled(not flag)
                 self.btn_mem_fault_reset.setEnabled(not flag)
@@ -1048,23 +1119,23 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_tester_id = 0x18da41f1
                     self.chkbox_diag_functional_domain_mem_fault.toggle()
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(False)
-                color = 'gray'
-                txt = "Default"
-            self.btn_mem_fault_nrc_12.setEnabled(flag)
-            self.label_mem_fault_nrc_12.setText(f"{txt}")
-            self.label_mem_fault_nrc_12.setStyleSheet(f"color: {color}")
-            self.btn_mem_fault_nrc_13.setEnabled(flag)
-            self.label_mem_fault_nrc_13.setText(f"{txt}")
-            self.label_mem_fault_nrc_13.setStyleSheet(f"color: {color}")
-            self.btn_mem_fault_nrc_13_reset.setEnabled(flag)
-            self.label_mem_fault_nrc_13_reset.setText(f"{txt}")
-            self.label_mem_fault_nrc_13_reset.setStyleSheet(f"color: {color}")
-            self.btn_mem_fault_nrc_22_reset.setEnabled(flag)
-            self.label_mem_fault_nrc_22_reset.setText(f"{txt}")
-            self.label_mem_fault_nrc_22_reset.setStyleSheet(f"color: {color}")
-            self.btn_mem_fault_nrc_31_reset.setEnabled(flag)
-            self.label_mem_fault_nrc_31_reset.setText(f"{txt}")
-            self.label_mem_fault_nrc_31_reset.setStyleSheet(f"color: {color}")
+                # color = 'gray'
+                # txt = "Default"
+        self.btn_mem_fault_nrc_12.setEnabled(flag)
+        self.label_mem_fault_nrc_12.setText(f"{txt}")
+        self.label_mem_fault_nrc_12.setStyleSheet(f"color: {color}")
+        self.btn_mem_fault_nrc_13.setEnabled(flag)
+        self.label_mem_fault_nrc_13.setText(f"{txt}")
+        self.label_mem_fault_nrc_13.setStyleSheet(f"color: {color}")
+        self.btn_mem_fault_nrc_13_reset.setEnabled(flag)
+        self.label_mem_fault_nrc_13_reset.setText(f"{txt}")
+        self.label_mem_fault_nrc_13_reset.setStyleSheet(f"color: {color}")
+        self.btn_mem_fault_nrc_22_reset.setEnabled(flag)
+        self.label_mem_fault_nrc_22_reset.setText(f"{txt}")
+        self.label_mem_fault_nrc_22_reset.setStyleSheet(f"color: {color}")
+        self.btn_mem_fault_nrc_31_reset.setEnabled(flag)
+        self.label_mem_fault_nrc_31_reset.setText(f"{txt}")
+        self.label_mem_fault_nrc_31_reset.setStyleSheet(f"color: {color}")
 
     def set_diag_dtc_cont_btns_labels(self, flag=True):
         if self.chkbox_diag_test_mode_dtc_cont.isChecked():
@@ -1116,15 +1187,17 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_dtc_cont.setEnabled(flag)
 
     def console_text_clear(self, txt=None):
-        if self.sender().objectName() == "btn_main_console_clear":
-            self.main_console.clear()
+        if self.sender().objectName() == "btn_tx_console_clear":
+            self.tableWidget_tx.clear()
         elif self.sender().objectName() == "btn_diag_console_clear":
             self.diag_console.clear()
         elif self.sender().objectName() == "btn_write_data_clear" or txt:
-            self.label_flag_convert.setText("Fill the data")
+            self.label_flag_send.setText("Fill the data")
             self.lineEdit_write_data.clear()
         elif self.sender().objectName() == "btn_diag_dtc_console_clear":
             self.diag_dtc_console.clear()
+        elif self.sender().objectName() == "chkbox_tx_chronicle":
+            self.tableWidget_tx.clear()
 
     def diag_initialization(self):
         self.flow_control_len = 1
@@ -1242,7 +1315,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def write_data_sender(self):
         self.write_txt = self.lineEdit_write_data.text()
-        self.label_flag_convert.setText(f'Sended data : {self.write_txt}, length: {len(self.write_txt)}')
+        self.label_flag_send.setText(f'Sended data : {self.write_txt}, length: {len(self.write_txt)}')
 
     def write_data_not_correct(self, txt):
         if txt == "btn_write_vin":
@@ -1265,7 +1338,33 @@ class Main(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(can.Message)
     def sig2(self, tx_single):
-        self.main_console.appendPlainText(str(tx_single))
+        tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
+        tx_time = QTableWidgetItem(str(tx_datetime)[11:-4])
+        tx_id = QTableWidgetItem(hex(tx_single.arbitration_id))
+        tx_name = QTableWidgetItem(data_id.can_id_identifier(tx_single.arbitration_id))
+        data_str = ''
+        for hex_val in tx_single.data:
+            data_str += (hex(hex_val)[2:].upper().zfill(2) + ' ')
+        tx_data = QTableWidgetItem(data_str)
+        if self.chkbox_tx_chronicle.isChecked():
+            row_position = self.tableWidget_tx.rowCount()
+            self.tableWidget_tx.insertRow(row_position)
+            self.tableWidget_tx.setItem(row_position-1, 0, tx_time)
+            self.tableWidget_tx.setItem(row_position-1, 1, tx_id)
+            self.tableWidget_tx.setItem(row_position-1, 2, tx_name)
+            self.tableWidget_tx.setItem(row_position-1, 3, tx_data)
+        else:
+            len_prev = len(self.tx_set)
+            self.tx_set.add(tx_single.arbitration_id)
+            len_now = len(self.tx_set)
+            if len_now - len_prev != 0:
+                row_position = self.tableWidget_tx.rowCount()
+                self.tableWidget_tx.insertRow(row_position)
+                self.tx_dict[tx_single.arbitration_id] = len(self.tx_dict)
+            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 0, tx_time)
+            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
+            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
+            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
 
     def diag_func(self):
         if self.sender():
@@ -1864,7 +1963,7 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker.reservoir = []
             QtCore.QCoreApplication.processEvents()
             self.diag_console.appendPlainText(str(self.res_data[-1]))
-        self.label_flag_convert.setText(f'Fill the data')
+        self.label_flag_send.setText(f'Fill the data')
 
         tx_result = self.res_data[-1].data[:4]
         if self.chkbox_diag_test_mode_write.isChecked():
@@ -2078,7 +2177,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
                 single_dtc = self.raw_data[st:st+4]
                 st += 4
-                dtc_name = dtc_id.dtc_identifier(single_dtc)
+                dtc_name = data_id.data_identifier(single_dtc)
                 self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         else:
             if txt == "btn_mem_fault_num_check":

@@ -127,3 +127,64 @@ def dtc_identifier(dtc_li):
                 return 'Control Module CAN bus Off (C-CAN)'
     else:
         return 'No Code'
+
+
+def can_id_identifier(can_id):
+    if can_id == 0x0CFE6C17:
+        return "IC_TC01"
+    elif can_id == 0x18FEC117:
+        return "IC_VDHR"
+    elif can_id == 0x18F0120B:
+        return "ESC_ABS_BrakeSysSts"
+    elif can_id == 0x0CFFB291:
+        return "SasChas1Fr01"
+    elif can_id == 0x18FFA57F:
+        return "HVSM_MMIFBSts"
+    elif can_id == 0x0CF02FA0:
+        return "FCS_AEBS1"
+    elif can_id == 0x18FE5BE8:
+        return "FCS_FLI2"
+    elif can_id == 0x18FFD741:
+        return "MMI_ShowApp"
+    elif can_id == 0x18FFD841:
+        return "MMI_SoftSwSet"
+    elif can_id == 0x0C0BA021:
+        return "MMI_AEBS2"
+    elif can_id == 0x18A9E821:
+        return "MMI_FLIC"
+    elif can_id == 0x18FF6341:
+        return "MMI_OTAStatus"
+    elif can_id == 0x18FF4B41:
+        return "MMI_Safety_Command"
+    elif can_id == 0x18FAC490:
+        return "ACU_Status"
+    elif can_id == 0x0CFAB127:
+        return "PMS_BodyControlInfo"
+    elif can_id == 0x18FAB027:
+        return "PMS_PTInfoIndicate"
+    elif can_id == 0x18FF8621:
+        return "BCM_StateUpdate"
+    elif can_id == 0x18FF8721:
+        return "BCM_LightChimeReq"
+    elif can_id == 0x18FFD521:
+        return "BCM_MMIFBSts"
+    elif can_id == 0x18FA7F21:
+        return "SWS-LIN"
+    elif can_id == 0x18FF0721:
+        return "SwmCem_Lin4Fr02"
+    elif can_id == 0x18DA41F1:
+        return "MMI_DiagReq"
+    elif can_id == 0x18DAF141:
+        return "MMI_DiagResp"
+    elif can_id == 0x18DB33F1:
+        return "Func_DiagReq"
+    elif can_id == 0x0CFA01EF:
+        return "MCU_MotorElePara"
+    elif can_id == 0x18FA40F4:
+        return "BMS_BatteryInfo"
+    elif can_id == 0x18FA3EF4:
+        return "BMS_ChgInfo"
+    elif can_id == 0x18FAB327:
+        return "PMS_VRI"
+    else:
+        return "No matching id"
