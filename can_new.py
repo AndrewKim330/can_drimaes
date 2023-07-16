@@ -12,7 +12,6 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtGui import *
 from can import interfaces
 
-
 import can_thread as worker
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -308,6 +307,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.comboBox_log_format.addItem(".blf")
         self.comboBox_log_format.addItem(".asc")
 
+        self.item = []
+        self.treeWidget_tx.setAutoScroll(False)
+
         self.set_mmi_labels_init(False)
         self.set_general_btns_labels(False)
         self.set_node_btns(False)
@@ -459,9 +461,8 @@ class Main(QMainWindow, Ui_MainWindow):
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
-        self.sig2(message)
+        self.thread_worker.signal_emit(message)
         bus.send(message)
-
 
     def can_dump_mode(self):
         self.chkbox_node_acu.toggle()
@@ -1339,32 +1340,65 @@ class Main(QMainWindow, Ui_MainWindow):
     @pyqtSlot(can.Message)
     def sig2(self, tx_single):
         tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
-        tx_time = QTableWidgetItem(str(tx_datetime)[11:-4])
-        tx_id = QTableWidgetItem(hex(tx_single.arbitration_id))
-        tx_name = QTableWidgetItem(data_id.can_id_identifier(tx_single.arbitration_id))
-        data_str = ''
+        tx_time = str(tx_datetime)[11:-4]
+        tx_id = hex(tx_single.arbitration_id)
+        if tx_id == 0x18ffa57f:
+            print("hsvm")
+        tx_name = data_id.can_id_identifier(tx_single.arbitration_id)
+        tx_data = ''
         for hex_val in tx_single.data:
-            data_str += (hex(hex_val)[2:].upper().zfill(2) + ' ')
-        tx_data = QTableWidgetItem(data_str)
+            tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
         if self.chkbox_tx_chronicle.isChecked():
-            row_position = self.tableWidget_tx.rowCount()
-            self.tableWidget_tx.insertRow(row_position)
-            self.tableWidget_tx.setItem(row_position-1, 0, tx_time)
-            self.tableWidget_tx.setItem(row_position-1, 1, tx_id)
-            self.tableWidget_tx.setItem(row_position-1, 2, tx_name)
-            self.tableWidget_tx.setItem(row_position-1, 3, tx_data)
+            item = QTreeWidgetItem()
+            item.setText(0, tx_time)
+            item.setText(1, tx_id)
+            item.setText(2, tx_name)
+            item.setText(3, tx_data)
+            self.treeWidget_tx.addTopLevelItems([item])
+            # row_position = self.tableWidget_tx.rowCount()
+            # self.tableWidget_tx.insertRow(row_position)
+            # self.tableWidget_tx.setItem(row_position-1, 0, tx_time)
+            # self.tableWidget_tx.setItem(row_position-1, 1, tx_id)
+            # self.tableWidget_tx.setItem(row_position-1, 2, tx_name)
+            # self.tableWidget_tx.setItem(row_position-1, 3, tx_data)
         else:
             len_prev = len(self.tx_set)
             self.tx_set.add(tx_single.arbitration_id)
             len_now = len(self.tx_set)
-            if len_now - len_prev != 0:
-                row_position = self.tableWidget_tx.rowCount()
-                self.tableWidget_tx.insertRow(row_position)
-                self.tx_dict[tx_single.arbitration_id] = len(self.tx_dict)
-            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 0, tx_time)
-            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
-            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
-            self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
+            if len_now - len_prev == 0:
+                for item in self.item:
+                    if tx_id == item.text(1):
+                        item.setText(0, tx_time)
+                        item.setText(1, tx_id)
+                        item.setText(2, tx_name)
+                        item.setText(3, tx_data)
+
+            else:
+                item = QTreeWidgetItem()
+                item.setText(0, tx_time)
+                item.setText(1, tx_id)
+                item.setText(2, tx_name)
+                item.setText(3, tx_data)
+                # print(item.text(1))
+                self.item.append(item)
+                self.treeWidget_tx.addTopLevelItems(self.item)
+
+            #     self.tableWidget_tx.insertRow(row_position)
+            #     self.tx_dict[tx_single.arbitration_id] = len(self.tx_dict)
+            # self.tableWidget_tx.setItem(0self.tx_dict[tx_single.arbitration_id], 0, tx_time)
+            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
+            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
+            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
+
+            # item.setText(1, tx_time)
+            # self.treeWidget_tx.addTopLevelItems([item])
+            # item1 = self.treeWidget_tx.topLevelItem(1)
+            # item1.setText(tx_time)
+            # setItem(0
+            # self.tx_dict[tx_single.arbitration_id], 0, tx_time)
+            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
+            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
+            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
 
     def diag_func(self):
         if self.sender():
@@ -2177,7 +2211,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
                 single_dtc = self.raw_data[st:st+4]
                 st += 4
-                dtc_name = data_id.data_identifier(single_dtc)
+                dtc_name = data_id.dtc_identifier(single_dtc)
                 self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         else:
             if txt == "btn_mem_fault_num_check":
@@ -2200,7 +2234,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             elif txt == "btn_mem_fault_nrc_31_reset":
                 sig_li = [0x04, 0x14, 0x11, 0x11, 0x11]
-            self.diag_data_collector(sig_li)
+        self.diag_data_collector(sig_li)
         tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_mem_fault.isChecked():
             if tx_result[2] == 0x19:

@@ -7,6 +7,8 @@ from PyQt5.QtCore import *
 
 
 class NodeThread(QThread):
+    sig2 = pyqtSignal(can.Message)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -27,11 +29,9 @@ class NodeThread(QThread):
 
 
 class ThreadWorker(NodeThread):
-    sig2 = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.parent = parent
         self._isRunning = True
         self.reservoir = []
 
@@ -129,9 +129,12 @@ class ThreadWorker(NodeThread):
                     self.parent.txt_res_aeb.setText("OFF")
                 else:
                     self.parent.txt_res_aeb.setText("None")
-            self.sig2.emit(a)
+            self.signal_emit(a)
             self.state_check()
             QtCore.QCoreApplication.processEvents()
+
+    def signal_emit(self, sig):
+        self.sig2.emit(sig)
 
     def state_check(self):
         # driving state check
