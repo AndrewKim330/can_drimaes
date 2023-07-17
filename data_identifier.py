@@ -129,62 +129,130 @@ def dtc_identifier(dtc_li):
         return 'No Code'
 
 
-def can_id_identifier(can_id):
+def message_info_by_can_id(can_id):
+    info_set = []
     if can_id == 0x0CFE6C17:
-        return "IC_TC01"
+        info_set.append("IC_TC01")
+        info_set.append({"name": "IC_TachographVehicleSpeed", "bit_st_pos": 48, "bit_len": 16})
+        return info_set
     elif can_id == 0x18FEC117:
-        return "IC_VDHR"
+        info_set.append("IC_VDHR")
+        return info_set
     elif can_id == 0x18F0120B:
-        return "ESC_ABS_BrakeSysSts"
+        info_set.append("ESC_ABS_BrakeSysSts")
+        return info_set
     elif can_id == 0x0CFFB291:
-        return "SasChas1Fr01"
+        info_set.append("SasChas1Fr01")
+        return info_set
     elif can_id == 0x18FFA57F:
-        return "HVSM_MMIFBSts"
+        info_set.append("HVSM_MMIFBSts")
+        return info_set
     elif can_id == 0x0CF02FA0:
-        return "FCS_AEBS1"
+        info_set.append("FCS_AEBS1")
+        return info_set
     elif can_id == 0x18FE5BE8:
-        return "FCS_FLI2"
+        info_set.append("FCS_FLI2")
+        return info_set
     elif can_id == 0x18FFD741:
-        return "MMI_ShowApp"
+        info_set.append("MMI_ShowApp")
+        info_set.append({"name": "MMI_SteerWhlHeatgOnCmd", 0: "Off", 1: "Lo", 2: "Med", 3: "Hi", "bit_st_pos": 0, "bit_len": 2})
+        info_set.append({"name": "MMI_SteerWhlTTun", "bit_st_pos": 2, "bit_len": 4})
+        info_set.append({"name": "MMI_DrvSeatHeatgLvlSet", 0: "OFF", 1: "Level 1_Low", 2: "Level 2_Middle", 3: "Level 3_High", "bit_st_pos": 8, "bit_len": 2})
+        info_set.append({"name": "MMI_PassSeatHeatgLvlSet", 0: "OFF", 1: "Level 1_Low", 2: "Level 2_Middle", 3: "Level 3_High", "bit_st_pos": 10, "bit_len": 2})
+        info_set.append({"name": "MMI_DrvSeatVentnLvlSet", 0: "OFF", 1: "Level 1_Low", 2: "Level 2_Middle", 3: "Level 3_High", "bit_st_pos": 12, "bit_len": 2})
+        info_set.append({"name": "MMI_PassSeatVentnLvlSet", 0: "OFF", 1: "Level 1_Low", 2: "Level 2_Middle", 3: "Level 3_High", "bit_st_pos": 14, "bit_len": 2})
+        info_set.append({"name": "MMI_TPMS_Reset_Set", 0: "No request", 1: "Request reset", 2: "Reserved", 3: "Invalid", "bit_st_pos": 16, "bit_len": 2})
+        info_set.append({"name": "MMI_RearJustRequest", 0: "No request", 1: "Off", 2: "On", 3: "Reserved", "bit_st_pos": 18, "bit_len": 2})
+        return info_set
     elif can_id == 0x18FFD841:
-        return "MMI_SoftSwSet"
+        info_set.append("MMI_SoftSwSet")
+        return info_set
     elif can_id == 0x0C0BA021:
-        return "MMI_AEBS2"
+        info_set.append("MMI_AEBS2")
+        return info_set
     elif can_id == 0x18A9E821:
-        return "MMI_FLIC"
+        info_set.append("MMI_FLIC")
+        return info_set
     elif can_id == 0x18FF6341:
-        return "MMI_OTAStatus"
+        info_set.append("MMI_OTAStatus")
+        return info_set
     elif can_id == 0x18FF4B41:
-        return "MMI_Safety_Command"
+        info_set.append("MMI_Safety_Command")
+        return info_set
     elif can_id == 0x18FAC490:
-        return "ACU_Status"
+        info_set.append("ACU_Status")
+        return info_set
     elif can_id == 0x0CFAB127:
-        return "PMS_BodyControlInfo"
+        info_set.append("PMS_BodyControlInfo")
+        return info_set
     elif can_id == 0x18FAB027:
-        return "PMS_PTInfoIndicate"
+        info_set.append("PMS_PTInfoIndicate")
+        return info_set
     elif can_id == 0x18FF8621:
-        return "BCM_StateUpdate"
+        info_set.append("BCM_StateUpdate")
+        return info_set
     elif can_id == 0x18FF8721:
-        return "BCM_LightChimeReq"
+        info_set.append("BCM_LightChimeReq")
+        return info_set
     elif can_id == 0x18FFD521:
-        return "BCM_MMIFBSts"
+        info_set.append("BCM_MMIFBSts")
+        return info_set
     elif can_id == 0x18FA7F21:
-        return "SWS-LIN"
+        info_set.append("SWS-LIN")
+        return info_set
     elif can_id == 0x18FF0721:
-        return "SwmCem_Lin4Fr02"
+        info_set.append("SwmCem_Lin4Fr02")
+        return info_set
     elif can_id == 0x18DA41F1:
-        return "MMI_DiagReq"
+        info_set.append("MMI_DiagReq")
+        return info_set
     elif can_id == 0x18DAF141:
-        return "MMI_DiagResp"
+        info_set.append("MMI_DiagResp")
+        return info_set
     elif can_id == 0x18DB33F1:
-        return "Func_DiagReq"
+        info_set.append("Func_DiagReq")
+        return info_set
     elif can_id == 0x0CFA01EF:
-        return "MCU_MotorElePara"
+        info_set.append("MCU_MotorElePara")
+        return info_set
     elif can_id == 0x18FA40F4:
-        return "BMS_BatteryInfo"
+        info_set.append("BMS_BatteryInfo")
+        return info_set
     elif can_id == 0x18FA3EF4:
-        return "BMS_ChgInfo"
+        info_set.append("BMS_ChgInfo")
+        return info_set
     elif can_id == 0x18FAB327:
-        return "PMS_VRI"
+        info_set.append("PMS_VRI")
+        return info_set
     else:
-        return "No matching id"
+        info_set.append("No matching id")
+        return info_set
+
+
+def data_matcher(tx, sub_mess):
+    byte_pos = int(sub_mess["bit_st_pos"] / 8)
+
+    try:
+        bin_data = bin(tx.data[byte_pos])[2:].zfill(8)
+        if sub_mess["name"] == "IC_TachographVehicleSpeed":
+            print(bin_data)
+        bin_st_pos = 8 - sub_mess["bit_st_pos"] % 8 - sub_mess["bit_len"]
+        sig = int(bin_data[bin_st_pos:bin_st_pos + sub_mess["bit_len"]], 2)
+        return sub_mess[sig]
+    except KeyError:
+        return str(sig)
+        # if sub_mess["name"] == "MMI_SteerWhlHeatgOnCmd":
+        #     sig = str_whl_heat
+        # elif sub_mess["name"] == "MMI_PassSeatVentnLvlSet":
+        #     sig = sig_pass_vent
+        # elif sub_mess["name"] == "MMI_PassSeatVentnLvlSet":
+        #     sig = sig_drv_vent
+        # elif sub_mess["name"] == "MMI_PassSeatHeatgLvlSet":
+        #     sig = sig_pass_heat
+        # elif sub_mess["name"] == "MMI_PassSeatHeatgLvlSet":
+        #     sig = sig_pass_heat
+        # elif sub_mess["name"] == "MMI_DrvSeatHeatgLvlSet":
+        #     sig = sig_drv_heat
+        # return sub_mess[sig]
+        # else:
+

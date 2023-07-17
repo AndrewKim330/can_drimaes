@@ -285,7 +285,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
         self.btn_write_data_clear.clicked.connect(self.console_text_clear)
         self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
-        self.chkbox_tx_chronicle.released.connect(self.console_text_clear)
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
@@ -308,7 +307,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.comboBox_log_format.addItem(".asc")
 
         self.item = []
-        self.treeWidget_tx.setAutoScroll(False)
+        self.btn_fixed_watch.setChecked(True)
+        self.btn_fixed_watch.toggled.connect(self.console_text_clear)
+        self.btn_chronicle_watch.toggled.connect(self.console_text_clear)
 
         self.set_mmi_labels_init(False)
         self.set_general_btns_labels(False)
@@ -458,7 +459,7 @@ class Main(QMainWindow, Ui_MainWindow):
             self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
         elif sig_id == 0x18db33f1:
             self.diag_console.appendPlainText("Tester sends the (functional) diagnosis message")
-        message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data)
+        message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
         self.thread_worker.signal_emit(message)
@@ -1188,17 +1189,18 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_dtc_cont.setEnabled(flag)
 
     def console_text_clear(self, txt=None):
-        if self.sender().objectName() == "btn_tx_console_clear":
-            self.tableWidget_tx.clear()
-        elif self.sender().objectName() == "btn_diag_console_clear":
+        btn_name = self.sender().objectName()
+        if btn_name == "btn_diag_console_clear":
             self.diag_console.clear()
-        elif self.sender().objectName() == "btn_write_data_clear" or txt:
+        elif btn_name == "btn_write_data_clear" or txt:
             self.label_flag_send.setText("Fill the data")
             self.lineEdit_write_data.clear()
-        elif self.sender().objectName() == "btn_diag_dtc_console_clear":
+        elif btn_name == "btn_diag_dtc_console_clear":
             self.diag_dtc_console.clear()
-        elif self.sender().objectName() == "chkbox_tx_chronicle":
-            self.tableWidget_tx.clear()
+        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch":
+            self.tx_set = set()
+            self.item = []
+            self.treeWidget_tx.clear()
 
     def diag_initialization(self):
         self.flow_control_len = 1
@@ -1342,63 +1344,63 @@ class Main(QMainWindow, Ui_MainWindow):
         tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
         tx_time = str(tx_datetime)[11:-4]
         tx_id = hex(tx_single.arbitration_id)
-        if tx_id == 0x18ffa57f:
-            print("hsvm")
-        tx_name = data_id.can_id_identifier(tx_single.arbitration_id)
+        if tx_single.channel:
+            if str(tx_single.channel) == "PCAN_USBBUS1":
+                tx_channel = "C-CAN"
+            elif str(tx_single.channel) == "PCAN_USBBUS2":
+                tx_channel = "P-CAN"
+            elif tx_single.channel == 0:
+                tx_channel = "C-CAN"
+            elif tx_single.channel == 1:
+                tx_channel = "P-CAN"
+        else:
+            tx_channel = "C-CAN"
+        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id)
+        tx_name = tx_message_info[0]
         tx_data = ''
         for hex_val in tx_single.data:
             tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
-        if self.chkbox_tx_chronicle.isChecked():
+        if self.btn_chronicle_watch.isChecked():
             item = QTreeWidgetItem()
             item.setText(0, tx_time)
             item.setText(1, tx_id)
             item.setText(2, tx_name)
-            item.setText(3, tx_data)
+            item.setText(3, tx_channel)
+            item.setText(4, tx_data)
             self.treeWidget_tx.addTopLevelItems([item])
-            # row_position = self.tableWidget_tx.rowCount()
-            # self.tableWidget_tx.insertRow(row_position)
-            # self.tableWidget_tx.setItem(row_position-1, 0, tx_time)
-            # self.tableWidget_tx.setItem(row_position-1, 1, tx_id)
-            # self.tableWidget_tx.setItem(row_position-1, 2, tx_name)
-            # self.tableWidget_tx.setItem(row_position-1, 3, tx_data)
-        else:
+        elif self.btn_fixed_watch.isChecked():
             len_prev = len(self.tx_set)
-            self.tx_set.add(tx_single.arbitration_id)
+            identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
+            self.tx_set.add(identifier)
             len_now = len(self.tx_set)
             if len_now - len_prev == 0:
                 for item in self.item:
-                    if tx_id == item.text(1):
+                    if tx_id == item.text(1) and tx_channel == item.text(3):
                         item.setText(0, tx_time)
                         item.setText(1, tx_id)
                         item.setText(2, tx_name)
-                        item.setText(3, tx_data)
-
+                        item.setText(3, tx_channel)
+                        item.setText(4, tx_data)
+                        if tx_single.arbitration_id == 0x0CFE6C17:
+                            for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
+                                item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
+                        break
             else:
                 item = QTreeWidgetItem()
                 item.setText(0, tx_time)
                 item.setText(1, tx_id)
                 item.setText(2, tx_name)
-                item.setText(3, tx_data)
-                # print(item.text(1))
+                item.setText(3, tx_channel)
+                item.setText(4, tx_data)
+                if tx_single.arbitration_id == 0x0CFE6C17:
+                    for sub_message in tx_message_info[1:]:
+                        sub_item = QTreeWidgetItem(item)
+                        sub_item.setText(0, sub_message["name"])
+                        sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
 
-            #     self.tableWidget_tx.insertRow(row_position)
-            #     self.tx_dict[tx_single.arbitration_id] = len(self.tx_dict)
-            # self.tableWidget_tx.setItem(0self.tx_dict[tx_single.arbitration_id], 0, tx_time)
-            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
-            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
-            # self.tableWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
-
-            # item.setText(1, tx_time)
-            # self.treeWidget_tx.addTopLevelItems([item])
-            # item1 = self.treeWidget_tx.topLevelItem(1)
-            # item1.setText(tx_time)
-            # setItem(0
-            # self.tx_dict[tx_single.arbitration_id], 0, tx_time)
-            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 1, tx_id)
-            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 2, tx_name)
-            # self.treeWidget_tx.setItem(self.tx_dict[tx_single.arbitration_id], 3, tx_data)
+                # self.treeWidget_tx.verticalScrollBar().maximum()
 
     def diag_func(self):
         if self.sender():

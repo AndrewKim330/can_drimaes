@@ -7,7 +7,6 @@ from PyQt5.QtCore import *
 
 
 class NodeThread(QThread):
-    sig2 = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -15,6 +14,7 @@ class NodeThread(QThread):
         self._isRunning = True
         self.period = 0.100
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        self.mmi_hvac = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
     def run(self):
         while self._isRunning:
@@ -29,6 +29,7 @@ class NodeThread(QThread):
 
 
 class ThreadWorker(NodeThread):
+    sig2 = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -38,6 +39,7 @@ class ThreadWorker(NodeThread):
     def run(self):
         while self._isRunning:
             a = self.parent.c_can_bus.recv()
+            self.signal_emit(a)
             if self.parent.chkbox_save_log.isChecked():
                 self.parent.log_data.append(a)
             if a.arbitration_id == 0x18daf141:
@@ -45,6 +47,8 @@ class ThreadWorker(NodeThread):
             if a.arbitration_id == 0x18ffd741:
                 self.parent.pms_s_hvsm_worker.data[0] = a.data[1]
                 hvsm_tx = bin(a.data[1])[2:].zfill(8)
+
+                self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
                 if int(hvsm_tx[6:], 2) == 3:
                     self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
                 elif int(hvsm_tx[6:], 2) == 2:
@@ -54,6 +58,7 @@ class ThreadWorker(NodeThread):
                 elif int(hvsm_tx[6:], 2) == 0:
                     self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
 
+                self.mmi_hvac[4] = int(hvsm_tx[2:4], 2)
                 if int(hvsm_tx[2:4], 2) == 3:
                     self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
                 elif int(hvsm_tx[2:4], 2) == 2:
@@ -63,6 +68,7 @@ class ThreadWorker(NodeThread):
                 elif int(hvsm_tx[2:4], 2) == 0:
                     self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
 
+                self.mmi_hvac[3] = int(hvsm_tx[4:6], 2)
                 if int(hvsm_tx[4:6], 2) == 3:
                     self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
                 elif int(hvsm_tx[4:6], 2) == 2:
@@ -72,6 +78,7 @@ class ThreadWorker(NodeThread):
                 elif int(hvsm_tx[4:6], 2) == 0:
                     self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
 
+                self.mmi_hvac[5] = int(hvsm_tx[:2], 2)
                 if int(hvsm_tx[:2], 2) == 3:
                     self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
                 elif int(hvsm_tx[:2], 2) == 2:
@@ -129,7 +136,6 @@ class ThreadWorker(NodeThread):
                     self.parent.txt_res_aeb.setText("OFF")
                 else:
                     self.parent.txt_res_aeb.setText("None")
-            self.signal_emit(a)
             self.state_check()
             QtCore.QCoreApplication.processEvents()
 
