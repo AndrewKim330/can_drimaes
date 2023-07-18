@@ -1355,7 +1355,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 tx_channel = "P-CAN"
         else:
             tx_channel = "C-CAN"
-        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id)
+        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
         tx_name = tx_message_info[0]
         tx_data = ''
         for hex_val in tx_single.data:
@@ -1377,13 +1377,9 @@ class Main(QMainWindow, Ui_MainWindow):
                 for item in self.item:
                     if tx_id == item.text(1) and tx_channel == item.text(3):
                         item.setText(0, tx_time)
-                        item.setText(1, tx_id)
-                        item.setText(2, tx_name)
-                        item.setText(3, tx_channel)
                         item.setText(4, tx_data)
-                        if tx_single.arbitration_id == 0x0CFE6C17:
-                            for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
-                                item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
+                        for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
+                            item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
                         break
             else:
                 item = QTreeWidgetItem()
@@ -1392,11 +1388,10 @@ class Main(QMainWindow, Ui_MainWindow):
                 item.setText(2, tx_name)
                 item.setText(3, tx_channel)
                 item.setText(4, tx_data)
-                if tx_single.arbitration_id == 0x0CFE6C17:
-                    for sub_message in tx_message_info[1:]:
-                        sub_item = QTreeWidgetItem(item)
-                        sub_item.setText(0, sub_message["name"])
-                        sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
+                for sub_message in tx_message_info[1:]:
+                    sub_item = QTreeWidgetItem(item)
+                    sub_item.setText(0, sub_message["name"])
+                    sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
 
