@@ -194,6 +194,7 @@ class PMS_C_StrWhl(NodeThread):
     def thread_func(self):  # SasChas1Fr01
         self.data[0] = 0x00
         self.data[1] = 0x80
+
         self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
         time.sleep(self.period)
 
@@ -352,6 +353,7 @@ class BCM_StrWhlHeat(NodeThread):
 
     def thread_func(self):  # SwmCem_LinFr02
         self.data[0] = 0xFB
+
         self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
         time.sleep(self.period)
 
@@ -365,6 +367,7 @@ class BCM_LightChime(NodeThread):
     def thread_func(self):  # BCM_LightChileReq
         self.data[0] = 0xCF
         self.data[1] = 0xF7
+
         self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
         time.sleep(self.period)
 
@@ -404,9 +407,8 @@ class PMS_BodyCont_C(NodeThread):
 
     def thread_func(self):  # PMS_BodyControlInfo (C-CAN)
         self.data[1] = int(self.value[2:4], 16)
-        self.data[2] = int(self.value[2:4], 16)
+        self.data[2] = int(self.value[0:2], 16)
         self.data[6] = 0xF7
-        self.data[7] = int(self.value[2:4], 16)
 
         self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
         time.sleep(self.period)
@@ -447,8 +449,13 @@ class PMS_BodyCont_P(NodeThread):
     def thread_func(self):  # PMS_BodyControlInfo (P-CAN)
         self.data[4] = 0x00
 
-        self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
-        time.sleep(self.period)
+        if self.parent.p_can_bus:
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            time.sleep(self.period)
+        else:
+            self.parent.bus_console.appendPlainText("P-CAN bus error (PMS - BodyCont PCAN)")
+            self.parent.pms_bodycont_p_worker._isRunning = False
+            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_VRI(NodeThread):
@@ -463,8 +470,14 @@ class PMS_VRI(NodeThread):
         self.data[2] = 0x00
         self.data[3] = 0x00
 
-        self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
-        time.sleep(self.period)
+        if self.parent.p_can_bus:
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            time.sleep(self.period)
+        else:
+            self.parent.bus_console.appendPlainText("P-CAN bus error (PMS - VRI)")
+            self.parent.pms_vri_worker._isRunning = False
+            QtCore.QCoreApplication.processEvents()
+
 
 
 class FCS_AEB(NodeThread):
@@ -584,8 +597,13 @@ class BMS_Batt(NodeThread):
         self.data[4] = int(self.value, 16)
         self.data[5] = 0x7D
 
-        self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
-        time.sleep(self.period)
+        if self.parent.p_can_bus:
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            time.sleep(self.period)
+        else:
+            self.parent.bus_console.appendPlainText("P-CAN bus error (BMS - Battery)")
+            self.parent.bms_batt_worker._isRunning = False
+            QtCore.QCoreApplication.processEvents()
 
 
 class BMS_Charge(NodeThread):
@@ -599,8 +617,13 @@ class BMS_Charge(NodeThread):
         if self.parent.chkbox_charge.isChecked():
             self.data[0] = 0x1F
 
-        self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
-        time.sleep(self.period)
+        if self.parent.p_can_bus:
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            time.sleep(self.period)
+        else:
+            self.parent.bus_console.appendPlainText("P-CAN bus error (BMS - Charging)")
+            self.parent.bms_charge_worker._isRunning = False
+            QtCore.QCoreApplication.processEvents()
 
 
 class MCU_Motor(NodeThread):
@@ -612,8 +635,13 @@ class MCU_Motor(NodeThread):
         self.data[4] = 0x00
         self.data[5] = 0x00
 
-        self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
-        time.sleep(self.period)
+        if self.parent.p_can_bus:
+            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            time.sleep(self.period)
+        else:
+            self.parent.bus_console.appendPlainText("P-CAN bus error (MCU - Motor)")
+            self.parent.mcu_motor_worker._isRunning = False
+            QtCore.QCoreApplication.processEvents()
 
 
 class TesterPresent(NodeThread):
@@ -627,5 +655,6 @@ class TesterPresent(NodeThread):
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+
+            self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
             time.sleep(self.period)

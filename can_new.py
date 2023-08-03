@@ -15,7 +15,7 @@ from can import interfaces
 import can_thread as worker
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/untitled.ui")
+Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/master_ui.ui")
 
 
 class Main(QMainWindow, Ui_MainWindow):
@@ -38,6 +38,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.log_data = []
 
         self.tx_chronicle = False
+        self.recv_flag = False
 
         self.diag_tester_id = 0x18da41f1
 
@@ -46,8 +47,10 @@ class Main(QMainWindow, Ui_MainWindow):
         self.write_txt = ''
 
         self.c_can_bus = None
+        self.c_can_name = ''
         self.p_can_bus = None
         self.bus_flag = False
+        self.raw_data_flag = False
 
         self.diag_btn_text = None
         self.diag_success_byte = None
@@ -64,7 +67,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.write_secu_nrc = True
 
         self.tx_set = set()
-        self.tx_dict = dict()
 
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
         self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
@@ -311,9 +313,22 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_fixed_watch.toggled.connect(self.console_text_clear)
         self.btn_chronicle_watch.toggled.connect(self.console_text_clear)
 
+        self.btn_filter_all.setChecked(True)
+        self.btn_filter_all.toggled.connect(self.console_text_clear)
+        self.btn_filter_tx.toggled.connect(self.console_text_clear)
+        self.btn_filter_rx.toggled.connect(self.console_text_clear)
+        self.btn_filter_c_can.toggled.connect(self.console_text_clear)
+        self.btn_filter_p_can.toggled.connect(self.console_text_clear)
+        self.btn_filter_diag.toggled.connect(self.console_text_clear)
+
+        self.treeWidget_tx.setColumnWidth(0, 130)
+        self.treeWidget_tx.setColumnWidth(1, 150)
+        self.treeWidget_tx.setColumnWidth(2, 300)
+        self.treeWidget_tx.setColumnWidth(4, 350)
+
         self.set_mmi_labels_init(False)
-        self.set_general_btns_labels(False)
-        self.set_node_btns(False)
+        self.set_general_btns_labels(True)
+        self.set_node_btns(True)
         self.set_can_basic_btns_labels(False)
         self.set_diag_basic_btns_labels(False)
         self.set_diag_did_btns_labels(False)
@@ -332,16 +347,19 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.bus_console.appendPlainText("1 Channel is connected")
                 try:
                     temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                    if temp1.recv(0.1):
+                    if temp1.recv(1):
                         self.c_can_bus = temp1
+                        self.c_can_name = temp1.channel_info
                         self.p_can_bus = temp2
                     else:
                         self.c_can_bus = temp2
+                        self.c_can_name = temp2.channel_info
                         self.p_can_bus = temp1
                     self.bus_console.appendPlainText("2 Channel is connected")
                 except:
-                    if temp1.recv(0.1):
+                    if temp1.recv(1):
                         self.c_can_bus = temp1
+                        self.c_can_name = temp1.channel_info
                     else:
                         self.p_can_bus = temp1
 
@@ -352,6 +370,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.bus_console.appendPlainText("PCAN bus is not connected")
                 try:
                     self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.c_can_name = temp1.channel_info
                     self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
                     self.bus_flag = True
                     self.bus_console.appendPlainText("Vector bus is connected")
@@ -369,7 +388,8 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
             self.set_node()
-            self.set_node_btns(True)
+            if self.chkbox_can_dump.isChecked():
+                self.set_node_btns(False)
             self.thread_worker.start()
             self.tester_worker.start()
 
@@ -384,6 +404,8 @@ class Main(QMainWindow, Ui_MainWindow):
             self.set_diag_mem_fault_btns_labels(True)
             self.set_diag_dtc_cont_btns_labels(True)
             self.diag_initialization()
+
+            self.chkbox_can_dump.setEnabled(False)
         else:
             self.bus_console.appendPlainText("Can bus is not connected")
 
@@ -427,7 +449,6 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_functional_domain_dtc_cont.toggle()
 
         self.comboBox_log_format.setEnabled(False)
-        self.set_node_btns(False)
 
         self.pms_s_hvsm_worker.stop()
         self.pms_c_strwhl_worker.stop()
@@ -454,6 +475,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.thread_worker.stop()
         self.tester_worker.stop()
 
+        self.chkbox_can_dump.setEnabled(True)
+
     def send_message(self, bus, sig_id, send_data):
         if sig_id == 0x18da41f1:
             self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
@@ -466,16 +489,30 @@ class Main(QMainWindow, Ui_MainWindow):
         bus.send(message)
 
     def can_dump_mode(self):
-        self.chkbox_node_acu.toggle()
-        self.chkbox_node_bcm.toggle()
-        self.chkbox_node_esc.toggle()
-        self.chkbox_node_fcs.toggle()
-        self.chkbox_node_ic.toggle()
-        self.chkbox_node_pms.toggle()
-        self.chkbox_node_pms_s.toggle()
-        self.chkbox_node_pms_c.toggle()
-        self.chkbox_node_bms.toggle()
-        self.chkbox_node_mcu.toggle()
+        if self.chkbox_can_dump.isChecked():
+            node_flag = False
+        else:
+            node_flag = True
+        self.chkbox_node_acu.setChecked(node_flag)
+        self.chkbox_node_acu.setEnabled(node_flag)
+        self.chkbox_node_bcm.setChecked(node_flag)
+        self.chkbox_node_bcm.setEnabled(node_flag)
+        self.chkbox_node_esc.setChecked(node_flag)
+        self.chkbox_node_esc.setEnabled(node_flag)
+        self.chkbox_node_fcs.setChecked(node_flag)
+        self.chkbox_node_fcs.setEnabled(node_flag)
+        self.chkbox_node_ic.setChecked(node_flag)
+        self.chkbox_node_ic.setEnabled(node_flag)
+        self.chkbox_node_pms.setChecked(node_flag)
+        self.chkbox_node_pms.setEnabled(node_flag)
+        self.chkbox_node_pms_s.setChecked(node_flag)
+        self.chkbox_node_pms_s.setEnabled(node_flag)
+        self.chkbox_node_pms_c.setChecked(node_flag)
+        self.chkbox_node_pms_c.setEnabled(node_flag)
+        self.chkbox_node_bms.setChecked(node_flag)
+        self.chkbox_node_bms.setEnabled(node_flag)
+        self.chkbox_node_mcu.setChecked(node_flag)
+        self.chkbox_node_mcu.setEnabled(node_flag)
 
     def save_log(self):
         if self.sender().objectName() == "btn_save_log":
@@ -672,8 +709,9 @@ class Main(QMainWindow, Ui_MainWindow):
             self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
             self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
 
-            self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
-            self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
+            if self.p_can_bus:
+                self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
+                self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
         else:
             color = "gray"
 
@@ -728,8 +766,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_SigFailr.setEnabled(flag)
 
         self.slider_speed.setEnabled(flag)
-        self.slider_battery.setEnabled(flag)
-        self.chkbox_charge.setEnabled(flag)
+        if self.p_can_bus:
+            self.slider_battery.setEnabled(flag)
+            self.chkbox_charge.setEnabled(flag)
 
         self.tick_0_speed.setStyleSheet(f"color: {color}")
         self.tick_120.setStyleSheet(f"color: {color}")
@@ -1106,8 +1145,6 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.sender():
             if self.chkbox_diag_test_mode_mem_fault.isChecked():
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(True)
-                # color = 'black'
-                # txt = "Not tested"
                 self.btn_mem_fault_num_check.setEnabled(not flag)
                 self.btn_mem_fault_list_check.setEnabled(not flag)
                 self.btn_mem_fault_reset.setEnabled(not flag)
@@ -1121,8 +1158,6 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_tester_id = 0x18da41f1
                     self.chkbox_diag_functional_domain_mem_fault.toggle()
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(False)
-                # color = 'gray'
-                # txt = "Default"
         self.btn_mem_fault_nrc_12.setEnabled(flag)
         self.label_mem_fault_nrc_12.setText(f"{txt}")
         self.label_mem_fault_nrc_12.setStyleSheet(f"color: {color}")
@@ -1197,7 +1232,10 @@ class Main(QMainWindow, Ui_MainWindow):
             self.lineEdit_write_data.clear()
         elif btn_name == "btn_diag_dtc_console_clear":
             self.diag_dtc_console.clear()
-        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch":
+        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
+                or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
+                or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
+                or btn_name == "btn_bus_start":
             self.tx_set = set()
             self.item = []
             self.treeWidget_tx.clear()
@@ -1211,73 +1249,117 @@ class Main(QMainWindow, Ui_MainWindow):
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
 
-    def diag_data_collector(self, mess, multi=False, comp_bit=False):
-        self.res_data = []
-        self.raw_data = []
-        flag = False
-        bb = []
-        counter = 0
-        while len(self.res_data) < self.flow_control_len:
-            for i, mess_data in zip(range(len(mess)), mess):
-                self.data[i] = mess_data
+    # def diag_data_collector(self, mess, multi=False, comp_bit=False):
+    #     self.res_data = []
+    #     self.raw_data = []
+    #     flag = False
+    #     bb = []
+    #     counter = 0
+    #     while len(self.res_data) < self.flow_control_len:
+    #         for i, mess_data in zip(range(len(mess)), mess):
+    #             self.data[i] = mess_data
+    #         self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+    #         if comp_bit:
+    #             break
+    #         if multi:
+    #             time.sleep(0.020)
+    #             self.data[0] = 0x30
+    #             self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+    #         time.sleep(0.3)
+    #         reservoir = self.thread_worker.reservoir[:]
+    #         if multi:
+    #             if flag:
+    #                 for qqq in reservoir:
+    #                     if qqq.data[0] == 0x03:
+    #                         continue
+    #                     uni = bb | {qqq.data[0]}
+    #                     if bb != uni:
+    #                         bb.add(qqq.data[0])
+    #                         self.res_data.append(qqq)
+    #                         break
+    #             else:
+    #                 for qqq in reservoir:
+    #                     if qqq.data[0] == 0x03:
+    #                         continue
+    #                     bb.append(qqq.data[0])
+    #                     self.res_data.append(qqq)
+    #                 bb = set(bb)
+    #                 flag = True
+    #         else:
+    #             for tx_single in reservoir:
+    #                 if tx_single.arbitration_id == 0x18daf141:
+    #                     self.res_data.append(tx_single)
+    #         self.thread_worker.reservoir = []
+    #         QtCore.QCoreApplication.processEvents()
+    #         if counter > 50:
+    #             return 0
+    #     temp_li = []
+    #     if len(self.res_data) == 1:
+    #         if self.data_len > 0:
+    #             self.raw_data += self.res_data[0].data[1:8]
+    #     elif len(self.res_data) > 1:
+    #         for i in range(self.flow_control_len):
+    #             for j in range(self.flow_control_len):
+    #                 a = self.res_data[j].data[0] % 0x10
+    #                 if i == a:
+    #                     if self.res_data[j].data[0] == 0x10:
+    #                         self.data_len = self.res_data[j].data[1]
+    #                         st = 2
+    #                     else:
+    #                         st = 1
+    #                     for k in range(st, 8):
+    #                         self.raw_data.append(self.res_data[j].data[k])
+    #                         if len(self.raw_data) == self.data_len:
+    #                             break
+    #                     temp_li.append(self.res_data[j])
+    #                     break
+    #         self.res_data = temp_li
+    #     for m in self.res_data:
+    #         self.diag_console.appendPlainText(str(m))
+
+    def diag_data_collector(self, mess, multi=False, comp=False):
+        for i, mess_data in zip(range(len(mess)), mess):
+            self.data[i] = mess_data
+        self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+        time.sleep(0.030)
+        if multi:
+            self.data[0] = 0x30
             self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
-            if comp_bit:
-                break
+        time.sleep(0.300)
+        self.res_data = self.thread_worker.reservoir[:]
+        self.thread_worker.reservoir = []
+        # print(self.res_data)
+        if comp:
+            return False
+        if len(self.res_data) < self.flow_control_len:
+            QMessageBox.warning(self, "Not sufficient length", "Try to send diag signal once more")
+            return False
+        else:
             if multi:
-                time.sleep(0.020)
-                self.data[0] = 0x30
-                self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
-            time.sleep(0.3)
-            reservoir = self.thread_worker.reservoir[:]
-            if multi:
-                if flag:
-                    for qqq in reservoir:
-                        if qqq.data[0] == 0x03:
-                            continue
-                        uni = bb | {qqq.data[0]}
-                        if bb != uni:
-                            bb.add(qqq.data[0])
-                            self.res_data.append(qqq)
-                            break
-                else:
-                    for qqq in reservoir:
-                        if qqq.data[0] == 0x03:
-                            continue
-                        bb.append(qqq.data[0])
-                        self.res_data.append(qqq)
-                    bb = set(bb)
-                    flag = True
-            else:
-                for tx_single in reservoir:
-                    if tx_single.arbitration_id == 0x18daf141:
-                        self.res_data.append(tx_single)
-            self.thread_worker.reservoir = []
-            QtCore.QCoreApplication.processEvents()
-            if counter > 50:
-                return 0
-        temp_li = []
-        if len(self.res_data) == 1:
-            if self.data_len > 0:
-                self.raw_data += self.res_data[0].data[1:8]
-        elif len(self.res_data) > 1:
-            for i in range(self.flow_control_len):
-                for j in range(self.flow_control_len):
-                    a = self.res_data[j].data[0] % 0x10
-                    if i == a:
-                        if self.res_data[j].data[0] == 0x10:
-                            self.data_len = self.res_data[j].data[1]
-                            st = 2
-                        else:
-                            st = 1
-                        for k in range(st, 8):
-                            self.raw_data.append(self.res_data[j].data[k])
-                            if len(self.raw_data) == self.data_len:
+                temp_li = []
+                if len(self.res_data) == 1:
+                    if self.data_len > 0:
+                        self.raw_data += self.res_data[0].data[1:8]
+                elif len(self.res_data) > 1:
+                    for i in range(self.flow_control_len):
+                        for j in range(self.flow_control_len):
+                            flow_seq = self.res_data[j].data[0] % 0x10
+                            if i == flow_seq:
+                                if self.res_data[j].data[0] == 0x10:
+                                    self.data_len = self.res_data[j].data[1]
+                                    st = 2
+                                else:
+                                    st = 1
+                                for k in range(st, 8):
+                                    self.raw_data.append(self.res_data[j].data[k])
+                                    if len(self.raw_data) == self.data_len:
+                                        break
+                                temp_li.append(self.res_data[j])
                                 break
-                        temp_li.append(self.res_data[j])
-                        break
-            self.res_data = temp_li
-        for m in self.res_data:
-            self.diag_console.appendPlainText(str(m))
+                    self.res_data = temp_li
+            for m in self.res_data:
+                self.diag_console.appendPlainText(str(m))
+        return True
 
     def data_converter(self, conv):
         if conv == 'a2c':
@@ -1307,7 +1389,6 @@ class Main(QMainWindow, Ui_MainWindow):
                     return False
             self.write_txt = bcd_li[:]
         elif conv == 'hex':
-            bcd_li = []
             self.write_txt = self.write_txt.split(' ')
             for i in range(len(self.write_txt)):
                 try:
@@ -1345,13 +1426,9 @@ class Main(QMainWindow, Ui_MainWindow):
         tx_time = str(tx_datetime)[11:-4]
         tx_id = hex(tx_single.arbitration_id)
         if tx_single.channel:
-            if str(tx_single.channel) == "PCAN_USBBUS1":
+            if str(tx_single.channel) == self.c_can_name:
                 tx_channel = "C-CAN"
-            elif str(tx_single.channel) == "PCAN_USBBUS2":
-                tx_channel = "P-CAN"
-            elif tx_single.channel == 0:
-                tx_channel = "C-CAN"
-            elif tx_single.channel == 1:
+            else:
                 tx_channel = "P-CAN"
         else:
             tx_channel = "C-CAN"
@@ -1360,10 +1437,12 @@ class Main(QMainWindow, Ui_MainWindow):
         tx_data = ''
         for hex_val in tx_single.data:
             tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
+        if not self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel):
+            return 0
         if self.btn_chronicle_watch.isChecked():
             item = QTreeWidgetItem()
-            item.setText(0, tx_time)
-            item.setText(1, tx_id)
+            item.setText(0, tx_id)
+            item.setText(1, tx_time)
             item.setText(2, tx_name)
             item.setText(3, tx_channel)
             item.setText(4, tx_data)
@@ -1374,28 +1453,28 @@ class Main(QMainWindow, Ui_MainWindow):
             self.tx_set.add(identifier)
             len_now = len(self.tx_set)
             if len_now - len_prev == 0:
+                # self.item = self.tx_filter(self.item)
                 for item in self.item:
-                    if tx_id == item.text(1) and tx_channel == item.text(3):
-                        item.setText(0, tx_time)
+                    if tx_id == item.text(0) and tx_channel == item.text(3):
+                        item.setText(1, tx_time)
                         item.setText(4, tx_data)
                         for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
                             item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
                         break
             else:
                 item = QTreeWidgetItem()
-                item.setText(0, tx_time)
-                item.setText(1, tx_id)
+                item.setText(0, tx_id)
+                item.setText(1, tx_time)
                 item.setText(2, tx_name)
                 item.setText(3, tx_channel)
                 item.setText(4, tx_data)
                 for sub_message in tx_message_info[1:]:
                     sub_item = QTreeWidgetItem(item)
-                    sub_item.setText(0, sub_message["name"])
+                    sub_item.setText(2, sub_message["name"])
                     sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
-
-                # self.treeWidget_tx.verticalScrollBar().maximum()
+                # self.treeWidget_tx.clear()
 
     def diag_func(self):
         if self.sender():
@@ -1481,10 +1560,11 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x03, 0x10, 0x01, 0x01]
         if self.chkbox_diag_compression_bit_basic.isChecked():
             sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
+        # print(self.sender().objectName())
 
         if self.chkbox_diag_test_mode_basic.isChecked():
             if self.chkbox_diag_compression_bit_basic.isChecked() and (txt == "btn_sess_default" or txt == "btn_sess_extended"):
-                self.diag_data_collector(sig_li, comp_bit=True)
+                self.diag_data_collector(sig_li, comp=True)
                 self.diag_did("btn_id_active_sess")
                 if self.raw_data[3] == (sig_li[2] % 0x80):
                     if txt == "btn_sess_default":
@@ -1538,35 +1618,32 @@ class Main(QMainWindow, Ui_MainWindow):
             self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
-            time.sleep(0.1)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_nrc_22_hw":
             self.diag_sess("btn_sess_extended")
             self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
-            time.sleep(0.1)
             sig_li = [0x02, 0x11, 0x03]
-
+        time.sleep(0.100)
         if self.chkbox_diag_compression_bit_basic.isChecked():
             sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
         if self.chkbox_diag_test_mode_basic.isChecked():
-            if self.chkbox_diag_compression_bit_basic.isChecked() and (
-                    txt == "btn_reset_sw" or txt == "btn_reset_hw"):
-                self.diag_data_collector(sig_li, comp_bit=True)
+            if self.chkbox_diag_compression_bit_basic.isChecked() and (txt == "btn_reset_sw" or txt == "btn_reset_hw"):
+                self.diag_data_collector(sig_li, comp=True)
                 if txt == "btn_reset_sw":
-                    self.label_reset_sw.setText("Check s/w reset\nis executed")
+                    self.label_reset_sw.setText("Check S/W reset\nis executed")
                 elif txt == "btn_reset_hw":
-                    self.label_reset_hw.setText("Check h/w reset\nis executed")
+                    self.label_reset_hw.setText("Check H/W reset\nis executed")
             else:
                 self.diag_data_collector(sig_li)
                 tx_result = self.res_data[0].data[:4]
                 if tx_result[1] == self.diag_success_byte:
                     if tx_result[2] == 0x01:
-                        self.label_reset_sw.setText("Check s/w\nreset is executed")
+                        self.label_reset_sw.setText("Check S/W\nreset is executed")
                     elif tx_result[2] == 0x03:
-                        self.label_reset_hw.setText("Check h/w\nreset is executed")
+                        self.label_reset_hw.setText("Check H/W\nreset is executed")
                 else:
                     if tx_result[3] == 0x12:
                         self.btn_reset_nrc_12.setEnabled(False)
@@ -1604,13 +1681,12 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x02, 0x3E, 0x03]
         elif txt == "btn_tester_nrc_13":
             sig_li = [0x03, 0x3E, 0x00, 0x01]
-
         if self.chkbox_diag_compression_bit_basic.isChecked():
             sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
         if self.chkbox_diag_test_mode_basic.isChecked():
             if self.chkbox_diag_compression_bit_basic.isChecked() and txt == "btn_tester":
-                self.diag_data_collector(sig_li, comp_bit=True)
+                self.diag_data_collector(sig_li, comp=True)
                 time.sleep(0.1)
                 self.btn_tester.setEnabled(False)
                 self.label_tester.setText("Success")
@@ -1699,74 +1775,76 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             multi = False
         self.diag_data_collector(sig_li, multi)
-        if self.raw_data[0] == self.diag_success_byte:
-            if self.data_type == "ascii":
-                self.data_converter('a2c')
-            elif self.data_type == "bcd":
-                temp_str = f'{str(hex(self.raw_data[3])[2:].zfill(2))}{str(hex(self.raw_data[4])[2:].zfill(2))}/{str(hex(self.raw_data[5])[2:].zfill(2))}/{str(hex(self.raw_data[6])[2:].zfill(2))}'
-                self.lineEdit_id_data.setText(temp_str)
-            elif self.data_type == "hex":
-                temp_str = ''
-                for temp_ch in self.raw_data[3:]:
-                    if temp_ch != 0xaa:
-                        temp_str += hex(temp_ch)[2:]
-                        temp_str += ' '
-                self.lineEdit_id_data.setText(temp_str)
-        if self.chkbox_diag_test_mode_did.isChecked():
-            if multi:
-                if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[2] == sig_li[3]:
-                    if txt == "btn_id_ecu_num":
-                        self.btn_id_ecu_num.setEnabled(False)
-                        self.label_id_ecu_num.setText("Success")
-                    elif txt == "btn_id_ecu_supp":
-                        self.btn_id_ecu_supp.setEnabled(False)
-                        self.label_id_ecu_supp.setText("Success")
-                    elif txt == "btn_id_vin":
-                        self.btn_id_vin.setEnabled(False)
-                        self.label_id_vin.setText("Success")
-                    elif txt == "btn_id_sys_name":
-                        self.btn_id_sys_name.setEnabled(False)
-                        self.label_id_sys_name.setText("Success")
-                    elif txt == "btn_id_veh_name":
-                        self.btn_id_veh_name.setEnabled(False)
-                        self.label_id_veh_name.setText("Success")
-                    elif txt == "btn_id_ecu_serial":
-                        self.btn_id_ecu_serial.setEnabled(False)
-                        self.label_id_ecu_serial.setText("Success")
-                    elif txt == "btn_id_hw_ver":
-                        self.btn_id_hw_ver.setEnabled(False)
-                        self.label_id_hw_ver.setText("Success")
-                    elif txt == "btn_id_sw_ver":
-                        self.btn_id_sw_ver.setEnabled(False)
-                        self.label_id_sw_ver.setText("Success")
-                    elif txt == "btn_id_assy_num":
-                        self.btn_id_assy_num.setEnabled(False)
-                        self.label_id_assy_num.setText("Success")
-                    elif txt == "btn_id_net_config":
-                        self.btn_id_net_config.setEnabled(False)
-                        self.label_id_net_config.setText("Success")
-            else:
-                if self.res_data[0].data[1] == self.diag_success_byte:
-                    if self.res_data[0].data[2] == sig_li[2] and self.res_data[0].data[3] == sig_li[3]:
-                        if txt == "btn_id_install_date":
-                            self.btn_id_install_date.setEnabled(False)
-                            self.label_id_install_date.setText("Success")
-                        elif txt == "btn_id_diag_ver":
-                            self.btn_id_diag_ver.setEnabled(False)
-                            self.label_id_diag_ver.setText("Success")
-                        elif txt == "btn_id_active_sess":
-                            self.btn_id_active_sess.setEnabled(False)
-                            self.label_id_active_sess.setText("Success")
-                        elif txt == "btn_id_ecu_manu_date":
-                            self.btn_id_ecu_manu_date.setEnabled(False)
-                            self.label_id_ecu_manu_date.setText("Success")
-                elif self.res_data[0].data[1] == self.diag_failure_byte:
-                    if self.res_data[0].data[3] == 0x13:
-                        self.btn_id_nrc_13.setEnabled(False)
-                        self.label_id_nrc_13.setText("Success")
-                    elif self.res_data[0].data[3] == 0x31:
-                        self.btn_id_nrc_31.setEnabled(False)
-                        self.label_id_nrc_31.setText("Success")
+
+        if self.raw_data_flag:
+            if self.raw_data[0] == self.diag_success_byte:
+                if self.data_type == "ascii":
+                    self.data_converter('a2c')
+                elif self.data_type == "bcd":
+                    temp_str = f'{str(hex(self.raw_data[3])[2:].zfill(2))}{str(hex(self.raw_data[4])[2:].zfill(2))}/{str(hex(self.raw_data[5])[2:].zfill(2))}/{str(hex(self.raw_data[6])[2:].zfill(2))}'
+                    self.lineEdit_id_data.setText(temp_str)
+                elif self.data_type == "hex":
+                    temp_str = ''
+                    for temp_ch in self.raw_data[3:]:
+                        if temp_ch != 0xaa:
+                            temp_str += hex(temp_ch)[2:]
+                            temp_str += ' '
+                    self.lineEdit_id_data.setText(temp_str)
+            if self.chkbox_diag_test_mode_did.isChecked():
+                if multi:
+                    if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[2] == sig_li[3]:
+                        if txt == "btn_id_ecu_num":
+                            self.btn_id_ecu_num.setEnabled(False)
+                            self.label_id_ecu_num.setText("Success")
+                        elif txt == "btn_id_ecu_supp":
+                            self.btn_id_ecu_supp.setEnabled(False)
+                            self.label_id_ecu_supp.setText("Success")
+                        elif txt == "btn_id_vin":
+                            self.btn_id_vin.setEnabled(False)
+                            self.label_id_vin.setText("Success")
+                        elif txt == "btn_id_sys_name":
+                            self.btn_id_sys_name.setEnabled(False)
+                            self.label_id_sys_name.setText("Success")
+                        elif txt == "btn_id_veh_name":
+                            self.btn_id_veh_name.setEnabled(False)
+                            self.label_id_veh_name.setText("Success")
+                        elif txt == "btn_id_ecu_serial":
+                            self.btn_id_ecu_serial.setEnabled(False)
+                            self.label_id_ecu_serial.setText("Success")
+                        elif txt == "btn_id_hw_ver":
+                            self.btn_id_hw_ver.setEnabled(False)
+                            self.label_id_hw_ver.setText("Success")
+                        elif txt == "btn_id_sw_ver":
+                            self.btn_id_sw_ver.setEnabled(False)
+                            self.label_id_sw_ver.setText("Success")
+                        elif txt == "btn_id_assy_num":
+                            self.btn_id_assy_num.setEnabled(False)
+                            self.label_id_assy_num.setText("Success")
+                        elif txt == "btn_id_net_config":
+                            self.btn_id_net_config.setEnabled(False)
+                            self.label_id_net_config.setText("Success")
+                else:
+                    if self.res_data[0].data[1] == self.diag_success_byte:
+                        if self.res_data[0].data[2] == sig_li[2] and self.res_data[0].data[3] == sig_li[3]:
+                            if txt == "btn_id_install_date":
+                                self.btn_id_install_date.setEnabled(False)
+                                self.label_id_install_date.setText("Success")
+                            elif txt == "btn_id_diag_ver":
+                                self.btn_id_diag_ver.setEnabled(False)
+                                self.label_id_diag_ver.setText("Success")
+                            elif txt == "btn_id_active_sess":
+                                self.btn_id_active_sess.setEnabled(False)
+                                self.label_id_active_sess.setText("Success")
+                            elif txt == "btn_id_ecu_manu_date":
+                                self.btn_id_ecu_manu_date.setEnabled(False)
+                                self.label_id_ecu_manu_date.setText("Success")
+                    elif self.res_data[0].data[1] == self.diag_failure_byte:
+                        if self.res_data[0].data[3] == 0x13:
+                            self.btn_id_nrc_13.setEnabled(False)
+                            self.label_id_nrc_13.setText("Success")
+                        elif self.res_data[0].data[3] == 0x31:
+                            self.btn_id_nrc_31.setEnabled(False)
+                            self.label_id_nrc_31.setText("Success")
 
     def diag_security_access(self, txt):
         self.diag_initialization()
@@ -2187,6 +2265,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.diag_initialization()
         if txt == "btn_mem_fault_list_check":
             self.diag_memory_fault("btn_mem_fault_num_check")
+            if self.res_data[0].data[6] == 0x00:
+                self.diag_dtc_console.appendPlainText(f'- Number of DTCs : 0')
+                return True
             dtc_num = self.res_data[0].data[6]
             if dtc_num > 1:
                 occu = 5
@@ -2199,17 +2280,18 @@ class Main(QMainWindow, Ui_MainWindow):
                             occu = 0
             self.res_data = []
             sig_li = [0x03, 0x19, 0x02, 0x09]
-            self.diag_data_collector(sig_li, True)
-            if len(self.raw_data) == 0:
-                self.raw_data = self.res_data[0].data[1:8]
-            st = 3
-            for i in range(dtc_num):
-                if i == 0:
-                    self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
-                single_dtc = self.raw_data[st:st+4]
-                st += 4
-                dtc_name = data_id.dtc_identifier(single_dtc)
-                self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
+            data_flag = self.diag_data_collector(sig_li, multi=True)
+            if data_flag:
+                if len(self.raw_data) == 0:
+                    self.raw_data = self.res_data[0].data[1:8]
+                st = 3
+                for i in range(dtc_num):
+                    if i == 0:
+                        self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
+                    single_dtc = self.raw_data[st:st+4]
+                    st += 4
+                    dtc_name = data_id.dtc_identifier(single_dtc)
+                    self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         else:
             if txt == "btn_mem_fault_num_check":
                 sig_li = [0x03, 0x19, 0x01, 0x09]
@@ -2231,8 +2313,8 @@ class Main(QMainWindow, Ui_MainWindow):
                 sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             elif txt == "btn_mem_fault_nrc_31_reset":
                 sig_li = [0x04, 0x14, 0x11, 0x11, 0x11]
-        self.diag_data_collector(sig_li)
-        tx_result = self.res_data[0].data[:4]
+            self.diag_data_collector(sig_li)
+            tx_result = self.res_data[0].data[:4]
         if self.chkbox_diag_test_mode_mem_fault.isChecked():
             if tx_result[2] == 0x19:
                 if tx_result[3] == 0x12:
@@ -2366,6 +2448,35 @@ class Main(QMainWindow, Ui_MainWindow):
             100)
         self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
             100)
+
+    def tx_filter(self, tx_id, tx_name, tx_channel):
+        if self.btn_filter_all.isChecked():
+            return True
+        elif self.btn_filter_tx.isChecked():
+            if tx_name[:3] == "MMI":
+                return True
+            else:
+                return False
+        elif self.btn_filter_rx.isChecked():
+            if tx_name[:3] != "MMI":
+                return True
+            else:
+                return False
+        elif self.btn_filter_c_can.isChecked():
+            if tx_channel == "C-CAN":
+                return True
+            else:
+                return False
+        elif self.btn_filter_p_can.isChecked():
+            if tx_channel == "P-CAN":
+                return True
+            else:
+                return False
+        elif self.btn_filter_diag.isChecked():
+            if tx_id == 0x18DA41F1 or tx_id == 0x18DAF141 or tx_id == 0x18DB33F1:
+                return True
+            else:
+                return False
 
 
 if __name__ == '__main__':

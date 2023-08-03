@@ -162,28 +162,21 @@ def message_info_by_can_id(can_id, bus):
     elif can_id == 0x0CF02FA0:
         info_set.append("FCS_AEBS1")
         info_set.append({"name": "FCS_AEBState", 0x0: "System is not ready (initialization not finished)",
-                         0x1: "System is temporarily not available (e.g. due to boundary conditions necessary for operation)",
-                         0x2: "System is deactivated by driver",
-                         0x3: "System is ready and activated (no warning and no braking active)",
-                         0x4: "Driver overrides system",
-                         0x5: "Collision warning active (e.g. acoustic signal, cruise control turned off, torque limitation)",
-                         0x6: "Collision warning with braking (e.g. brake jerk or partial braking)",
-                         0x7: "Emergency braking active",
-                         0x8: "Reserved for future use",
-                         0x9: "Reserved for future use",
-                         0xA: "Reserved for future use",
-                         0xB: "Reserved for future use",
-                         0xC: "Reserved for future use",
-                         0xD: "Reserved for future use",
-                         0xE: "Error indication",
-                         0xF: "Not available / not installed", "bit_st_pos": 0, "bit_len": 4})
+                         0x1: "System is temporarily not available", 0x2: "System is deactivated by driver",
+                         0x3: "System is ready and activated", 0x4: "Driver overrides system",
+                         0x5: "Collision warning active", 0x6: "Collision warning with braking",
+                         0x7: "Emergency braking active", 0x8: "Reserved for future use",
+                         0x9: "Reserved for future use", 0xA: "Reserved for future use",
+                         0xB: "Reserved for future use", 0xC: "Reserved for future use",
+                         0xD: "Reserved for future use", 0xE: "Error indication", 0xF: "Not available / not installed",
+                         "bit_st_pos": 0, "bit_len": 4})
         return info_set
     elif can_id == 0x18FE5BE8:
         info_set.append("FCS_LDWSystemState")
         info_set.append({"name": "FCS_AEBState", 0x0: "system is not ready(initialization not finished)",
-                         0x1: "system is temporarily not available(not all activation conditions fulfilled)",
-                         0x2: "system is deactivated by driver",
-                         0x3: "system is ready(no warning active)",
+                         0x1: "System not available(not all conditions fulfilled)",
+                         0x2: "System deactivated by driver",
+                         0x3: "System is ready(no warning active)",
                          0x4: "driver overrides system",
                          0x5: "system is warning",
                          0x6: "Reserved",
@@ -230,9 +223,9 @@ def message_info_by_can_id(can_id, bus):
         info_set.append("MMI_AEBS2")
         info_set.append(
             {"name": "MMI_AEBS_DriveActiveDemand",
-             0x0: "the driver does not want the Advanced Emergency Braking System to warn or intervene at any time (deactivation of system)",
-             0x1: "the driver wants the Advanced Emergency Braking System to warn or intervene if necessary (no deactivation of system)",
-             0x2: "reserved", 0x3: "don’t' care / take no action", "bit_st_pos": 27, "bit_len": 3})
+             0x0: "Deactivation of system",
+             0x1: "No Deactivation of system)",
+             0x2: "reserved", 0x3: "don’t' care / take no action", "bit_st_pos": 0, "bit_len": 2})
         info_set.append(
             {"name": "MMI_AEBS2_MessageCounter", "bit_st_pos": 56, "bit_len": 4})
         info_set.append(
@@ -262,7 +255,7 @@ def message_info_by_can_id(can_id, bus):
              "bit_st_pos": 4, "bit_len": 3})
         info_set.append(
             {"name": "MMI_OTA_Mode", 0x0: "Exit OTA Mode", 0x1: "Enter OTA Mode", "bit_st_pos": 7, "bit_len": 1})
-        info_set.append({"name": "MMI_OTA_DownloadProgress", "bit_st_pos": 8, "bit_len": 8}) # need to add invalid criteria
+        info_set.append({"name": "MMI_OTA_DownloadProgress", "bit_st_pos": 8, "bit_len": 8})
         info_set.append(
             {"name": "MMI_OTA_FailedReason_PowerMode", 0x1: "OK", 0x2: "NOK", "bit_st_pos": 16, "bit_len": 1})
         info_set.append(
@@ -446,28 +439,22 @@ def message_info_by_can_id(can_id, bus):
 
 
 def data_matcher(tx, sub_mess):
-    byte_pos = int(sub_mess["bit_st_pos"] / 8)
+    sig = ''
+    if sub_mess["bit_len"] < 8:
+        byte_len = 1
+    else:
+        byte_len = int(sub_mess["bit_len"]/8)
     try:
-        bin_data = bin(tx.data[byte_pos])[2:].zfill(8)
-        # if sub_mess["name"] == "IC_TachographVehicleSpeed":
-        #     print(bin_data)
-        bin_st_pos = 8 - sub_mess["bit_st_pos"] % 8 - sub_mess["bit_len"]
-        sig = int(bin_data[bin_st_pos:bin_st_pos + sub_mess["bit_len"]], 2)
-        return sub_mess[sig]
+        for i in range(byte_len):
+            byte_pos = int(sub_mess["bit_st_pos"] / 8) + i
+            sig += str(signal_idendifier(tx, byte_pos, sub_mess))
+        return sub_mess[int(sig)]
     except KeyError:
         return str(sig)
-        # if sub_mess["name"] == "MMI_SteerWhlHeatgOnCmd":
-        #     sig = str_whl_heat
-        # elif sub_mess["name"] == "MMI_PassSeatVentnLvlSet":
-        #     sig = sig_pass_vent
-        # elif sub_mess["name"] == "MMI_PassSeatVentnLvlSet":
-        #     sig = sig_drv_vent
-        # elif sub_mess["name"] == "MMI_PassSeatHeatgLvlSet":
-        #     sig = sig_pass_heat
-        # elif sub_mess["name"] == "MMI_PassSeatHeatgLvlSet":
-        #     sig = sig_pass_heat
-        # elif sub_mess["name"] == "MMI_DrvSeatHeatgLvlSet":
-        #     sig = sig_drv_heat
-        # return sub_mess[sig]
-        # else:
 
+
+def signal_idendifier(tx, byte_pos, sub_mess):
+    bin_data = bin(tx.data[byte_pos])[2:].zfill(8)
+    bin_st_pos = 8 - sub_mess["bit_st_pos"] % 8 - sub_mess["bit_len"]
+    sig = int(bin_data[bin_st_pos:bin_st_pos + sub_mess["bit_len"]], 2)
+    return sig

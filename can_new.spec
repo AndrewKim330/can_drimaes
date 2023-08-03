@@ -3,7 +3,7 @@
 
 block_cipher = None
 
-ui = [('./src/untitled.ui', '.')]
+ui = [('./src/master_ui.ui', '.')]
 
 a = Analysis(
     ['can_new.py'],
@@ -37,7 +37,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
