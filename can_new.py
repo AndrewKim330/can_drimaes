@@ -69,9 +69,16 @@ class Main(QMainWindow, Ui_MainWindow):
         self.tx_set = set()
 
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
+        self.pms_s_hvsm_worker.pms_s_hvsm_signal.connect(self.can_signal_sender)
+
         self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
+        self.pms_c_strwhl_worker.pms_c_strwhl_signal.connect(self.can_signal_sender)
+
         self.pms_bodycont_c_worker = worker.PMS_BodyCont_C(parent=self)
+        self.pms_bodycont_c_worker.pms_bodycont_c_signal.connect(self.can_signal_sender)
+
         self.pms_ptinfo_worker = worker.PMS_PTInfo(parent=self)
+        self.pms_ptinfo_worker.pms_ptinfo_signal.connect(self.can_signal_sender)
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
@@ -79,10 +86,14 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_acc.setChecked(True)
 
         self.bcm_mmi_worker = worker.BCM_MMI(parent=self)
+        self.bcm_mmi_worker.bcm_mmi_signal.connect(self.can_signal_sender)
+
         # Default value of Gear radio button
         self.btn_gear_n.setChecked(True)
 
         self.bcm_swrc_worker = worker.BCM_SWRC(parent=self)
+        self.bcm_swrc_worker.bcm_swrc_signal.connect(self.can_signal_sender)
+
         self.btn_ok.clicked.connect(self.bcm_swrc_worker.thread_func)
         self.btn_left.pressed.connect(self.bcm_swrc_worker.thread_func)
         self.btn_right.pressed.connect(self.bcm_swrc_worker.thread_func)
@@ -95,18 +106,25 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_vol_up.released.connect(self.bcm_swrc_worker.thread_func)
         self.btn_vol_down.released.connect(self.bcm_swrc_worker.thread_func)
 
-        self.bcm_strwhl_heat_worker = worker.BCM_StrWhlHeat(parent=self)
+        self.bcm_strwhl_heat_worker = worker.BCM_StrWhl_Heat(parent=self)
+        self.bcm_strwhl_heat_worker.bcm_strwhl_heat_signal.connect(self.can_signal_sender)
 
         self.bcm_lightchime_worker = worker.BCM_LightChime(parent=self)
+        self.bcm_lightchime_worker.bcm_lightchime_signal.connect(self.can_signal_sender)
 
         self.bcm_stateupdate_worker = worker.BCM_StateUpdate(parent=self)
+        self.bcm_stateupdate_worker.bcm_stateupdate_signal.connect(self.can_signal_sender)
 
         self.ic_tachospeed_worker = worker.IC_TachoSpeed(parent=self)
+        self.ic_tachospeed_worker.ic_tachospeed_signal.connect(self.can_signal_sender)
+
         self.ic_distance_worker = worker.IC_Distance(parent=self)
+        self.ic_distance_worker.ic_distance_signal.connect(self.can_signal_sender)
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
         self.esc_tpms_worker = worker.ESC_TPMS(parent=self)
+        self.esc_tpms_worker.esc_tpms_signal.connect(self.can_signal_sender)
 
         self.btn_tpms_success.clicked.connect(self.esc_tpms_worker.thread_func)
         self.btn_tpms_fail.clicked.connect(self.esc_tpms_worker.thread_func)
@@ -114,7 +132,10 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_bright_afternoon.setChecked(True)
 
         self.fcs_aeb_worker = worker.FCS_AEB(parent=self)
+        self.fcs_aeb_worker.fcs_aeb_signal.connect(self.can_signal_sender)
+
         self.fcs_ldw_worker = worker.FCS_LDW(parent=self)
+        self.fcs_ldw_worker.fcs_ldw_signal.connect(self.can_signal_sender)
 
         self.btn_mscs_ok.setChecked(True)
 
@@ -128,22 +149,36 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
 
         self.acu_seatbelt_worker = worker.ACU_SeatBelt(parent=self)
+        self.acu_seatbelt_worker.acu_seatbelt_signal.connect(self.can_signal_sender)
 
         self.chkbox_drv_invalid.stateChanged.connect(self.acu_seatbelt_worker.drv_invalid)
         self.chkbox_pass_invalid.stateChanged.connect(self.acu_seatbelt_worker.pass_invalid)
 
         self.pms_bodycont_p_worker = worker.PMS_BodyCont_P(parent=self)
+        self.pms_bodycont_p_worker.pms_bodycont_p_signal.connect(self.can_signal_sender)
+        self.pms_bodycont_p_worker.pms_bodycont_p_p_can_err_signal.connect(self.bus_error)
+
         self.pms_vri_worker = worker.PMS_VRI(parent=self)
+        self.pms_vri_worker.pms_vri_signal.connect(self.can_signal_sender)
+        self.pms_vri_worker.pms_vri_p_can_err_signal.connect(self.bus_error)
 
         self.bms_batt_worker = worker.BMS_Batt(parent=self)
+        self.bms_batt_worker.bms_batt_signal.connect(self.can_signal_sender)
+        self.bms_batt_worker.bms_batt_p_can_err_signal.connect(self.bus_error)
+
         self.bms_charge_worker = worker.BMS_Charge(parent=self)
+        self.bms_charge_worker.bms_charge_signal.connect(self.can_signal_sender)
+        self.bms_charge_worker.bms_charge_p_can_err_signal.connect(self.bus_error)
 
         self.mcu_motor_worker = worker.MCU_Motor(parent=self)
+        self.mcu_motor_worker.mcu_motor_signal.connect(self.can_signal_sender)
+        self.mcu_motor_worker.mcu_motor_p_can_err_signal.connect(self.bus_error)
 
         self.tester_worker = worker.TesterPresent(parent=self)
+        self.tester_worker.tester_signal.connect(self.tester_signal)
 
         self.thread_worker = worker.ThreadWorker(parent=self)
-        self.thread_worker.sig2.connect(self.sig2)
+        self.thread_worker.signal_presenter.connect(self.signal_presenter)
 
         # Connect diagnosis basic buttons to diagnostic handling function
         self.btn_sess_default.clicked.connect(self.diag_func)
@@ -364,10 +399,10 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.p_can_bus = temp1
 
                 self.bus_flag = True
-                self.bus_console.appendPlainText("PCAN bus is connected")
+                self.bus_console.appendPlainText("PEAK-CAN bus is connected")
             except interfaces.pcan.pcan.PcanCanInitializationError as e1:
                 print(e1)
-                self.bus_console.appendPlainText("PCAN bus is not connected")
+                self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
                 try:
                     self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
                     self.c_can_name = temp1.channel_info
@@ -1421,7 +1456,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.console_text_clear(err)
 
     @pyqtSlot(can.Message)
-    def sig2(self, tx_single):
+    def signal_presenter(self, tx_single):
         tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
         tx_time = str(tx_datetime)[11:-4]
         tx_id = hex(tx_single.arbitration_id)
@@ -1475,6 +1510,21 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 # self.treeWidget_tx.clear()
+
+    @pyqtSlot(int, list)
+    def tester_signal(self, send_data):
+        self.diag_data_collector(send_data)
+
+    @pyqtSlot(str, int, list)
+    def can_signal_sender(self, bus, send_id, send_data):
+        if bus == 'c':
+            self.send_message(self.c_can_bus, send_id, send_data)
+        elif bus == 'p':
+            self.send_message(self.p_can_bus, send_id, send_data)
+
+    @pyqtSlot(str)
+    def bus_error(self, bus_err_str):
+        self.bus_console.appendPlainText(bus_err_str)
 
     def diag_func(self):
         if self.sender():

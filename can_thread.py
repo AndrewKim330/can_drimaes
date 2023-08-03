@@ -29,7 +29,7 @@ class NodeThread(QThread):
 
 
 class ThreadWorker(NodeThread):
-    sig2 = pyqtSignal(can.Message)
+    signal_presenter = pyqtSignal(can.Message)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -140,7 +140,7 @@ class ThreadWorker(NodeThread):
             QtCore.QCoreApplication.processEvents()
 
     def signal_emit(self, sig):
-        self.sig2.emit(sig)
+        self.signal_presenter.emit(sig)
 
     def state_check(self):
         # driving state check
@@ -176,16 +176,20 @@ class ThreadWorker(NodeThread):
 
 
 class PMS_S_HVSM(NodeThread):
+    pms_s_hvsm_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18ffa57f
 
     def thread_func(self):  # HVSM_MMIFbSts
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.pms_s_hvsm_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class PMS_C_StrWhl(NodeThread):
+    pms_c_strwhl_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -195,11 +199,13 @@ class PMS_C_StrWhl(NodeThread):
         self.data[0] = 0x00
         self.data[1] = 0x80
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.pms_c_strwhl_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class BCM_MMI(NodeThread):
+    bcm_mmi_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.single_tx_side_mani = None
@@ -248,11 +254,13 @@ class BCM_MMI(NodeThread):
         elif self.parent.btn_mscs_SigFailr.isChecked():
             self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 7)
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.bcm_mmi_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class BCM_SWRC(NodeThread):
+    bcm_swrc_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -327,7 +335,7 @@ class BCM_SWRC(NodeThread):
             elif btn_text == "btn_vol_down":
                 self.data[1] = 0x40
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.bcm_swrc_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
     # def long_press(self):
@@ -346,7 +354,9 @@ class BCM_SWRC(NodeThread):
     #     # print(self.parent.btn_right.released.signal, self.parent.btn_right.pressed.signal)
 
 
-class BCM_StrWhlHeat(NodeThread):
+class BCM_StrWhl_Heat(NodeThread):
+    bcm_strwhl_heat_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18ff0721
@@ -354,11 +364,13 @@ class BCM_StrWhlHeat(NodeThread):
     def thread_func(self):  # SwmCem_LinFr02
         self.data[0] = 0xFB
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.bcm_strwhl_heat_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class BCM_LightChime(NodeThread):
+    bcm_lightchime_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -368,11 +380,13 @@ class BCM_LightChime(NodeThread):
         self.data[0] = 0xCF
         self.data[1] = 0xF7
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.bcm_lightchime_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class BCM_StateUpdate(NodeThread):
+    bcm_stateupdate_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18ff8621
@@ -394,11 +408,13 @@ class BCM_StateUpdate(NodeThread):
         elif self.parent.btn_bright_night.isChecked():
             self.data[2] = 0xFF
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.bcm_stateupdate_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class PMS_BodyCont_C(NodeThread):
+    pms_bodycont_c_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -410,11 +426,13 @@ class PMS_BodyCont_C(NodeThread):
         self.data[2] = int(self.value[0:2], 16)
         self.data[6] = 0xF7
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.pms_bodycont_c_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class PMS_PTInfo(NodeThread):
+    pms_ptinfo_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -436,11 +454,14 @@ class PMS_PTInfo(NodeThread):
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.pms_ptinfo_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class PMS_BodyCont_P(NodeThread):
+    pms_bodycont_p_signal = pyqtSignal(str, int, list)
+    pms_bodycont_p_p_can_err_signal = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -450,15 +471,18 @@ class PMS_BodyCont_P(NodeThread):
         self.data[4] = 0x00
 
         if self.parent.p_can_bus:
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            self.pms_body_cont_p_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
-            self.parent.bus_console.appendPlainText("P-CAN bus error (PMS - BodyCont PCAN)")
+            self.pms_bodycont_p_p_can_err_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)")
             self.parent.pms_bodycont_p_worker._isRunning = False
             QtCore.QCoreApplication.processEvents()
 
 
 class PMS_VRI(NodeThread):
+    pms_vri_signal = pyqtSignal(str, int, list)
+    pms_vri_p_can_err_signal = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -471,16 +495,17 @@ class PMS_VRI(NodeThread):
         self.data[3] = 0x00
 
         if self.parent.p_can_bus:
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            self.pms_vri_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
-            self.parent.bus_console.appendPlainText("P-CAN bus error (PMS - VRI)")
+            self.pms_vri_p_can_err_signal.emit("P-CAN bus error (PMS - VRI)")
             self.parent.pms_vri_worker._isRunning = False
             QtCore.QCoreApplication.processEvents()
 
 
-
 class FCS_AEB(NodeThread):
+    fcs_aeb_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -494,11 +519,13 @@ class FCS_AEB(NodeThread):
             elif self.single_tx == 0xfc:
                 self.data[0] = 0xF2
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.fcs_aeb_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class FCS_LDW(NodeThread):
+    fcs_ldw_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -508,11 +535,13 @@ class FCS_LDW(NodeThread):
     def thread_func(self):  # FCS_FLI2
         self.data[1] = 0xF0
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.fcs_ldw_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class IC_TachoSpeed(NodeThread):
+    ic_tachospeed_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
@@ -523,11 +552,13 @@ class IC_TachoSpeed(NodeThread):
         self.data[6] = int(self.value[2:4], 16)
         self.data[7] = int(self.value[0:2], 16)
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.ic_tachospeed_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class IC_Distance(NodeThread):
+    ic_distance_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 1.000
@@ -539,11 +570,13 @@ class IC_Distance(NodeThread):
         self.data[2] = 0x00
         self.data[3] = 0x00
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.ic_distance_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class ESC_TPMS(NodeThread):
+    esc_tpms_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
@@ -558,18 +591,20 @@ class ESC_TPMS(NodeThread):
             elif btn_text == "btn_tpms_fail":
                 self.data[7] = 0xEF
 
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.esc_tpms_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
 
 class ACU_SeatBelt(NodeThread):
+    acu_seatbelt_signal = pyqtSignal(str, int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.200
         self.send_id = 0x18fac490
 
     def thread_func(self):
-        self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+        self.acu_seatbelt_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
 
     def drv_invalid(self):
@@ -586,6 +621,9 @@ class ACU_SeatBelt(NodeThread):
 
 
 class BMS_Batt(NodeThread):
+    bms_batt_signal = pyqtSignal(str, int, list)
+    bms_batt_p_can_err_signal = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.value = '7D'
@@ -598,15 +636,18 @@ class BMS_Batt(NodeThread):
         self.data[5] = 0x7D
 
         if self.parent.p_can_bus:
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            self.bcm_batt_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
-            self.parent.bus_console.appendPlainText("P-CAN bus error (BMS - Battery)")
+            self.bms_batt_p_can_err_signal.emit("P-CAN bus error (BMS - Battery)")
             self.parent.bms_batt_worker._isRunning = False
             QtCore.QCoreApplication.processEvents()
 
 
 class BMS_Charge(NodeThread):
+    bms_charge_signal = pyqtSignal(str, int, list)
+    bms_charge_p_can_err_signal = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18fa3ef4
@@ -618,15 +659,18 @@ class BMS_Charge(NodeThread):
             self.data[0] = 0x1F
 
         if self.parent.p_can_bus:
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            self.bcm_charge_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
-            self.parent.bus_console.appendPlainText("P-CAN bus error (BMS - Charging)")
+            self.bms_charge_p_can_err_signal.emit("P-CAN bus error (BMS - Charging)")
             self.parent.bms_charge_worker._isRunning = False
             QtCore.QCoreApplication.processEvents()
 
 
 class MCU_Motor(NodeThread):
+    mcu_motor_signal = pyqtSignal(str, int, list)
+    mcu_motor_p_can_err_signal = pyqtSignal(str)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x0cfa01ef
@@ -636,15 +680,17 @@ class MCU_Motor(NodeThread):
         self.data[5] = 0x00
 
         if self.parent.p_can_bus:
-            self.parent.send_message(self.parent.p_can_bus, self.send_id, self.data)
+            self.mcu_motor_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
-            self.parent.bus_console.appendPlainText("P-CAN bus error (MCU - Motor)")
+            self.mcu_motor_p_can_err_signal.emit("P-CAN bus error (MCU - Motor)")
             self.parent.mcu_motor_worker._isRunning = False
             QtCore.QCoreApplication.processEvents()
 
 
 class TesterPresent(NodeThread):
+    tester_signal = pyqtSignal(int, list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 4.0
@@ -655,6 +701,5 @@ class TesterPresent(NodeThread):
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
-
-            self.parent.send_message(self.parent.c_can_bus, self.send_id, self.data)
+            self.tester_signal.emit('c', self.send_id, self.data)
             time.sleep(self.period)
