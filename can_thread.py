@@ -471,7 +471,7 @@ class PMS_BodyCont_P(NodeThread):
         self.data[4] = 0x00
 
         if self.parent.p_can_bus:
-            self.pms_body_cont_p_signal.emit('p', self.send_id, self.data)
+            self.pms_bodycont_p_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
             self.pms_bodycont_p_p_can_err_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)")
@@ -636,7 +636,7 @@ class BMS_Batt(NodeThread):
         self.data[5] = 0x7D
 
         if self.parent.p_can_bus:
-            self.bcm_batt_signal.emit('p', self.send_id, self.data)
+            self.bms_batt_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
             self.bms_batt_p_can_err_signal.emit("P-CAN bus error (BMS - Battery)")
@@ -659,7 +659,7 @@ class BMS_Charge(NodeThread):
             self.data[0] = 0x1F
 
         if self.parent.p_can_bus:
-            self.bcm_charge_signal.emit('p', self.send_id, self.data)
+            self.bms_charge_signal.emit('p', self.send_id, self.data)
             time.sleep(self.period)
         else:
             self.bms_charge_p_can_err_signal.emit("P-CAN bus error (BMS - Charging)")
@@ -689,7 +689,7 @@ class MCU_Motor(NodeThread):
 
 
 class TesterPresent(NodeThread):
-    tester_signal = pyqtSignal(int, list)
+    tester_signal = pyqtSignal(list)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -701,5 +701,5 @@ class TesterPresent(NodeThread):
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
-            self.tester_signal.emit('c', self.send_id, self.data)
+            self.tester_signal.emit(self.data)
             time.sleep(self.period)

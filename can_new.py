@@ -50,7 +50,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.c_can_name = ''
         self.p_can_bus = None
         self.bus_flag = False
-        self.raw_data_flag = False
 
         self.diag_btn_text = None
         self.diag_success_byte = None
@@ -175,7 +174,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.mcu_motor_worker.mcu_motor_p_can_err_signal.connect(self.bus_error)
 
         self.tester_worker = worker.TesterPresent(parent=self)
-        self.tester_worker.tester_signal.connect(self.tester_signal)
+        self.tester_worker.tester_signal.connect(self.diag_data_collector)
 
         self.thread_worker = worker.ThreadWorker(parent=self)
         self.thread_worker.signal_presenter.connect(self.signal_presenter)
@@ -1352,6 +1351,7 @@ class Main(QMainWindow, Ui_MainWindow):
     #     for m in self.res_data:
     #         self.diag_console.appendPlainText(str(m))
 
+    @pyqtSlot(list)
     def diag_data_collector(self, mess, multi=False, comp=False):
         for i, mess_data in zip(range(len(mess)), mess):
             self.data[i] = mess_data
@@ -1363,35 +1363,33 @@ class Main(QMainWindow, Ui_MainWindow):
         time.sleep(0.300)
         self.res_data = self.thread_worker.reservoir[:]
         self.thread_worker.reservoir = []
-        # print(self.res_data)
         if comp:
             return False
         if len(self.res_data) < self.flow_control_len:
             QMessageBox.warning(self, "Not sufficient length", "Try to send diag signal once more")
             return False
         else:
-            if multi:
-                temp_li = []
-                if len(self.res_data) == 1:
-                    if self.data_len > 0:
-                        self.raw_data += self.res_data[0].data[1:8]
-                elif len(self.res_data) > 1:
-                    for i in range(self.flow_control_len):
-                        for j in range(self.flow_control_len):
-                            flow_seq = self.res_data[j].data[0] % 0x10
-                            if i == flow_seq:
-                                if self.res_data[j].data[0] == 0x10:
-                                    self.data_len = self.res_data[j].data[1]
-                                    st = 2
-                                else:
-                                    st = 1
-                                for k in range(st, 8):
-                                    self.raw_data.append(self.res_data[j].data[k])
-                                    if len(self.raw_data) == self.data_len:
-                                        break
-                                temp_li.append(self.res_data[j])
-                                break
-                    self.res_data = temp_li
+            temp_li = []
+            if len(self.res_data) == 1:
+                if self.data_len > 0:
+                    self.raw_data += self.res_data[0].data[1:8]
+            elif len(self.res_data) > 1:
+                for i in range(self.flow_control_len):
+                    for j in range(self.flow_control_len):
+                        flow_seq = self.res_data[j].data[0] % 0x10
+                        if i == flow_seq:
+                            if self.res_data[j].data[0] == 0x10:
+                                self.data_len = self.res_data[j].data[1]
+                                st = 2
+                            else:
+                                st = 1
+                            for k in range(st, 8):
+                                self.raw_data.append(self.res_data[j].data[k])
+                                if len(self.raw_data) == self.data_len:
+                                    break
+                            temp_li.append(self.res_data[j])
+                            break
+                self.res_data = temp_li
             for m in self.res_data:
                 self.diag_console.appendPlainText(str(m))
         return True
@@ -1511,10 +1509,6 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 # self.treeWidget_tx.clear()
 
-    @pyqtSlot(int, list)
-    def tester_signal(self, send_data):
-        self.diag_data_collector(send_data)
-
     @pyqtSlot(str, int, list)
     def can_signal_sender(self, bus, send_id, send_data):
         if bus == 'c':
@@ -1597,7 +1591,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.diag_success_byte = 0xC5
                 self.diag_dtc_cont(self.diag_btn_text)
 
-    def diag_sess(self, txt):
+    def diag_sess(self, txt, ex_comp=False):
         # **need to add test failed scenario
         self.diag_initialization()
         if txt == "btn_sess_default":
@@ -1610,9 +1604,8 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x03, 0x10, 0x01, 0x01]
         if self.chkbox_diag_compression_bit_basic.isChecked():
             sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
-        # print(self.sender().objectName())
 
-        if self.chkbox_diag_test_mode_basic.isChecked():
+        if self.chkbox_diag_test_mode_basic.isChecked() and self.sender().objectName()[4:8] == "sess":
             if self.chkbox_diag_compression_bit_basic.isChecked() and (txt == "btn_sess_default" or txt == "btn_sess_extended"):
                 self.diag_data_collector(sig_li, comp=True)
                 self.diag_did("btn_id_active_sess")
@@ -1641,41 +1634,44 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.btn_sess_nrc_13.setEnabled(False)
                         self.label_sess_nrc_13.setText("Success")
         else:
-            self.diag_data_collector(sig_li)
+            self.diag_data_collector(sig_li, comp=ex_comp)
 
     def diag_reset(self, txt):
+        if self.chkbox_diag_compression_bit_basic.isChecked():
+            ex_comp = True
+        else:
+            ex_comp = False
         self.diag_initialization()
         if txt == "btn_reset_sw":
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_hw":
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
             sig_li = [0x02, 0x11, 0x03]
         elif txt == "btn_reset_nrc_12":
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
             sig_li = [0x02, 0x11, 0x07]
         elif txt == "btn_reset_nrc_13":
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
             sig_li = [0x03, 0x11, 0x01, 0x01]
         elif txt == "btn_reset_nrc_7f_sw":
-            self.diag_sess("btn_sess_default")
+            self.diag_sess("btn_sess_default", ex_comp=ex_comp)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_nrc_7f_hw":
-            self.diag_sess("btn_sess_default")
+            self.diag_sess("btn_sess_default", ex_comp=ex_comp)
             sig_li = [0x02, 0x11, 0x03]
         elif txt == "btn_reset_nrc_22_sw":
-            self.diag_sess("btn_sess_extended")
-            self.drv_state = True
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
+            # self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_nrc_22_hw":
-            self.diag_sess("btn_sess_extended")
-            self.drv_state = True
+            self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
+            # self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
             sig_li = [0x02, 0x11, 0x03]
-        time.sleep(0.100)
         if self.chkbox_diag_compression_bit_basic.isChecked():
             sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
@@ -1717,10 +1713,9 @@ class Main(QMainWindow, Ui_MainWindow):
                             self.label_reset_nrc_22_hw.setText("Success")
         else:
             self.diag_data_collector(sig_li)
-
         self.drv_state = False
-        self.thread_worker.slider_speed_func(0)
         self.set_drv_state()
+        self.thread_worker.slider_speed_func(0)
 
     def diag_tester(self, txt):
         # **need to add test failed scenario
@@ -1773,7 +1768,7 @@ class Main(QMainWindow, Ui_MainWindow):
             self.data_type = "ascii"
             sig_li = [0x03, 0x22, 0xF1, 0x90]
         elif txt == "btn_id_install_date":
-            self.data_type = "bcd"
+            self.data_type = "bcd_real"
             sig_li = [0x03, 0x22, 0xF1, 0xA2]
             self.data_len = 4
         elif txt == "btn_id_diag_ver":
@@ -1783,7 +1778,7 @@ class Main(QMainWindow, Ui_MainWindow):
         elif txt == "btn_id_sys_name":
             self.flow_control_len = 2
             self.data_type = "ascii"
-            sig_li = [0x03, 0x22, 0xF1, 0x97]
+            sig_li = [0x03, 0x22,  0xF1, 0x97]
         elif txt == "btn_id_active_sess":
             self.data_type = "hex"
             sig_li = [0x03, 0x22, 0xF1, 0x86]
@@ -1826,12 +1821,15 @@ class Main(QMainWindow, Ui_MainWindow):
             multi = False
         self.diag_data_collector(sig_li, multi)
 
-        if self.raw_data_flag:
+        if len(self.raw_data) > 0:
             if self.raw_data[0] == self.diag_success_byte:
                 if self.data_type == "ascii":
                     self.data_converter('a2c')
                 elif self.data_type == "bcd":
-                    temp_str = f'{str(hex(self.raw_data[3])[2:].zfill(2))}{str(hex(self.raw_data[4])[2:].zfill(2))}/{str(hex(self.raw_data[5])[2:].zfill(2))}/{str(hex(self.raw_data[6])[2:].zfill(2))}'
+                    temp_str = f'{str(hex(self.raw_data[3]))[2:].zfill(2)}{str(hex(self.raw_data[4]))[2:].zfill(2)}/{str(hex(self.raw_data[5]))[2:].zfill(2)}/{str(hex(self.raw_data[6]))[2:].zfill(2)}'
+                    self.lineEdit_id_data.setText(temp_str)
+                elif self.data_type == "bcd_real":
+                    temp_str = f'{str(self.raw_data[3]).zfill(2)}{str(self.raw_data[4]).zfill(2)}/{str(self.raw_data[5]).zfill(2)}/{str(self.raw_data[6]).zfill(2)}'
                     self.lineEdit_id_data.setText(temp_str)
                 elif self.data_type == "hex":
                     temp_str = ''
@@ -2329,6 +2327,7 @@ class Main(QMainWindow, Ui_MainWindow):
                             self.flow_control_len += 1
                             occu = 0
             self.res_data = []
+            self.raw_data = []
             sig_li = [0x03, 0x19, 0x02, 0x09]
             data_flag = self.diag_data_collector(sig_li, multi=True)
             if data_flag:
