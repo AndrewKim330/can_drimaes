@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -2544,7 +2544,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>200</y>
+         <y>190</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2557,7 +2557,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>200</y>
+         <y>190</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2570,7 +2570,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>620</x>
-         <y>200</y>
+         <y>190</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2583,7 +2583,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>430</x>
-         <y>200</y>
+         <y>190</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2596,9 +2596,9 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>430</x>
-         <y>260</y>
+         <y>250</y>
          <width>171</width>
-         <height>31</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -2615,9 +2615,9 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>260</y>
+         <y>250</y>
          <width>171</width>
-         <height>31</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -2634,7 +2634,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>260</y>
+         <y>250</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2653,7 +2653,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>620</x>
-         <y>260</y>
+         <y>250</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2672,7 +2672,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>620</x>
-         <y>310</y>
+         <y>290</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2686,7 +2686,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>620</x>
-         <y>370</y>
+         <y>350</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2705,7 +2705,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>310</y>
+         <y>290</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2719,7 +2719,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>430</x>
-         <y>370</y>
+         <y>350</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2738,7 +2738,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>430</x>
-         <y>310</y>
+         <y>290</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2751,7 +2751,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>310</y>
+         <y>290</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2764,7 +2764,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>370</y>
+         <y>360</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2783,7 +2783,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>370</y>
+         <y>350</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2802,7 +2802,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>420</y>
+         <y>400</y>
          <width>171</width>
          <height>51</height>
         </rect>
@@ -2816,7 +2816,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>480</y>
+         <y>460</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2835,7 +2835,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>480</y>
+         <y>460</y>
          <width>171</width>
          <height>41</height>
         </rect>
@@ -2854,7 +2854,7 @@ Present</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>420</y>
+         <y>400</y>
          <width>171</width>
          <height>51</height>
         </rect>

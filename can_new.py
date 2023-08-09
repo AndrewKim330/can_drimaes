@@ -11,7 +11,7 @@ from PyQt5.QtCore import *
 from PyQt5 import uic, QtCore
 from PyQt5.QtGui import *
 from can import interfaces
-
+import can.interfaces.vector
 import can_thread as worker
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -339,7 +339,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
         self.chkbox_can_dump.released.connect(self.can_dump_mode)
-        self.comboBox_log_format.addItem(".blf")
+        # self.comboBox_log_format.addItem(".blf")
         self.comboBox_log_format.addItem(".asc")
 
         self.item = []
@@ -402,18 +402,26 @@ class Main(QMainWindow, Ui_MainWindow):
             except interfaces.pcan.pcan.PcanCanInitializationError as e1:
                 print(e1)
                 self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
+                self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                self.c_can_name = self.c_can_bus.channel_info
                 try:
-                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
-                    self.c_can_name = temp1.channel_info
+                    temp_num = 0
                     self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                    while temp_num < 10000:
+                        self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                        temp_num += 1
                     self.bus_flag = True
                     self.bus_console.appendPlainText("Vector bus is connected")
                 except interfaces.vector.VectorError as e2:
                     print(e2)
-                    self.bus_console.appendPlainText("CAN device is not connected")
+                    self.console_text_clear("tx_console_clear")
+                    self.bus_flag = True
+                    self.p_can_bus = None
+                    self.bus_console.appendPlainText("1 Channel is connected")
                 except can.exceptions.CanInterfaceNotImplementedError as e3:
                     print(e3)
                     self.bus_console.appendPlainText("CAN device is not connected")
+                self.bus_console.appendPlainText("Vector bus is connected")
         else:
             self.bus_console.appendPlainText("CAN bus is already connected")
 
@@ -551,23 +559,35 @@ class Main(QMainWindow, Ui_MainWindow):
     def save_log(self):
         if self.sender().objectName() == "btn_save_log":
             if len(self.log_data) > 0:
-                self.bus_console.appendPlainText("Can Log saving Start")
-                log_dir = BASE_DIR + f"./log{self.comboBox_log_format.currentText()}"
-                f = open(log_dir, 'w')
-                count = 0
-                while count < len(self.log_data):
-                    sig_id = self.log_data[count].arbitration_id
-                    if sig_id == 0x18ffd741 or sig_id == 0x18ffd841 or sig_id == 0x0c0ba021 or sig_id == 0x18a9e821 or sig_id == 0x18ff6341 or sig_id == 0x18ff4b41:
-                        data = 'tx ' + str(self.log_data[count])
-                    else:
-                        data = 'rx ' + str(self.log_data[count])
-                    f.write(data)
-                    f.write('\n')
-                    count += 1
-                f.close()
-                self.bus_console.appendPlainText("Can Log saving End")
-                QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
-                self.log_data = []
+                # path = QFileDialog.getOpenFileName(self)
+                path = QFileDialog.getExistingDirectory(self)
+                # print(path)
+                if path:
+                    if self.chkbox_save_log.isChecked():
+                        self.bus_console.appendPlainText("Can Log Writing Stop")
+                        self.chkbox_save_log.toggle()
+                    self.bus_console.appendPlainText("Can Log saving Start")
+                    log_path = path + f"/log{self.comboBox_log_format.currentText()}"
+                    # log_dir = path[0]
+                    f = open(log_path, 'w')
+                    count = 0
+                    while count < len(self.log_data):
+                        sig_id = self.log_data[count].arbitration_id
+                        if sig_id == 0x18ffd741 or sig_id == 0x18ffd841 or sig_id == 0x0c0ba021 or sig_id == 0x18a9e821 or sig_id == 0x18ff6341 or sig_id == 0x18ff4b41:
+                            data = 'tx ' + str(self.log_data[count])
+                        else:
+                            data = 'rx ' + str(self.log_data[count])
+                        f.write(data)
+                        f.write('\n')
+                        count += 1
+                    f.close()
+                    self.bus_console.appendPlainText("Can Log saving End")
+                    QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
+                    self.log_data = []
+                else:
+                    QMessageBox.warning(self, "Log Save", "Set appropriate directory")
+            else:
+                QMessageBox.warning(self, "Log Save", "Check the Log Save checkbox first")
         elif self.sender().objectName() == "chkbox_save_log":
             if self.chkbox_save_log.isChecked():
                 self.bus_console.appendPlainText("Can Log Writing Start")
@@ -1261,18 +1281,18 @@ class Main(QMainWindow, Ui_MainWindow):
         btn_name = self.sender().objectName()
         if btn_name == "btn_diag_console_clear":
             self.diag_console.clear()
+        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
+                or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
+                or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
+                or btn_name == "btn_bus_start" or txt == "tx_console_clear":
+            self.tx_set = set()
+            self.item = []
+            self.treeWidget_tx.clear()
         elif btn_name == "btn_write_data_clear" or txt:
             self.label_flag_send.setText("Fill the data")
             self.lineEdit_write_data.clear()
         elif btn_name == "btn_diag_dtc_console_clear":
             self.diag_dtc_console.clear()
-        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
-                or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
-                or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
-                or btn_name == "btn_bus_start":
-            self.tx_set = set()
-            self.item = []
-            self.treeWidget_tx.clear()
 
     def diag_initialization(self):
         self.flow_control_len = 1
