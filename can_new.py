@@ -13,6 +13,8 @@ from PyQt5.QtGui import *
 from can import interfaces
 import can.interfaces.vector
 import can_thread as worker
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/master_ui.ui")

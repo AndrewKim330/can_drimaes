@@ -403,6 +403,7 @@ class BCM_StateUpdate(NodeThread):
             self.data[4] = 0xFA
         elif self.parent.btn_start.isChecked():
             self.data[4] = 0xFC
+
         if self.parent.btn_bright_afternoon.isChecked():
             self.data[2] = 0xDF
         elif self.parent.btn_bright_night.isChecked():
@@ -451,8 +452,12 @@ class PMS_PTInfo(NodeThread):
             self.data[4] = 0xDF
         elif self.parent.btn_gear_d.isChecked():
             self.data[4] = 0xFC
+
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
+
+        if self.parent.chkbox_h_brake.isChecked():
+            self.data[5] = 0xFD
 
         self.pms_ptinfo_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
