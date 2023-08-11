@@ -13,11 +13,11 @@ from PyQt5.QtGui import *
 from can import interfaces
 import can.interfaces.vector
 import can_thread as worker
-from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/master_ui.ui")
+Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/master_ui.ui")
+# Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/master_ui.ui")
 
 
 class Main(QMainWindow, Ui_MainWindow):
@@ -26,8 +26,6 @@ class Main(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
 
-        QtCore.QCoreApplication.processEvents()
-
         self.setupUi(self)
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -35,6 +33,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.raw_data = []
         self.res_data = []
         self.temp_list = []
+        self.graph_data_list = []
         self.data_len = 0
         self.data_type = None
         self.log_data = []
@@ -220,6 +219,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_id_ecu_manu_date.released.connect(self.diag_func)
         self.btn_id_assy_num.released.connect(self.diag_func)
         self.btn_id_net_config.released.connect(self.diag_func)
+        self.btn_id_ecu_sts_info.released.connect(self.diag_func)
         self.btn_id_nrc_13.released.connect(self.diag_func)
         self.btn_id_nrc_31.released.connect(self.diag_func)
 
@@ -361,6 +361,12 @@ class Main(QMainWindow, Ui_MainWindow):
         self.treeWidget_tx.setColumnWidth(1, 150)
         self.treeWidget_tx.setColumnWidth(2, 300)
         self.treeWidget_tx.setColumnWidth(4, 350)
+
+        self.comboBox_num.addItem("1")
+        self.comboBox_num.addItem("2")
+        self.comboBox_num.addItem("3")
+
+        self.graph_widget.showGrid(x=True, y=True)
 
         self.set_mmi_labels_init(False)
         self.set_general_btns_labels(True)
@@ -989,6 +995,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_id_net_config.setEnabled(self.flag_domain)
         self.label_id_net_config.setText(f"{self.txt_domain}")
         self.label_id_net_config.setStyleSheet(f"color: {self.color_domain}")
+        self.btn_id_ecu_sts_info.setEnabled(self.flag_domain)
+        self.label_id_ecu_sts_info.setText(f"{self.txt_domain}")
+        self.label_id_ecu_sts_info.setStyleSheet(f"color: {self.color_domain}")
 
         self.btn_id_nrc_13.setEnabled(flag)
         self.label_id_nrc_13.setText(f"{txt}")
@@ -1508,7 +1517,6 @@ class Main(QMainWindow, Ui_MainWindow):
             self.tx_set.add(identifier)
             len_now = len(self.tx_set)
             if len_now - len_prev == 0:
-                # self.item = self.tx_filter(self.item)
                 for item in self.item:
                     if tx_id == item.text(0) and tx_channel == item.text(3):
                         item.setText(1, tx_time)
@@ -1529,7 +1537,23 @@ class Main(QMainWindow, Ui_MainWindow):
                     sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
+                self.comboBox_id.addItem(tx_name)
                 # self.treeWidget_tx.clear()
+        if tx_id == "0x18ffa57f":
+            # print(tx_data, type(tx_data))
+            if len(self.graph_data_list) == 10:
+                self.graph_data_list.pop(0)
+            self.graph_data_list.append(int(tx_data[:2], 16))
+        self.graph_presenter(self.graph_data_list)
+
+    def graph_presenter(self, graph_list):
+        plot_num = self.comboBox_num.currentText()
+        # print(plot_num)
+        # print(graph_list)
+        # x = [1, 2, 3, 4]
+        # y = [1, 4, 9, 16]
+        # self.curve = self.graph_widget.plot()
+        # self.curve.setData(graph_list)
 
     @pyqtSlot(str, int, list)
     def can_signal_sender(self, bus, send_id, send_data):
@@ -1566,6 +1590,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     or self.diag_btn_text == "btn_id_ecu_serial" or self.diag_btn_text == "btn_id_hw_ver" \
                     or self.diag_btn_text == "btn_id_sw_ver" or self.diag_btn_text == "btn_id_ecu_manu_date" \
                     or self.diag_btn_text == "btn_id_assy_num" or self.diag_btn_text == "btn_id_net_config" \
+                    or self.diag_btn_text == "btn_id_ecu_sts_info" \
                     or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
                 self.diag_success_byte = 0x62
                 self.diag_did(self.diag_btn_text)
@@ -1833,10 +1858,15 @@ class Main(QMainWindow, Ui_MainWindow):
             self.flow_control_len = 2
             self.data_type = "hex"
             sig_li = [0x03, 0x22, 0xF1, 0x10]
+        elif txt == "btn_id_ecu_sts_info":
+            self.flow_control_len = 2
+            self.data_type = "hex"
+            sig_li = [0x03, 0x22, 0xF2, 0xF0]
         elif txt == "btn_id_nrc_13":
             sig_li = [0x04, 0x22, 0xF1, 0x01, 0x01]
         elif txt == "btn_id_nrc_31":
             sig_li = [0x03, 0x22, 0xFF, 0xFF]
+
         if self.flow_control_len > 1:
             multi = True
         else:
@@ -1857,7 +1887,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     temp_str = ''
                     for temp_ch in self.raw_data[3:]:
                         if temp_ch != 0xaa:
-                            temp_str += hex(temp_ch)[2:]
+                            temp_str += hex(temp_ch)[2:].upper().zfill(2)
                             temp_str += ' '
                     self.lineEdit_id_data.setText(temp_str)
             if self.chkbox_diag_test_mode_did.isChecked():

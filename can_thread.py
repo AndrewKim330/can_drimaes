@@ -171,6 +171,7 @@ class ThreadWorker(NodeThread):
                 new_value = value
             battery = f'Battery : {new_value} %'
             self.parent.slider_battery.setValue(new_value)
+            self.parent.pms_vri_worker.value = new_value
             self.parent.label_battery.setText(battery)
             self.parent.bms_batt_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
@@ -492,10 +493,16 @@ class PMS_VRI(NodeThread):
         super().__init__(parent)
         self.period = 0.010
         self.send_id = 0x18fab327
+        self.value = 50
 
     def thread_func(self):  # PMS_VRI
-        self.data[0] = 0x00
-        self.data[1] = 0x00
+        unit_dist = self.value * 3 * 0x08
+        unit_dist_quotient = int(unit_dist / 0xFF)
+        unit_dist_remainder = unit_dist % 0xFF
+        if self.value == 100:
+            unit_dist_remainder = unit_dist % 0xFF - 2
+        self.data[0] = unit_dist_remainder
+        self.data[1] = unit_dist_quotient
         self.data[2] = 0x00
         self.data[3] = 0x00
 
@@ -570,10 +577,10 @@ class IC_Distance(NodeThread):
         self.send_id = 0x18fec117
 
     def thread_func(self):
-        self.data[0] = 0x00
-        self.data[1] = 0x00
-        self.data[2] = 0x00
-        self.data[3] = 0x00
+        self.data[0] = 0x10
+        self.data[1] = 0x10
+        self.data[2] = 0x10
+        self.data[3] = 0x10
 
         self.ic_distance_signal.emit('c', self.send_id, self.data)
         time.sleep(self.period)
