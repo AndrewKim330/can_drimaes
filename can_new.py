@@ -432,7 +432,7 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.bus_flag:
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
-            self.set_node()
+            self.set_node(init=True)
             if self.chkbox_can_dump.isChecked():
                 self.set_node_btns(False)
             self.thread_worker.start()
@@ -598,96 +598,70 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.bus_console.appendPlainText("Can Log Writing Stop")
                 self.comboBox_log_format.setEnabled(True)
 
-    def set_node(self):
-        if self.chkbox_node_acu.isChecked():
-            self.acu_seatbelt_worker._isRunning = True
-            self.acu_seatbelt_worker.start()
+    def set_node(self, init=False):
+        if init:
+            self.node_acu_control(True)
+            self.node_bcm_control(True)
+            self.node_esc_control(True)
+            self.node_fcs_control(True)
+            self.node_ic_control(True)
+            self.node_pms_control(True)
+            self.node_pms_s_control(True)
+            self.node_pms_c_control(True)
+            self.node_bms_control(True)
+            self.node_mcu_control(True)
         else:
-            self.acu_seatbelt_worker.stop()
-
-        if self.chkbox_node_bcm.isChecked():
-            self.bcm_mmi_worker._isRunning = True
-            self.bcm_swrc_worker._isRunning = True
-            self.bcm_strwhl_heat_worker._isRunning = True
-            self.bcm_lightchime_worker._isRunning = True
-            self.bcm_stateupdate_worker._isRunning = True
-            self.bcm_mmi_worker.start()
-            self.bcm_swrc_worker.start()
-            self.bcm_strwhl_heat_worker.start()
-            self.bcm_lightchime_worker.start()
-            self.bcm_stateupdate_worker.start()
-        else:
-            self.bcm_mmi_worker.stop()
-            self.bcm_swrc_worker.stop()
-            self.bcm_strwhl_heat_worker.stop()
-            self.bcm_lightchime_worker.stop()
-            self.bcm_stateupdate_worker.stop()
-
-        if self.chkbox_node_esc.isChecked():
-            self.esc_tpms_worker._isRunning = True
-            self.esc_tpms_worker.start()
-        else:
-            self.esc_tpms_worker.stop()
-
-        if self.chkbox_node_fcs.isChecked():
-            self.fcs_aeb_worker._isRunning = True
-            self.fcs_ldw_worker._isRunning = True
-            self.fcs_aeb_worker.start()
-            self.fcs_ldw_worker.start()
-        else:
-            self.fcs_aeb_worker.stop()
-            self.fcs_ldw_worker.stop()
-
-        if self.chkbox_node_ic.isChecked():
-            self.ic_distance_worker._isRunning = True
-            self.ic_tachospeed_worker._isRunning = True
-            self.ic_distance_worker.start()
-            self.ic_tachospeed_worker.start()
-        else:
-            self.ic_distance_worker.stop()
-            self.ic_tachospeed_worker.stop()
-
-        if self.chkbox_node_pms.isChecked():
-            self.pms_bodycont_c_worker._isRunning = True
-            self.pms_ptinfo_worker._isRunning = True
-            self.pms_bodycont_p_worker._isRunning = True
-            self.pms_vri_worker._isRunning = True
-            self.pms_bodycont_c_worker.start()
-            self.pms_ptinfo_worker.start()
-            self.pms_bodycont_p_worker.start()
-            self.pms_vri_worker.start()
-        else:
-            self.pms_bodycont_c_worker.stop()
-            self.pms_ptinfo_worker.stop()
-            self.pms_bodycont_p_worker.stop()
-            self.pms_vri_worker.stop()
-
-        if self.chkbox_node_pms_s.isChecked():
-            self.pms_s_hvsm_worker.start()
-            self.pms_s_hvsm_worker._isRunning = True
-        else:
-            self.pms_s_hvsm_worker.stop()
-
-        if self.chkbox_node_pms_c.isChecked():
-            self.pms_c_strwhl_worker._isRunning = True
-            self.pms_c_strwhl_worker.start()
-        else:
-            self.pms_c_strwhl_worker.stop()
-
-        if self.chkbox_node_bms.isChecked():
-            self.bms_batt_worker._isRunning = True
-            self.bms_charge_worker._isRunning = True
-            self.bms_batt_worker.start()
-            self.bms_charge_worker.start()
-        else:
-            self.bms_batt_worker.stop()
-            self.bms_charge_worker.stop()
-
-        if self.chkbox_node_mcu.isChecked():
-            self.mcu_motor_worker._isRunning = True
-            self.mcu_motor_worker.start()
-        else:
-            self.mcu_motor_worker.stop()
+            node_check = self.sender().objectName()
+            if node_check == "chkbox_node_acu":
+                if self.chkbox_node_bcm.isChecked():
+                    self.node_acu_control(True)
+                else:
+                    self.node_acu_control(False)
+            elif node_check == "chkbox_node_bcm":
+                if self.chkbox_node_bcm.isChecked():
+                    self.node_bcm_control(True)
+                else:
+                    self.node_bcm_control(False)
+            elif node_check == "chkbox_node_esc":
+                if self.chkbox_node_esc.isChecked():
+                    self.node_esc_control(True)
+                else:
+                    self.node_esc_control(False)
+            elif node_check == "chkbox_node_fcs":
+                if self.chkbox_node_fcs.isChecked():
+                    self.node_fcs_control(True)
+                else:
+                    self.node_fcs_control(False)
+            elif node_check == "chkbox_node_ic":
+                if self.chkbox_node_ic.isChecked():
+                    self.node_ic_control(True)
+                else:
+                    self.node_ic_control(False)
+            elif node_check == "chkbox_node_pms":
+                if self.chkbox_node_pms.isChecked():
+                    self.node_pms_control(True)
+                else:
+                    self.node_pms_control(False)
+            elif node_check == "chkbox_node_pms_s":
+                if self.chkbox_node_pms_s.isChecked():
+                    self.node_pms_s_control(True)
+                else:
+                    self.node_pms_s_control(False)
+            elif node_check == "chkbox_node_pms_c":
+                if self.chkbox_node_pms_c.isChecked():
+                    self.node_pms_c_control(True)
+                else:
+                    self.node_pms_c_control(False)
+            elif node_check == "chkbox_node_bms":
+                if self.chkbox_node_bms.isChecked():
+                    self.node_bms_control(True)
+                else:
+                    self.node_bms_control(False)
+            elif node_check == "chkbox_node_bms":
+                if self.chkbox_node_mcu.isChecked():
+                    self.node_mcu_control(True)
+                else:
+                    self.node_mcu_control(False)
 
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
@@ -1562,76 +1536,79 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.send_message(self.p_can_bus, send_id, send_data)
 
     def diag_func(self):
-        if self.sender():
-            self.diag_btn_text = self.sender().objectName()
-            if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" \
-                    or self.diag_btn_text == "btn_sess_nrc_12" or self.diag_btn_text == "btn_sess_nrc_13":
-                self.diag_success_byte = 0x50
-                self.diag_sess(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" \
-                    or self.diag_btn_text == "btn_reset_nrc_12" or self.diag_btn_text == "btn_reset_nrc_13" \
-                    or self.diag_btn_text == "btn_reset_nrc_7f_sw" or self.diag_btn_text == "btn_reset_nrc_7f_hw" \
-                    or self.diag_btn_text == "btn_reset_nrc_22_sw" or self.diag_btn_text == "btn_reset_nrc_22_hw":
-                self.diag_success_byte = 0x51
-                self.diag_reset(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_tester" \
-                    or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
-                self.diag_success_byte = 0x7e
-                self.diag_tester(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_id_ecu_num" or self.diag_btn_text == "btn_id_ecu_supp" \
-                    or "btn_id_vin" == self.diag_btn_text or self.diag_btn_text == "btn_id_install_date" \
-                    or self.diag_btn_text == "btn_id_diag_ver" or self.diag_btn_text == "btn_id_sys_name" \
-                    or self.diag_btn_text == "btn_id_active_sess" or self.diag_btn_text == "btn_id_veh_name" \
-                    or self.diag_btn_text == "btn_id_ecu_serial" or self.diag_btn_text == "btn_id_hw_ver" \
-                    or self.diag_btn_text == "btn_id_sw_ver" or self.diag_btn_text == "btn_id_ecu_manu_date" \
-                    or self.diag_btn_text == "btn_id_assy_num" or self.diag_btn_text == "btn_id_net_config" \
-                    or self.diag_btn_text == "btn_id_ecu_sts_info" \
-                    or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
-                self.diag_success_byte = 0x62
-                self.diag_did(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key" \
-                    or self.diag_btn_text == "btn_sec_nrc_12" or self.diag_btn_text == "btn_sec_nrc_13" \
-                    or self.diag_btn_text == "btn_sec_nrc_24" or self.diag_btn_text == "btn_sec_nrc_35" \
-                    or self.diag_btn_text == "btn_sec_nrc_36" or self.diag_btn_text == "btn_sec_nrc_37" \
-                    or self.diag_btn_text == "btn_sec_nrc_7f_req" or self.diag_btn_text == "btn_sec_nrc_7f_send":
-                self.diag_success_byte = 0x67
-                self.diag_security_access(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_write_vin" or self.diag_btn_text == "btn_write_install_date" \
-                    or self.diag_btn_text == "btn_write_veh_name" or self.diag_btn_text == "btn_write_sys_name" \
-                    or self.diag_btn_text == "btn_write_net_config" or self.diag_btn_text == "btn_write_nrc_7f_vin" \
-                    or self.diag_btn_text == "btn_write_nrc_7f_install_date" or self.diag_btn_text == "btn_write_nrc_7f_veh_name" \
-                    or self.diag_btn_text == "btn_write_nrc_7f_sys_name" or self.diag_btn_text == "btn_write_nrc_7f_net_config" \
-                    or self.diag_btn_text == "btn_write_nrc_33_vin" or self.diag_btn_text == "btn_write_nrc_33_install_date" \
-                    or self.diag_btn_text == "btn_write_nrc_33_veh_name" or self.diag_btn_text == "btn_write_nrc_33_sys_name" \
-                    or self.diag_btn_text == "btn_write_nrc_33_net_config" or self.diag_btn_text == "btn_write_nrc_22_vin" \
-                    or self.diag_btn_text == "btn_write_nrc_22_install_date" or self.diag_btn_text == "btn_write_nrc_22_veh_name" \
-                    or self.diag_btn_text == "btn_write_nrc_22_sys_name" or self.diag_btn_text == "btn_write_nrc_22_net_config" \
-                    or self.diag_btn_text == "btn_write_nrc_13":
-                self.diag_success_byte = 0x6e
-                self.diag_write(self.diag_btn_text)
-            elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
-                    or self.diag_btn_text == 'btn_comm_cont_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_12' \
-                    or self.diag_btn_text == 'btn_comm_cont_nrc_13' or self.diag_btn_text == 'btn_comm_cont_nrc_31' \
-                    or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_en' or self.diag_btn_text == 'btn_comm_cont_nrc_22_tx_dis' \
-                    or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_7f_all_en' \
-                    or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
-                self.diag_success_byte = 0x68
-                self.diag_comm_cont(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_mem_fault_num_check" \
-                    or self.diag_btn_text == "btn_mem_fault_list_check" or self.diag_btn_text == "btn_mem_fault_avail_sts_mask"\
-                    or self.diag_btn_text == 'btn_mem_fault_nrc_12' or self.diag_btn_text == 'btn_mem_fault_nrc_13':
-                self.diag_success_byte = 0x59
-                self.diag_memory_fault(self.diag_btn_text)
-            elif self.diag_btn_text == "btn_mem_fault_reset" or self.diag_btn_text == 'btn_mem_fault_nrc_13_reset' \
-                    or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_31_reset':
-                self.diag_success_byte = 0x54
-                self.diag_memory_fault(self.diag_btn_text)
-            elif self.diag_btn_text == 'btn_dtc_cont_en' or self.diag_btn_text == 'btn_dtc_cont_dis' \
-                    or self.diag_btn_text == 'btn_dtc_cont_nrc_12' or self.diag_btn_text == 'btn_dtc_cont_nrc_13' \
-                    or self.diag_btn_text == 'btn_dtc_cont_nrc_22_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_22_dis' \
-                    or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_dis':
-                self.diag_success_byte = 0xC5
-                self.diag_dtc_cont(self.diag_btn_text)
+        if self.c_can_bus:
+            if self.sender():
+                self.diag_btn_text = self.sender().objectName()
+                if self.diag_btn_text == "btn_sess_default" or self.diag_btn_text == "btn_sess_extended" \
+                        or self.diag_btn_text == "btn_sess_nrc_12" or self.diag_btn_text == "btn_sess_nrc_13":
+                    self.diag_success_byte = 0x50
+                    self.diag_sess(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_reset_sw" or self.diag_btn_text == "btn_reset_hw" \
+                        or self.diag_btn_text == "btn_reset_nrc_12" or self.diag_btn_text == "btn_reset_nrc_13" \
+                        or self.diag_btn_text == "btn_reset_nrc_7f_sw" or self.diag_btn_text == "btn_reset_nrc_7f_hw" \
+                        or self.diag_btn_text == "btn_reset_nrc_22_sw" or self.diag_btn_text == "btn_reset_nrc_22_hw":
+                    self.diag_success_byte = 0x51
+                    self.diag_reset(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_tester" \
+                        or self.diag_btn_text == "btn_tester_nrc_12" or self.diag_btn_text == "btn_tester_nrc_13":
+                    self.diag_success_byte = 0x7e
+                    self.diag_tester(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_id_ecu_num" or self.diag_btn_text == "btn_id_ecu_supp" \
+                        or "btn_id_vin" == self.diag_btn_text or self.diag_btn_text == "btn_id_install_date" \
+                        or self.diag_btn_text == "btn_id_diag_ver" or self.diag_btn_text == "btn_id_sys_name" \
+                        or self.diag_btn_text == "btn_id_active_sess" or self.diag_btn_text == "btn_id_veh_name" \
+                        or self.diag_btn_text == "btn_id_ecu_serial" or self.diag_btn_text == "btn_id_hw_ver" \
+                        or self.diag_btn_text == "btn_id_sw_ver" or self.diag_btn_text == "btn_id_ecu_manu_date" \
+                        or self.diag_btn_text == "btn_id_assy_num" or self.diag_btn_text == "btn_id_net_config" \
+                        or self.diag_btn_text == "btn_id_ecu_sts_info" \
+                        or self.diag_btn_text == "btn_id_nrc_13" or self.diag_btn_text == "btn_id_nrc_31":
+                    self.diag_success_byte = 0x62
+                    self.diag_did(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key" \
+                        or self.diag_btn_text == "btn_sec_nrc_12" or self.diag_btn_text == "btn_sec_nrc_13" \
+                        or self.diag_btn_text == "btn_sec_nrc_24" or self.diag_btn_text == "btn_sec_nrc_35" \
+                        or self.diag_btn_text == "btn_sec_nrc_36" or self.diag_btn_text == "btn_sec_nrc_37" \
+                        or self.diag_btn_text == "btn_sec_nrc_7f_req" or self.diag_btn_text == "btn_sec_nrc_7f_send":
+                    self.diag_success_byte = 0x67
+                    self.diag_security_access(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_write_vin" or self.diag_btn_text == "btn_write_install_date" \
+                        or self.diag_btn_text == "btn_write_veh_name" or self.diag_btn_text == "btn_write_sys_name" \
+                        or self.diag_btn_text == "btn_write_net_config" or self.diag_btn_text == "btn_write_nrc_7f_vin" \
+                        or self.diag_btn_text == "btn_write_nrc_7f_install_date" or self.diag_btn_text == "btn_write_nrc_7f_veh_name" \
+                        or self.diag_btn_text == "btn_write_nrc_7f_sys_name" or self.diag_btn_text == "btn_write_nrc_7f_net_config" \
+                        or self.diag_btn_text == "btn_write_nrc_33_vin" or self.diag_btn_text == "btn_write_nrc_33_install_date" \
+                        or self.diag_btn_text == "btn_write_nrc_33_veh_name" or self.diag_btn_text == "btn_write_nrc_33_sys_name" \
+                        or self.diag_btn_text == "btn_write_nrc_33_net_config" or self.diag_btn_text == "btn_write_nrc_22_vin" \
+                        or self.diag_btn_text == "btn_write_nrc_22_install_date" or self.diag_btn_text == "btn_write_nrc_22_veh_name" \
+                        or self.diag_btn_text == "btn_write_nrc_22_sys_name" or self.diag_btn_text == "btn_write_nrc_22_net_config" \
+                        or self.diag_btn_text == "btn_write_nrc_13":
+                    self.diag_success_byte = 0x6e
+                    self.diag_write(self.diag_btn_text)
+                elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
+                        or self.diag_btn_text == 'btn_comm_cont_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_12' \
+                        or self.diag_btn_text == 'btn_comm_cont_nrc_13' or self.diag_btn_text == 'btn_comm_cont_nrc_31' \
+                        or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_en' or self.diag_btn_text == 'btn_comm_cont_nrc_22_tx_dis' \
+                        or self.diag_btn_text == 'btn_comm_cont_nrc_22_all_dis' or self.diag_btn_text == 'btn_comm_cont_nrc_7f_all_en' \
+                        or self.diag_btn_text == 'btn_comm_cont_nrc_7f_tx_dis' or self.diag_btn_text ==  'btn_comm_cont_nrc_7f_all_dis':
+                    self.diag_success_byte = 0x68
+                    self.diag_comm_cont(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_mem_fault_num_check" \
+                        or self.diag_btn_text == "btn_mem_fault_list_check" or self.diag_btn_text == "btn_mem_fault_avail_sts_mask"\
+                        or self.diag_btn_text == 'btn_mem_fault_nrc_12' or self.diag_btn_text == 'btn_mem_fault_nrc_13':
+                    self.diag_success_byte = 0x59
+                    self.diag_memory_fault(self.diag_btn_text)
+                elif self.diag_btn_text == "btn_mem_fault_reset" or self.diag_btn_text == 'btn_mem_fault_nrc_13_reset' \
+                        or self.diag_btn_text == 'btn_mem_fault_nrc_22_reset' or self.diag_btn_text == 'btn_mem_fault_nrc_31_reset':
+                    self.diag_success_byte = 0x54
+                    self.diag_memory_fault(self.diag_btn_text)
+                elif self.diag_btn_text == 'btn_dtc_cont_en' or self.diag_btn_text == 'btn_dtc_cont_dis' \
+                        or self.diag_btn_text == 'btn_dtc_cont_nrc_12' or self.diag_btn_text == 'btn_dtc_cont_nrc_13' \
+                        or self.diag_btn_text == 'btn_dtc_cont_nrc_22_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_22_dis' \
+                        or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_en' or self.diag_btn_text == 'btn_dtc_cont_nrc_7f_dis':
+                    self.diag_success_byte = 0xC5
+                    self.diag_dtc_cont(self.diag_btn_text)
+        else:
+            pass
 
     def diag_sess(self, txt, ex_comp=False):
         # **need to add test failed scenario
@@ -2573,6 +2550,106 @@ class Main(QMainWindow, Ui_MainWindow):
                 return True
             else:
                 return False
+
+    def node_acu_control(self, flag):
+        if flag:
+            self.acu_seatbelt_worker._isRunning = True
+            self.acu_seatbelt_worker.start()
+        else:
+            self.acu_seatbelt_worker.stop()
+
+    def node_bcm_control(self, flag):
+        if flag:
+            self.bcm_mmi_worker._isRunning = True
+            self.bcm_swrc_worker._isRunning = True
+            self.bcm_strwhl_heat_worker._isRunning = True
+            self.bcm_lightchime_worker._isRunning = True
+            self.bcm_stateupdate_worker._isRunning = True
+            self.bcm_mmi_worker.start()
+            self.bcm_swrc_worker.start()
+            self.bcm_strwhl_heat_worker.start()
+            self.bcm_lightchime_worker.start()
+            self.bcm_stateupdate_worker.start()
+        else:
+            self.bcm_mmi_worker.stop()
+            self.bcm_swrc_worker.stop()
+            self.bcm_strwhl_heat_worker.stop()
+            self.bcm_lightchime_worker.stop()
+            self.bcm_stateupdate_worker.stop()
+
+    def node_esc_control(self, flag):
+        if flag:
+            self.esc_tpms_worker._isRunning = True
+            self.esc_tpms_worker.start()
+        else:
+            self.esc_tpms_worker.stop()
+
+    def node_fcs_control(self, flag):
+        if flag:
+            self.fcs_aeb_worker._isRunning = True
+            self.fcs_ldw_worker._isRunning = True
+            self.fcs_aeb_worker.start()
+            self.fcs_ldw_worker.start()
+        else:
+            self.fcs_aeb_worker.stop()
+            self.fcs_ldw_worker.stop()
+
+    def node_ic_control(self, flag):
+        if flag:
+            self.ic_distance_worker._isRunning = True
+            self.ic_tachospeed_worker._isRunning = True
+            self.ic_distance_worker.start()
+            self.ic_tachospeed_worker.start()
+        else:
+            self.ic_distance_worker.stop()
+            self.ic_tachospeed_worker.stop()
+
+    def node_pms_control(self, flag):
+        if flag:
+            self.pms_bodycont_c_worker._isRunning = True
+            self.pms_ptinfo_worker._isRunning = True
+            self.pms_bodycont_p_worker._isRunning = True
+            self.pms_vri_worker._isRunning = True
+            self.pms_bodycont_c_worker.start()
+            self.pms_ptinfo_worker.start()
+            self.pms_bodycont_p_worker.start()
+            self.pms_vri_worker.start()
+        else:
+            self.pms_bodycont_c_worker.stop()
+            self.pms_ptinfo_worker.stop()
+            self.pms_bodycont_p_worker.stop()
+            self.pms_vri_worker.stop()
+
+    def node_pms_s_control(self, flag):
+        if flag:
+            self.pms_s_hvsm_worker.start()
+            self.pms_s_hvsm_worker._isRunning = True
+        else:
+            self.pms_s_hvsm_worker.stop()
+
+    def node_pms_c_control(self, flag):
+        if flag:
+            self.pms_c_strwhl_worker._isRunning = True
+            self.pms_c_strwhl_worker.start()
+        else:
+            self.pms_c_strwhl_worker.stop()
+
+    def node_bms_control(self, flag):
+        if flag:
+            self.bms_batt_worker._isRunning = True
+            self.bms_charge_worker._isRunning = True
+            self.bms_batt_worker.start()
+            self.bms_charge_worker.start()
+        else:
+            self.bms_batt_worker.stop()
+            self.bms_charge_worker.stop()
+
+    def node_mcu_control(self, flag):
+        if flag:
+            self.mcu_motor_worker._isRunning = True
+            self.mcu_motor_worker.start()
+        else:
+            self.mcu_motor_worker.stop()
 
 
 if __name__ == '__main__':

@@ -191,7 +191,6 @@ class PMS_S_HVSM(NodeThread):
         else:
             self.pms_s_hvsm_signal.emit("C-CAN bus error (PMS_S - HVSM)", 0xFF, self.data)
             self.parent.pms_s_hvsm_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_C_StrWhl(NodeThread):
@@ -212,7 +211,6 @@ class PMS_C_StrWhl(NodeThread):
         else:
             self.pms_c_strwhl_signal.emit("C-CAN bus error (PMS_C - StrWhl)", 0xFF, self.data)
             self.parent.pms_c_strwhl_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class BCM_MMI(NodeThread):
@@ -272,7 +270,6 @@ class BCM_MMI(NodeThread):
         else:
             self.bcm_mmi_signal.emit("C-CAN bus error (BCM - MMI)", 0xFF, self.data)
             self.parent.bcm_mmi_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class BCM_SWRC(NodeThread):
@@ -358,7 +355,6 @@ class BCM_SWRC(NodeThread):
         else:
             self.bcm_swrc_signal.emit("C-CAN bus error (BCM - SWRC)", 0xFF, self.data)
             self.parent.bcm_swrc_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
     # def long_press(self):
     #     while True:
@@ -392,7 +388,6 @@ class BCM_StrWhl_Heat(NodeThread):
         else:
             self.bcm_strwhl_heat_signal.emit("C-CAN bus error (BCM - StrWhl_Heat)", 0xFF, self.data)
             self.parent.bcm_strwhl_heat_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class BCM_LightChime(NodeThread):
@@ -413,7 +408,6 @@ class BCM_LightChime(NodeThread):
         else:
             self.bcm_lightchime_signal.emit("C-CAN bus error (BCM - LightChime)", 0xFF, self.data)
             self.parent.bcm_lightchime_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class BCM_StateUpdate(NodeThread):
@@ -448,7 +442,6 @@ class BCM_StateUpdate(NodeThread):
         else:
             self.bcm_stateupdate_signal.emit("C-CAN bus error (BCM - StateUpdate)", 0xFF, self.data)
             self.parent.bcm_stateupdate_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_BodyCont_C(NodeThread):
@@ -471,7 +464,6 @@ class PMS_BodyCont_C(NodeThread):
         else:
             self.pms_bodycont_c_signal.emit("C-CAN bus error (PMS - BodyCont CCAN)", 0xFF, self.data)
             self.parent.pms_bodycont_c_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_PTInfo(NodeThread):
@@ -509,7 +501,6 @@ class PMS_PTInfo(NodeThread):
         else:
             self.pms_ptinfo_signal.emit("C-CAN bus error (PMS - PTInfo)", 0xFF, self.data)
             self.parent.pms_ptinfo_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_BodyCont_P(NodeThread):
@@ -529,7 +520,6 @@ class PMS_BodyCont_P(NodeThread):
         else:
             self.pms_bodycont_p_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)", 0xFF, self.data)
             self.parent.pms_bodycont_p_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class PMS_VRI(NodeThread):
@@ -558,7 +548,6 @@ class PMS_VRI(NodeThread):
         else:
             self.pms_vri_signal.emit("P-CAN bus error (PMS - VRI)", 0xFF, self.data)
             self.parent.pms_vri_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class FCS_AEB(NodeThread):
@@ -583,7 +572,6 @@ class FCS_AEB(NodeThread):
         else:
             self.fcs_aeb_signal.emit("C-CAN bus error (FCS - AEB)", 0xFF, self.data)
             self.parent.fcs_aeb_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class FCS_LDW(NodeThread):
@@ -604,7 +592,6 @@ class FCS_LDW(NodeThread):
         else:
             self.fcs_ldw_signal.emit("C-CAN bus error (FCS - LDW)", 0xFF, self.data)
             self.parent.fcs_ldw_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class IC_TachoSpeed(NodeThread):
@@ -626,7 +613,6 @@ class IC_TachoSpeed(NodeThread):
         else:
             self.ic_tachospeed_signal.emit("C-CAN bus error (IC - TachoSpeed)", 0xFF, self.data)
             self.parent.ic_tachospeed_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class IC_Distance(NodeThread):
@@ -649,7 +635,6 @@ class IC_Distance(NodeThread):
         else:
             self.ic_distance_signal.emit("C-CAN bus error (IC - Distance)", 0xFF, self.data)
             self.parent.ic_distance_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class ESC_TPMS(NodeThread):
@@ -675,7 +660,6 @@ class ESC_TPMS(NodeThread):
         else:
             self.esc_tpms_signal.emit("C-CAN bus error (ESC - TPMS)", 0xFF, self.data)
             self.parent.esc_tpms_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class ACU_SeatBelt(NodeThread):
@@ -693,7 +677,6 @@ class ACU_SeatBelt(NodeThread):
         else:
             self.acu_seatbelt_signal.emit("C-CAN bus error (ACU - Seatbelt)", 0xFF, self.data)
             self.parent.acu_seatbelt_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
     def drv_invalid(self):
         if self.parent.chkbox_drv_invalid.isChecked():
@@ -728,7 +711,6 @@ class BMS_Batt(NodeThread):
         else:
             self.bms_batt_signal.emit("P-CAN bus error (BMS - Battery)", 0xFF, self.data)
             self.parent.bms_batt_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class BMS_Charge(NodeThread):
@@ -750,7 +732,6 @@ class BMS_Charge(NodeThread):
         else:
             self.bms_charge_signal.emit("P-CAN bus error (BMS - Charging)", 0xFF, self.data)
             self.parent.bms_charge_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class MCU_Motor(NodeThread):
@@ -770,7 +751,6 @@ class MCU_Motor(NodeThread):
         else:
             self.mcu_motor_signal.emit("P-CAN bus error (MCU - Motor)", 0xFF, self.data)
             self.parent.mcu_motor_worker._isRunning = False
-            QtCore.QCoreApplication.processEvents()
 
 
 class TesterPresent(NodeThread):
@@ -794,4 +774,3 @@ class TesterPresent(NodeThread):
                 time.sleep(self.period)
             else:
                 self.tester_signal.emit("C-CAN bus error (Diagnosis)", 0xFF, self.data)
-                QtCore.QCoreApplication.processEvents()
