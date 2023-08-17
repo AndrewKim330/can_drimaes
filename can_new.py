@@ -156,23 +156,18 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.pms_bodycont_p_worker = worker.PMS_BodyCont_P(parent=self)
         self.pms_bodycont_p_worker.pms_bodycont_p_signal.connect(self.can_signal_sender)
-        self.pms_bodycont_p_worker.pms_bodycont_p_p_can_err_signal.connect(self.bus_error)
 
         self.pms_vri_worker = worker.PMS_VRI(parent=self)
         self.pms_vri_worker.pms_vri_signal.connect(self.can_signal_sender)
-        self.pms_vri_worker.pms_vri_p_can_err_signal.connect(self.bus_error)
 
         self.bms_batt_worker = worker.BMS_Batt(parent=self)
         self.bms_batt_worker.bms_batt_signal.connect(self.can_signal_sender)
-        self.bms_batt_worker.bms_batt_p_can_err_signal.connect(self.bus_error)
 
         self.bms_charge_worker = worker.BMS_Charge(parent=self)
         self.bms_charge_worker.bms_charge_signal.connect(self.can_signal_sender)
-        self.bms_charge_worker.bms_charge_p_can_err_signal.connect(self.bus_error)
 
         self.mcu_motor_worker = worker.MCU_Motor(parent=self)
         self.mcu_motor_worker.mcu_motor_signal.connect(self.can_signal_sender)
-        self.mcu_motor_worker.mcu_motor_p_can_err_signal.connect(self.bus_error)
 
         self.tester_worker = worker.TesterPresent(parent=self)
         self.tester_worker.tester_signal.connect(self.diag_data_collector)
@@ -1423,6 +1418,7 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.res_data = temp_li
             for m in self.res_data:
                 self.diag_console.appendPlainText(str(m))
+                QtCore.QCoreApplication.processEvents()
         return True
 
     def data_converter(self, conv):
@@ -1556,15 +1552,14 @@ class Main(QMainWindow, Ui_MainWindow):
         # self.curve.setData(graph_list)
 
     @pyqtSlot(str, int, list)
-    def can_signal_sender(self, bus, send_id, send_data):
-        if bus == 'c':
-            self.send_message(self.c_can_bus, send_id, send_data)
-        elif bus == 'p':
-            self.send_message(self.p_can_bus, send_id, send_data)
-
-    @pyqtSlot(str)
-    def bus_error(self, bus_err_str):
-        self.bus_console.appendPlainText(bus_err_str)
+    def can_signal_sender(self, bus_mess, send_id, send_data):
+        if send_id == 0xFF:
+            self.bus_console.appendPlainText(bus_mess)
+        else:
+            if bus_mess == 'c':
+                self.send_message(self.c_can_bus, send_id, send_data)
+            elif bus_mess == 'p':
+                self.send_message(self.p_can_bus, send_id, send_data)
 
     def diag_func(self):
         if self.sender():

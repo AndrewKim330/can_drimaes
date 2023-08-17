@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1997</width>
-    <height>1124</height>
+    <width>1986</width>
+    <height>1120</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="general">
      <attribute name="title">
@@ -792,6 +792,12 @@
          <width>101</width>
          <height>51</height>
         </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
         <string>Vol. Up</string>
@@ -5676,7 +5682,7 @@ Connect</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1997</width>
+     <width>1986</width>
      <height>18</height>
     </rect>
    </property>
