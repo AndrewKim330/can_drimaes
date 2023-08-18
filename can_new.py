@@ -600,68 +600,68 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def set_node(self, init=False):
         if init:
-            self.node_acu_control(True)
-            self.node_bcm_control(True)
-            self.node_esc_control(True)
-            self.node_fcs_control(True)
-            self.node_ic_control(True)
-            self.node_pms_control(True)
-            self.node_pms_s_control(True)
-            self.node_pms_c_control(True)
-            self.node_bms_control(True)
-            self.node_mcu_control(True)
+            self.node_control(flag=True, node="acu")
+            self.node_control(flag=True, node="bcm")
+            self.node_control(flag=True, node="esc")
+            self.node_control(flag=True, node="fcs")
+            self.node_control(flag=True, node="ic")
+            self.node_control(flag=True, node="pms")
+            self.node_control(flag=True, node="pms_s")
+            self.node_control(flag=True, node="pms_c")
+            self.node_control(flag=True, node="bms")
+            self.node_control(flag=True, node="mcu")
         else:
             node_check = self.sender().objectName()
             if node_check == "chkbox_node_acu":
-                if self.chkbox_node_bcm.isChecked():
-                    self.node_acu_control(True)
+                if self.chkbox_node_acu.isChecked():
+                    self.node_control(flag=True, node="acu")
                 else:
-                    self.node_acu_control(False)
+                    self.node_control(flag=False, node="acu")
             elif node_check == "chkbox_node_bcm":
                 if self.chkbox_node_bcm.isChecked():
-                    self.node_bcm_control(True)
+                    self.node_control(flag=True, node="bcm")
                 else:
-                    self.node_bcm_control(False)
+                    self.node_control(flag=False, node="bcm")
             elif node_check == "chkbox_node_esc":
                 if self.chkbox_node_esc.isChecked():
-                    self.node_esc_control(True)
+                    self.node_control(flag=True, node="esc")
                 else:
-                    self.node_esc_control(False)
+                    self.node_control(flag=False, node="esc")
             elif node_check == "chkbox_node_fcs":
                 if self.chkbox_node_fcs.isChecked():
-                    self.node_fcs_control(True)
+                    self.node_control(flag=True, node="fcs")
                 else:
-                    self.node_fcs_control(False)
+                    self.node_control(flag=False, node="fcs")
             elif node_check == "chkbox_node_ic":
                 if self.chkbox_node_ic.isChecked():
-                    self.node_ic_control(True)
+                    self.node_control(flag=True, node="ic")
                 else:
-                    self.node_ic_control(False)
+                    self.node_control(flag=False, node="ic")
             elif node_check == "chkbox_node_pms":
                 if self.chkbox_node_pms.isChecked():
-                    self.node_pms_control(True)
+                    self.node_control(flag=True, node="pms")
                 else:
-                    self.node_pms_control(False)
+                    self.node_control(flag=False, node="pms")
             elif node_check == "chkbox_node_pms_s":
                 if self.chkbox_node_pms_s.isChecked():
-                    self.node_pms_s_control(True)
+                    self.node_control(flag=True, node="pms_s")
                 else:
-                    self.node_pms_s_control(False)
+                    self.node_control(flag=False, node="pms_s")
             elif node_check == "chkbox_node_pms_c":
                 if self.chkbox_node_pms_c.isChecked():
-                    self.node_pms_c_control(True)
+                    self.node_control(flag=True, node="pms_c")
                 else:
-                    self.node_pms_c_control(False)
+                    self.node_control(flag=False, node="pms_c")
             elif node_check == "chkbox_node_bms":
                 if self.chkbox_node_bms.isChecked():
-                    self.node_bms_control(True)
+                    self.node_control(flag=True, node="bms")
                 else:
-                    self.node_bms_control(False)
-            elif node_check == "chkbox_node_bms":
+                    self.node_control(flag=False, node="bms")
+            elif node_check == "chkbox_node_mcu":
                 if self.chkbox_node_mcu.isChecked():
-                    self.node_mcu_control(True)
+                    self.node_control(flag=True, node="mcu")
                 else:
-                    self.node_mcu_control(False)
+                    self.node_control(flag=False, node="mcu")
 
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
@@ -1608,7 +1608,7 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_success_byte = 0xC5
                     self.diag_dtc_cont(self.diag_btn_text)
         else:
-            pass
+            QMessageBox.warning(self, "C-CAN bus error", "C-CAN bus is not properly connected")
 
     def diag_sess(self, txt, ex_comp=False):
         # **need to add test failed scenario
@@ -2551,105 +2551,97 @@ class Main(QMainWindow, Ui_MainWindow):
             else:
                 return False
 
-    def node_acu_control(self, flag):
-        if flag:
-            self.acu_seatbelt_worker._isRunning = True
-            self.acu_seatbelt_worker.start()
-        else:
-            self.acu_seatbelt_worker.stop()
-
-    def node_bcm_control(self, flag):
-        if flag:
-            self.bcm_mmi_worker._isRunning = True
-            self.bcm_swrc_worker._isRunning = True
-            self.bcm_strwhl_heat_worker._isRunning = True
-            self.bcm_lightchime_worker._isRunning = True
-            self.bcm_stateupdate_worker._isRunning = True
-            self.bcm_mmi_worker.start()
-            self.bcm_swrc_worker.start()
-            self.bcm_strwhl_heat_worker.start()
-            self.bcm_lightchime_worker.start()
-            self.bcm_stateupdate_worker.start()
-        else:
-            self.bcm_mmi_worker.stop()
-            self.bcm_swrc_worker.stop()
-            self.bcm_strwhl_heat_worker.stop()
-            self.bcm_lightchime_worker.stop()
-            self.bcm_stateupdate_worker.stop()
-
-    def node_esc_control(self, flag):
-        if flag:
-            self.esc_tpms_worker._isRunning = True
-            self.esc_tpms_worker.start()
-        else:
-            self.esc_tpms_worker.stop()
-
-    def node_fcs_control(self, flag):
-        if flag:
-            self.fcs_aeb_worker._isRunning = True
-            self.fcs_ldw_worker._isRunning = True
-            self.fcs_aeb_worker.start()
-            self.fcs_ldw_worker.start()
-        else:
-            self.fcs_aeb_worker.stop()
-            self.fcs_ldw_worker.stop()
-
-    def node_ic_control(self, flag):
-        if flag:
-            self.ic_distance_worker._isRunning = True
-            self.ic_tachospeed_worker._isRunning = True
-            self.ic_distance_worker.start()
-            self.ic_tachospeed_worker.start()
-        else:
-            self.ic_distance_worker.stop()
-            self.ic_tachospeed_worker.stop()
-
-    def node_pms_control(self, flag):
-        if flag:
-            self.pms_bodycont_c_worker._isRunning = True
-            self.pms_ptinfo_worker._isRunning = True
-            self.pms_bodycont_p_worker._isRunning = True
-            self.pms_vri_worker._isRunning = True
-            self.pms_bodycont_c_worker.start()
-            self.pms_ptinfo_worker.start()
-            self.pms_bodycont_p_worker.start()
-            self.pms_vri_worker.start()
-        else:
-            self.pms_bodycont_c_worker.stop()
-            self.pms_ptinfo_worker.stop()
-            self.pms_bodycont_p_worker.stop()
-            self.pms_vri_worker.stop()
-
-    def node_pms_s_control(self, flag):
-        if flag:
-            self.pms_s_hvsm_worker.start()
-            self.pms_s_hvsm_worker._isRunning = True
-        else:
-            self.pms_s_hvsm_worker.stop()
-
-    def node_pms_c_control(self, flag):
-        if flag:
-            self.pms_c_strwhl_worker._isRunning = True
-            self.pms_c_strwhl_worker.start()
-        else:
-            self.pms_c_strwhl_worker.stop()
-
-    def node_bms_control(self, flag):
-        if flag:
-            self.bms_batt_worker._isRunning = True
-            self.bms_charge_worker._isRunning = True
-            self.bms_batt_worker.start()
-            self.bms_charge_worker.start()
-        else:
-            self.bms_batt_worker.stop()
-            self.bms_charge_worker.stop()
-
-    def node_mcu_control(self, flag):
-        if flag:
-            self.mcu_motor_worker._isRunning = True
-            self.mcu_motor_worker.start()
-        else:
-            self.mcu_motor_worker.stop()
+    def node_control(self, flag, node):
+        if node == "acu":
+            if flag:
+                self.acu_seatbelt_worker._isRunning = True
+                self.acu_seatbelt_worker.start()
+            else:
+                self.acu_seatbelt_worker.stop()
+        elif node == "bcm":
+            if flag:
+                self.bcm_mmi_worker._isRunning = True
+                self.bcm_swrc_worker._isRunning = True
+                self.bcm_strwhl_heat_worker._isRunning = True
+                self.bcm_lightchime_worker._isRunning = True
+                self.bcm_stateupdate_worker._isRunning = True
+                self.bcm_mmi_worker.start()
+                self.bcm_swrc_worker.start()
+                self.bcm_strwhl_heat_worker.start()
+                self.bcm_lightchime_worker.start()
+                self.bcm_stateupdate_worker.start()
+            else:
+                self.bcm_mmi_worker.stop()
+                self.bcm_swrc_worker.stop()
+                self.bcm_strwhl_heat_worker.stop()
+                self.bcm_lightchime_worker.stop()
+                self.bcm_stateupdate_worker.stop()
+        elif node == "esc":
+            if flag:
+                self.esc_tpms_worker._isRunning = True
+                self.esc_tpms_worker.start()
+            else:
+                self.esc_tpms_worker.stop()
+        elif node == "fcs":
+            if flag:
+                self.fcs_aeb_worker._isRunning = True
+                self.fcs_ldw_worker._isRunning = True
+                self.fcs_aeb_worker.start()
+                self.fcs_ldw_worker.start()
+            else:
+                self.fcs_aeb_worker.stop()
+                self.fcs_ldw_worker.stop()
+        elif node == "ic":
+            if flag:
+                self.ic_distance_worker._isRunning = True
+                self.ic_tachospeed_worker._isRunning = True
+                self.ic_distance_worker.start()
+                self.ic_tachospeed_worker.start()
+            else:
+                self.ic_distance_worker.stop()
+                self.ic_tachospeed_worker.stop()
+        elif node == "pms":
+            if flag:
+                self.pms_bodycont_c_worker._isRunning = True
+                self.pms_ptinfo_worker._isRunning = True
+                self.pms_bodycont_p_worker._isRunning = True
+                self.pms_vri_worker._isRunning = True
+                self.pms_bodycont_c_worker.start()
+                self.pms_ptinfo_worker.start()
+                self.pms_bodycont_p_worker.start()
+                self.pms_vri_worker.start()
+            else:
+                self.pms_bodycont_c_worker.stop()
+                self.pms_ptinfo_worker.stop()
+                self.pms_bodycont_p_worker.stop()
+                self.pms_vri_worker.stop()
+        elif node == "pms_s":
+            if flag:
+                self.pms_s_hvsm_worker.start()
+                self.pms_s_hvsm_worker._isRunning = True
+            else:
+                self.pms_s_hvsm_worker.stop()
+        elif node == "pms_c":
+            if flag:
+                self.pms_c_strwhl_worker._isRunning = True
+                self.pms_c_strwhl_worker.start()
+            else:
+                self.pms_c_strwhl_worker.stop()
+        elif node == "bms":
+            if flag:
+                self.bms_batt_worker._isRunning = True
+                self.bms_charge_worker._isRunning = True
+                self.bms_batt_worker.start()
+                self.bms_charge_worker.start()
+            else:
+                self.bms_batt_worker.stop()
+                self.bms_charge_worker.stop()
+        elif node == "mcu":
+            if flag:
+                self.mcu_motor_worker._isRunning = True
+                self.mcu_motor_worker.start()
+            else:
+                self.mcu_motor_worker.stop()
 
 
 if __name__ == '__main__':
