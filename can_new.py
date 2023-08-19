@@ -35,6 +35,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.temp_list = []
         self.graph_data_list = []
         self.data_len = 0
+        self.dtc_num = 0
         self.data_type = None
         self.log_data = []
 
@@ -322,16 +323,16 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
-        self.chkbox_node_acu.released.connect(self.set_node)
-        self.chkbox_node_bcm.released.connect(self.set_node)
-        self.chkbox_node_esc.released.connect(self.set_node)
-        self.chkbox_node_fcs.released.connect(self.set_node)
-        self.chkbox_node_ic.released.connect(self.set_node)
-        self.chkbox_node_pms.released.connect(self.set_node)
-        self.chkbox_node_pms_s.released.connect(self.set_node)
-        self.chkbox_node_pms_c.released.connect(self.set_node)
-        self.chkbox_node_bms.released.connect(self.set_node)
-        self.chkbox_node_mcu.released.connect(self.set_node)
+        self.chkbox_node_acu.released.connect(self.node_acu_control)
+        self.chkbox_node_bcm.released.connect(self.node_bcm_control)
+        self.chkbox_node_esc.released.connect(self.node_esc_control)
+        self.chkbox_node_fcs.released.connect(self.node_fcs_control)
+        self.chkbox_node_ic.released.connect(self.node_ic_control)
+        self.chkbox_node_pms.released.connect(self.node_pms_control)
+        self.chkbox_node_pms_s.released.connect(self.node_pms_s_control)
+        self.chkbox_node_pms_c.released.connect(self.node_pms_c_control)
+        self.chkbox_node_bms.released.connect(self.node_bms_control)
+        self.chkbox_node_mcu.released.connect(self.node_mcu_control)
 
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
@@ -356,6 +357,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.treeWidget_tx.setColumnWidth(1, 150)
         self.treeWidget_tx.setColumnWidth(2, 300)
         self.treeWidget_tx.setColumnWidth(4, 350)
+
+        self.treeWidget_dtc.setColumnWidth(1, 350)
 
         self.comboBox_num.addItem("1")
         self.comboBox_num.addItem("2")
@@ -432,9 +435,18 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.bus_flag:
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
-            self.set_node(init=True)
-            if self.chkbox_can_dump.isChecked():
-                self.set_node_btns(False)
+
+            self.node_acu_control()
+            self.node_bcm_control()
+            self.node_esc_control()
+            self.node_fcs_control()
+            self.node_ic_control()
+            self.node_pms_control()
+            self.node_pms_s_control()
+            self.node_pms_c_control()
+            self.node_bms_control()
+            self.node_mcu_control()
+
             self.thread_worker.start()
             self.tester_worker.start()
 
@@ -495,27 +507,16 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.comboBox_log_format.setEnabled(False)
 
-        self.pms_s_hvsm_worker.stop()
-        self.pms_c_strwhl_worker.stop()
-        self.pms_bodycont_c_worker.stop()
-        self.pms_ptinfo_worker.stop()
-        self.bcm_mmi_worker.stop()
-        self.bcm_swrc_worker.stop()
-        self.bcm_strwhl_heat_worker.stop()
-        self.bcm_lightchime_worker.stop()
-        self.bcm_stateupdate_worker.stop()
-        self.esc_tpms_worker.stop()
-        self.fcs_aeb_worker.stop()
-        self.fcs_ldw_worker.stop()
-        self.bms_batt_worker.stop()
-        self.bms_charge_worker.stop()
-        self.ic_distance_worker.stop()
-        self.ic_tachospeed_worker.stop()
-        self.mcu_motor_worker.stop()
-        self.pms_bodycont_p_worker.stop()
-        self.pms_vri_worker.stop()
-        self.mcu_motor_worker.stop()
-        self.acu_seatbelt_worker.stop()
+        self.node_acu_control(flag=False)
+        self.node_bcm_control(flag=False)
+        self.node_esc_control(flag=False)
+        self.node_fcs_control(flag=False)
+        self.node_ic_control(flag=False)
+        self.node_pms_control(flag=False)
+        self.node_pms_s_control(flag=False)
+        self.node_pms_c_control(flag=False)
+        self.node_bms_control(flag=False)
+        self.node_mcu_control(flag=False)
 
         self.thread_worker.stop()
         self.tester_worker.stop()
@@ -524,7 +525,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def send_message(self, bus, sig_id, send_data):
         if sig_id == 0x18da41f1:
-            self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
+            self.diag_console.appendPlainText(f'Tester sends the (physical) diagnosis message')
         elif sig_id == 0x18db33f1:
             self.diag_console.appendPlainText("Tester sends the (functional) diagnosis message")
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
@@ -597,71 +598,6 @@ class Main(QMainWindow, Ui_MainWindow):
             else:
                 self.bus_console.appendPlainText("Can Log Writing Stop")
                 self.comboBox_log_format.setEnabled(True)
-
-    def set_node(self, init=False):
-        if init:
-            self.node_control(flag=True, node="acu")
-            self.node_control(flag=True, node="bcm")
-            self.node_control(flag=True, node="esc")
-            self.node_control(flag=True, node="fcs")
-            self.node_control(flag=True, node="ic")
-            self.node_control(flag=True, node="pms")
-            self.node_control(flag=True, node="pms_s")
-            self.node_control(flag=True, node="pms_c")
-            self.node_control(flag=True, node="bms")
-            self.node_control(flag=True, node="mcu")
-        else:
-            node_check = self.sender().objectName()
-            if node_check == "chkbox_node_acu":
-                if self.chkbox_node_acu.isChecked():
-                    self.node_control(flag=True, node="acu")
-                else:
-                    self.node_control(flag=False, node="acu")
-            elif node_check == "chkbox_node_bcm":
-                if self.chkbox_node_bcm.isChecked():
-                    self.node_control(flag=True, node="bcm")
-                else:
-                    self.node_control(flag=False, node="bcm")
-            elif node_check == "chkbox_node_esc":
-                if self.chkbox_node_esc.isChecked():
-                    self.node_control(flag=True, node="esc")
-                else:
-                    self.node_control(flag=False, node="esc")
-            elif node_check == "chkbox_node_fcs":
-                if self.chkbox_node_fcs.isChecked():
-                    self.node_control(flag=True, node="fcs")
-                else:
-                    self.node_control(flag=False, node="fcs")
-            elif node_check == "chkbox_node_ic":
-                if self.chkbox_node_ic.isChecked():
-                    self.node_control(flag=True, node="ic")
-                else:
-                    self.node_control(flag=False, node="ic")
-            elif node_check == "chkbox_node_pms":
-                if self.chkbox_node_pms.isChecked():
-                    self.node_control(flag=True, node="pms")
-                else:
-                    self.node_control(flag=False, node="pms")
-            elif node_check == "chkbox_node_pms_s":
-                if self.chkbox_node_pms_s.isChecked():
-                    self.node_control(flag=True, node="pms_s")
-                else:
-                    self.node_control(flag=False, node="pms_s")
-            elif node_check == "chkbox_node_pms_c":
-                if self.chkbox_node_pms_c.isChecked():
-                    self.node_control(flag=True, node="pms_c")
-                else:
-                    self.node_control(flag=False, node="pms_c")
-            elif node_check == "chkbox_node_bms":
-                if self.chkbox_node_bms.isChecked():
-                    self.node_control(flag=True, node="bms")
-                else:
-                    self.node_control(flag=False, node="bms")
-            elif node_check == "chkbox_node_mcu":
-                if self.chkbox_node_mcu.isChecked():
-                    self.node_control(flag=True, node="mcu")
-                else:
-                    self.node_control(flag=False, node="mcu")
 
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
@@ -1170,7 +1106,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_diag_reset_mem_fault.setEnabled(flag)
         self.chkbox_diag_test_mode_mem_fault.setEnabled(flag)
         self.chkbox_diag_functional_domain_mem_fault.setEnabled(flag)
-        self.diag_dtc_console.setEnabled(flag)
+        self.treeWidget_dtc.setEnabled(flag)
         self.btn_diag_dtc_console_clear.setEnabled(flag)
         self.btn_mem_fault_num_check.setEnabled(flag)
         self.btn_mem_fault_list_check.setEnabled(flag)
@@ -1272,7 +1208,7 @@ class Main(QMainWindow, Ui_MainWindow):
             self.label_flag_send.setText("Fill the data")
             self.lineEdit_write_data.clear()
         elif btn_name == "btn_diag_dtc_console_clear":
-            self.diag_dtc_console.clear()
+            self.diag_initialization()
 
     def diag_initialization(self):
         self.flow_control_len = 1
@@ -1282,74 +1218,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.raw_data = []
         self.lineEdit_write_data.clear()
         self.lineEdit_id_data.clear()
-
-    # def diag_data_collector(self, mess, multi=False, comp_bit=False):
-    #     self.res_data = []
-    #     self.raw_data = []
-    #     flag = False
-    #     bb = []
-    #     counter = 0
-    #     while len(self.res_data) < self.flow_control_len:
-    #         for i, mess_data in zip(range(len(mess)), mess):
-    #             self.data[i] = mess_data
-    #         self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
-    #         if comp_bit:
-    #             break
-    #         if multi:
-    #             time.sleep(0.020)
-    #             self.data[0] = 0x30
-    #             self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
-    #         time.sleep(0.3)
-    #         reservoir = self.thread_worker.reservoir[:]
-    #         if multi:
-    #             if flag:
-    #                 for qqq in reservoir:
-    #                     if qqq.data[0] == 0x03:
-    #                         continue
-    #                     uni = bb | {qqq.data[0]}
-    #                     if bb != uni:
-    #                         bb.add(qqq.data[0])
-    #                         self.res_data.append(qqq)
-    #                         break
-    #             else:
-    #                 for qqq in reservoir:
-    #                     if qqq.data[0] == 0x03:
-    #                         continue
-    #                     bb.append(qqq.data[0])
-    #                     self.res_data.append(qqq)
-    #                 bb = set(bb)
-    #                 flag = True
-    #         else:
-    #             for tx_single in reservoir:
-    #                 if tx_single.arbitration_id == 0x18daf141:
-    #                     self.res_data.append(tx_single)
-    #         self.thread_worker.reservoir = []
-    #         QtCore.QCoreApplication.processEvents()
-    #         if counter > 50:
-    #             return 0
-    #     temp_li = []
-    #     if len(self.res_data) == 1:
-    #         if self.data_len > 0:
-    #             self.raw_data += self.res_data[0].data[1:8]
-    #     elif len(self.res_data) > 1:
-    #         for i in range(self.flow_control_len):
-    #             for j in range(self.flow_control_len):
-    #                 a = self.res_data[j].data[0] % 0x10
-    #                 if i == a:
-    #                     if self.res_data[j].data[0] == 0x10:
-    #                         self.data_len = self.res_data[j].data[1]
-    #                         st = 2
-    #                     else:
-    #                         st = 1
-    #                     for k in range(st, 8):
-    #                         self.raw_data.append(self.res_data[j].data[k])
-    #                         if len(self.raw_data) == self.data_len:
-    #                             break
-    #                     temp_li.append(self.res_data[j])
-    #                     break
-    #         self.res_data = temp_li
-    #     for m in self.res_data:
-    #         self.diag_console.appendPlainText(str(m))
+        self.treeWidget_dtc.clear()
+        self.dtc_num = 0
+        self.label_mem_fault_dtc_num.setText('Number of DTCs : -')
 
     @pyqtSlot(list)
     def diag_data_collector(self, mess, multi=False, comp=False):
@@ -1481,6 +1352,7 @@ class Main(QMainWindow, Ui_MainWindow):
             item.setText(3, tx_channel)
             item.setText(4, tx_data)
             self.treeWidget_tx.addTopLevelItems([item])
+            # self.treeWidget_tx.invisibleRootItem().addChild(item)
         elif self.btn_fixed_watch.isChecked():
             len_prev = len(self.tx_set)
             identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
@@ -1681,13 +1553,13 @@ class Main(QMainWindow, Ui_MainWindow):
             sig_li = [0x02, 0x11, 0x03]
         elif txt == "btn_reset_nrc_22_sw":
             self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
-            # self.drv_state = True
+            self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_nrc_22_hw":
             self.diag_sess("btn_sess_extended", ex_comp=ex_comp)
-            # self.drv_state = True
+            self.drv_state = True
             self.set_drv_state()
             self.thread_worker.slider_speed_func(20)
             sig_li = [0x02, 0x11, 0x03]
@@ -2335,13 +2207,20 @@ class Main(QMainWindow, Ui_MainWindow):
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()
-        if txt == "btn_mem_fault_list_check":
+        if txt == "btn_mem_fault_num_check":
+            sig_li = [0x03, 0x19, 0x01, 0x09]
+            self.diag_data_collector(sig_li)
+            self.dtc_num = self.res_data[0].data[6]
+            self.label_mem_fault_dtc_num.setText(f'Number of DTCs : {self.dtc_num}')
+        elif txt == "btn_mem_fault_list_check":
             self.diag_memory_fault("btn_mem_fault_num_check")
             if self.res_data[0].data[6] == 0x00:
-                self.diag_dtc_console.appendPlainText(f'- Number of DTCs : 0')
+                self.label_mem_fault_dtc_num.setText(f'- Number of DTCs : 0')
                 return True
             dtc_num = self.res_data[0].data[6]
+            multi_flag = False
             if dtc_num > 1:
+                multi_flag = True
                 occu = 5
                 self.flow_control_len = 2
                 for i in range(dtc_num - 2):
@@ -2353,22 +2232,31 @@ class Main(QMainWindow, Ui_MainWindow):
             self.res_data = []
             self.raw_data = []
             sig_li = [0x03, 0x19, 0x02, 0x09]
-            data_flag = self.diag_data_collector(sig_li, multi=True)
+            time.sleep(0.020)
+            data_flag = self.diag_data_collector(sig_li, multi=multi_flag)
             if data_flag:
                 if len(self.raw_data) == 0:
                     self.raw_data = self.res_data[0].data[1:8]
                 st = 3
                 for i in range(dtc_num):
-                    if i == 0:
-                        self.diag_dtc_console.appendPlainText(f'- Number of DTCs : {dtc_num}')
+                    item = [QTreeWidgetItem()]
                     single_dtc = self.raw_data[st:st+4]
                     st += 4
+                    dtc_code = f'0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)}'
                     dtc_name = data_id.dtc_identifier(single_dtc)
-                    self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
+                    dtc_status_code = f'0x{hex(single_dtc[3])[2:].zfill(2)}'
+                    if single_dtc[3] == 0x08:
+                        dtc_status = f'DTC Confirmed ({dtc_status_code})'
+                    elif single_dtc[3] == 0x09:
+                        dtc_status = f'Test Failed ({dtc_status_code})'
+                    item[0].setText(0, dtc_code)
+                    item[0].setText(1, dtc_name)
+                    item[0].setText(2, dtc_status)
+                    self.treeWidget_dtc.addTopLevelItems(item)
+
+                    # self.diag_dtc_console.appendPlainText(f'DTC Code : 0x{hex(single_dtc[0])[2:].zfill(2)} 0x{hex(single_dtc[1])[2:].zfill(2)} 0x{hex(single_dtc[2])[2:].zfill(2)} - {dtc_name}')
         else:
-            if txt == "btn_mem_fault_num_check":
-                sig_li = [0x03, 0x19, 0x01, 0x09]
-            elif txt == "btn_mem_fault_reset":
+            if txt == "btn_mem_fault_reset":
                 sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             elif txt == "btn_mem_fault_avail_sts_mask":
                 sig_li = [0x02, 0x19, 0x0A]
@@ -2551,97 +2439,105 @@ class Main(QMainWindow, Ui_MainWindow):
             else:
                 return False
 
-    def node_control(self, flag, node):
-        if node == "acu":
-            if flag:
-                self.acu_seatbelt_worker._isRunning = True
-                self.acu_seatbelt_worker.start()
-            else:
-                self.acu_seatbelt_worker.stop()
-        elif node == "bcm":
-            if flag:
-                self.bcm_mmi_worker._isRunning = True
-                self.bcm_swrc_worker._isRunning = True
-                self.bcm_strwhl_heat_worker._isRunning = True
-                self.bcm_lightchime_worker._isRunning = True
-                self.bcm_stateupdate_worker._isRunning = True
-                self.bcm_mmi_worker.start()
-                self.bcm_swrc_worker.start()
-                self.bcm_strwhl_heat_worker.start()
-                self.bcm_lightchime_worker.start()
-                self.bcm_stateupdate_worker.start()
-            else:
-                self.bcm_mmi_worker.stop()
-                self.bcm_swrc_worker.stop()
-                self.bcm_strwhl_heat_worker.stop()
-                self.bcm_lightchime_worker.stop()
-                self.bcm_stateupdate_worker.stop()
-        elif node == "esc":
-            if flag:
-                self.esc_tpms_worker._isRunning = True
-                self.esc_tpms_worker.start()
-            else:
-                self.esc_tpms_worker.stop()
-        elif node == "fcs":
-            if flag:
-                self.fcs_aeb_worker._isRunning = True
-                self.fcs_ldw_worker._isRunning = True
-                self.fcs_aeb_worker.start()
-                self.fcs_ldw_worker.start()
-            else:
-                self.fcs_aeb_worker.stop()
-                self.fcs_ldw_worker.stop()
-        elif node == "ic":
-            if flag:
-                self.ic_distance_worker._isRunning = True
-                self.ic_tachospeed_worker._isRunning = True
-                self.ic_distance_worker.start()
-                self.ic_tachospeed_worker.start()
-            else:
-                self.ic_distance_worker.stop()
-                self.ic_tachospeed_worker.stop()
-        elif node == "pms":
-            if flag:
-                self.pms_bodycont_c_worker._isRunning = True
-                self.pms_ptinfo_worker._isRunning = True
-                self.pms_bodycont_p_worker._isRunning = True
-                self.pms_vri_worker._isRunning = True
-                self.pms_bodycont_c_worker.start()
-                self.pms_ptinfo_worker.start()
-                self.pms_bodycont_p_worker.start()
-                self.pms_vri_worker.start()
-            else:
-                self.pms_bodycont_c_worker.stop()
-                self.pms_ptinfo_worker.stop()
-                self.pms_bodycont_p_worker.stop()
-                self.pms_vri_worker.stop()
-        elif node == "pms_s":
-            if flag:
-                self.pms_s_hvsm_worker.start()
-                self.pms_s_hvsm_worker._isRunning = True
-            else:
-                self.pms_s_hvsm_worker.stop()
-        elif node == "pms_c":
-            if flag:
-                self.pms_c_strwhl_worker._isRunning = True
-                self.pms_c_strwhl_worker.start()
-            else:
-                self.pms_c_strwhl_worker.stop()
-        elif node == "bms":
-            if flag:
-                self.bms_batt_worker._isRunning = True
-                self.bms_charge_worker._isRunning = True
-                self.bms_batt_worker.start()
-                self.bms_charge_worker.start()
-            else:
-                self.bms_batt_worker.stop()
-                self.bms_charge_worker.stop()
-        elif node == "mcu":
-            if flag:
-                self.mcu_motor_worker._isRunning = True
-                self.mcu_motor_worker.start()
-            else:
-                self.mcu_motor_worker.stop()
+    def node_acu_control(self, flag=True):
+        if self.chkbox_node_acu.isChecked() and flag:
+            self.acu_seatbelt_worker._isRunning = True
+            self.acu_seatbelt_worker.start()
+        else:
+            self.acu_seatbelt_worker.stop()
+
+    def node_bcm_control(self, flag=True):
+        if self.chkbox_node_bcm.isChecked() and flag:
+            self.bcm_mmi_worker._isRunning = True
+            self.bcm_swrc_worker._isRunning = True
+            self.bcm_strwhl_heat_worker._isRunning = True
+            self.bcm_lightchime_worker._isRunning = True
+            self.bcm_stateupdate_worker._isRunning = True
+            self.bcm_mmi_worker.start()
+            self.bcm_swrc_worker.start()
+            self.bcm_strwhl_heat_worker.start()
+            self.bcm_lightchime_worker.start()
+            self.bcm_stateupdate_worker.start()
+        else:
+            self.bcm_mmi_worker.stop()
+            self.bcm_swrc_worker.stop()
+            self.bcm_strwhl_heat_worker.stop()
+            self.bcm_lightchime_worker.stop()
+            self.bcm_stateupdate_worker.stop()
+
+    def node_esc_control(self, flag=True):
+        if self.chkbox_node_esc.isChecked() and flag:
+            self.esc_tpms_worker._isRunning = True
+            self.esc_tpms_worker.start()
+        else:
+            self.esc_tpms_worker.stop()
+
+    def node_fcs_control(self, flag=True):
+        if self.chkbox_node_fcs.isChecked() and flag:
+            self.fcs_aeb_worker._isRunning = True
+            self.fcs_ldw_worker._isRunning = True
+            self.fcs_aeb_worker.start()
+            self.fcs_ldw_worker.start()
+        else:
+            self.fcs_aeb_worker.stop()
+            self.fcs_ldw_worker.stop()
+
+    def node_ic_control(self, flag=True):
+        if self.chkbox_node_ic.isChecked() and flag:
+            self.ic_distance_worker._isRunning = True
+            self.ic_tachospeed_worker._isRunning = True
+            self.ic_distance_worker.start()
+            self.ic_tachospeed_worker.start()
+        else:
+            self.ic_distance_worker.stop()
+            self.ic_tachospeed_worker.stop()
+
+    def node_pms_control(self, flag=True):
+        if self.chkbox_node_pms.isChecked() and flag:
+            self.pms_bodycont_c_worker._isRunning = True
+            self.pms_ptinfo_worker._isRunning = True
+            self.pms_bodycont_p_worker._isRunning = True
+            self.pms_vri_worker._isRunning = True
+            self.pms_bodycont_c_worker.start()
+            self.pms_ptinfo_worker.start()
+            self.pms_bodycont_p_worker.start()
+            self.pms_vri_worker.start()
+        else:
+            self.pms_bodycont_c_worker.stop()
+            self.pms_ptinfo_worker.stop()
+            self.pms_bodycont_p_worker.stop()
+            self.pms_vri_worker.stop()
+
+    def node_pms_s_control(self, flag=True):
+        if self.chkbox_node_pms_s.isChecked() and flag:
+            self.pms_s_hvsm_worker.start()
+            self.pms_s_hvsm_worker._isRunning = True
+        else:
+            self.pms_s_hvsm_worker.stop()
+
+    def node_pms_c_control(self, flag=True):
+        if self.chkbox_node_pms_c.isChecked() and flag:
+            self.pms_c_strwhl_worker._isRunning = True
+            self.pms_c_strwhl_worker.start()
+        else:
+            self.pms_c_strwhl_worker.stop()
+
+    def node_bms_control(self, flag=True):
+        if self.chkbox_node_bms.isChecked() and flag:
+            self.bms_batt_worker._isRunning = True
+            self.bms_charge_worker._isRunning = True
+            self.bms_batt_worker.start()
+            self.bms_charge_worker.start()
+        else:
+            self.bms_batt_worker.stop()
+            self.bms_charge_worker.stop()
+
+    def node_mcu_control(self, flag=True):
+        if self.chkbox_node_mcu.isChecked() and flag:
+            self.mcu_motor_worker._isRunning = True
+            self.mcu_motor_worker.start()
+        else:
+            self.mcu_motor_worker.stop()
 
 
 if __name__ == '__main__':
