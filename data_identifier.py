@@ -440,10 +440,9 @@ def message_info_by_can_id(can_id, bus):
 
 def data_matcher(tx, sub_mess):
     sig = ''
+    byte_len = int(sub_mess["bit_len"] / 8)
     if sub_mess["bit_len"] < 8:
-        byte_len = 1
-    else:
-        byte_len = int(sub_mess["bit_len"]/8)
+        byte_len += 1
     try:
         for i in range(byte_len):
             byte_pos = int(sub_mess["bit_st_pos"] / 8) + i
