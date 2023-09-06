@@ -16,27 +16,23 @@ import can_thread as worker
 import pyqtgraph as pg
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/master_ui.ui")
-# Ui_MainWindow, QtBaseClass = uic.loadUiType(BASE_DIR + r"./src/master_ui.ui")
+# Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/can_basic_ui.ui")
 
 
-class Main(QMainWindow, Ui_MainWindow):
-    custom_signal = pyqtSignal("PyQt_PyObject")
+class Main(QMainWindow):
 
     def __init__(self):
         super().__init__()
 
-        self.setupUi(self)
+        self.ui = uic.loadUi(BASE_DIR + r"./src/can_basic_ui.ui", self)
+        self.show()
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-        self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
-        self.raw_data = []
-        self.res_data = []
+
+        self.c_can_name = ''
+
         self.temp_list = []
         self.graph_data_list = []
-        self.data_len = 0
-        self.dtc_num = 0
-        self.data_type = None
         self.log_data = []
 
         self.tx_chronicle = False
@@ -44,28 +40,14 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.diag_tester_id = 0x18da41f1
 
-        self.flow = False
-
-        self.write_txt = ''
-
         self.c_can_bus = None
-        self.c_can_name = ''
+
         self.p_can_bus = None
         self.bus_flag = False
 
-        self.diag_btn_text = None
-        self.diag_success_byte = None
-        self.diag_failure_byte = 0x7f
         self.drv_state = False
-        self.test_mode_basic = False
 
-        self.txt_domain = 'Default'
-        self.color_domain = 'gray'
-        self.flag_domain = False
-
-        self.flow_control_len = 0
-
-        self.write_secu_nrc = True
+        self.tester_present_flag = None
 
         self.tx_set = set()
 
@@ -170,155 +152,14 @@ class Main(QMainWindow, Ui_MainWindow):
         self.mcu_motor_worker = worker.MCU_Motor(parent=self)
         self.mcu_motor_worker.mcu_motor_signal.connect(self.can_signal_sender)
 
-        self.tester_worker = worker.TesterPresent(parent=self)
-        self.tester_worker.tester_signal.connect(self.diag_data_collector)
-
         self.thread_worker = worker.ThreadWorker(parent=self)
         self.thread_worker.signal_presenter.connect(self.signal_presenter)
 
-        # Connect diagnosis basic buttons to diagnostic handling function
-        self.btn_sess_default.clicked.connect(self.diag_func)
-        self.btn_sess_extended.clicked.connect(self.diag_func)
-        self.btn_sess_nrc_12.clicked.connect(self.diag_func)
-        self.btn_sess_nrc_13.clicked.connect(self.diag_func)
-
-        self.btn_reset_sw.clicked.connect(self.diag_func)
-        self.btn_reset_hw.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_12.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_13.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_7f_sw.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_7f_hw.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_22_sw.clicked.connect(self.diag_func)
-        self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
-
-        self.btn_tester.released.connect(self.diag_func)
-        self.btn_tester_nrc_12.released.connect(self.diag_func)
-        self.btn_tester_nrc_13.released.connect(self.diag_func)
-
-        self.chkbox_diag_test_mode_basic.released.connect(self.set_diag_basic_btns_labels)
-        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_basic_btns_labels)
-        self.chkbox_diag_compression_bit_basic.released.connect(self.set_diag_basic_btns_labels)
-        self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_labels)
-
-        # Connect data identification buttons to diagnostic handling function
-        self.btn_id_ecu_num.released.connect(self.diag_func)
-        self.btn_id_ecu_supp.released.connect(self.diag_func)
-        self.btn_id_vin.released.connect(self.diag_func)
-        self.btn_id_install_date.released.connect(self.diag_func)
-        self.btn_id_diag_ver.released.connect(self.diag_func)
-        self.btn_id_sys_name.released.connect(self.diag_func)
-        self.btn_id_active_sess.released.connect(self.diag_func)
-        self.btn_id_veh_name.released.connect(self.diag_func)
-        self.btn_id_ecu_serial.released.connect(self.diag_func)
-        self.btn_id_hw_ver.released.connect(self.diag_func)
-        self.btn_id_sw_ver.released.connect(self.diag_func)
-        self.btn_id_ecu_manu_date.released.connect(self.diag_func)
-        self.btn_id_assy_num.released.connect(self.diag_func)
-        self.btn_id_net_config.released.connect(self.diag_func)
-        self.btn_id_ecu_sts_info.released.connect(self.diag_func)
-        self.btn_id_nrc_13.released.connect(self.diag_func)
-        self.btn_id_nrc_31.released.connect(self.diag_func)
-
-        self.chkbox_diag_test_mode_did.released.connect(self.set_diag_did_btns_labels)
-        self.chkbox_diag_functional_domain_did.released.connect(self.set_diag_did_btns_labels)
-        self.btn_diag_reset_did.released.connect(self.set_diag_did_btns_labels)
-
-        # Connect communication control buttons to diagnostic handling function
-        self.btn_comm_cont_all_en.released.connect(self.diag_func)
-        self.btn_comm_cont_tx_dis.released.connect(self.diag_func)
-        self.btn_comm_cont_all_dis.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_12.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_13.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_31.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_22_all_en.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_22_tx_dis.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_22_all_dis.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_7f_all_en.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_7f_tx_dis.released.connect(self.diag_func)
-        self.btn_comm_cont_nrc_7f_all_dis.released.connect(self.diag_func)
-
-        self.chkbox_diag_functional_domain_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
-        self.chkbox_diag_compression_bit_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
-        self.chkbox_diag_test_mode_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
-        self.btn_diag_reset_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
-
-        # Connect security control buttons to diagnostic handling function
-        self.btn_sec_req_seed.released.connect(self.diag_func)
-        self.btn_sec_send_key.released.connect(self.diag_func)
-        self.btn_sec_nrc_12.released.connect(self.diag_func)
-        self.btn_sec_nrc_13.released.connect(self.diag_func)
-        self.btn_sec_nrc_24.released.connect(self.diag_func)
-        self.btn_sec_nrc_35.released.connect(self.diag_func)
-        self.btn_sec_nrc_36.released.connect(self.diag_func)
-        self.btn_sec_nrc_37.released.connect(self.diag_func)
-        self.btn_sec_nrc_7f_req.released.connect(self.diag_func)
-        self.btn_sec_nrc_7f_send.released.connect(self.diag_func)
-
-        self.chkbox_diag_test_mode_sec.released.connect(self.set_diag_sec_btns_labels)
-        self.btn_diag_reset_sec.released.connect(self.set_diag_sec_btns_labels)
-
-        # Connect data write buttons to diagnostic handling function
-        self.btn_write_vin.released.connect(self.diag_func)
-        self.btn_write_install_date.released.connect(self.diag_func)
-        self.btn_write_veh_name.released.connect(self.diag_func)
-        self.btn_write_sys_name.released.connect(self.diag_func)
-        self.btn_write_net_config.released.connect(self.diag_func)
-        self.btn_write_nrc_13.released.connect(self.diag_func)
-        self.btn_write_nrc_7f_vin.released.connect(self.diag_func)
-        self.btn_write_nrc_7f_install_date.released.connect(self.diag_func)
-        self.btn_write_nrc_7f_veh_name.released.connect(self.diag_func)
-        self.btn_write_nrc_7f_sys_name.released.connect(self.diag_func)
-        self.btn_write_nrc_7f_net_config.released.connect(self.diag_func)
-        self.btn_write_nrc_33_vin.released.connect(self.diag_func)
-        self.btn_write_nrc_33_install_date.released.connect(self.diag_func)
-        self.btn_write_nrc_33_veh_name.released.connect(self.diag_func)
-        self.btn_write_nrc_33_sys_name.released.connect(self.diag_func)
-        self.btn_write_nrc_33_net_config.released.connect(self.diag_func)
-        self.btn_write_nrc_22_vin.released.connect(self.diag_func)
-        self.btn_write_nrc_22_install_date.released.connect(self.diag_func)
-        self.btn_write_nrc_22_veh_name.released.connect(self.diag_func)
-        self.btn_write_nrc_22_sys_name.released.connect(self.diag_func)
-        self.btn_write_nrc_22_net_config.released.connect(self.diag_func)
-
-        self.chkbox_diag_test_mode_write.released.connect(self.set_diag_write_btns_labels)
-        self.btn_write_data_send.clicked.connect(self.write_data_sender)
-
-        # Connect dtc buttons to diagnostic handling function
-        self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
-        self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
-        self.btn_mem_fault_reset.clicked.connect(self.diag_func)
-        self.btn_mem_fault_avail_sts_mask.clicked.connect(self.diag_func)
-        self.btn_mem_fault_nrc_12.clicked.connect(self.diag_func)
-        self.btn_mem_fault_nrc_13.clicked.connect(self.diag_func)
-        self.btn_mem_fault_nrc_13_reset.clicked.connect(self.diag_func)
-        self.btn_mem_fault_nrc_22_reset.clicked.connect(self.diag_func)
-        self.btn_mem_fault_nrc_31_reset.clicked.connect(self.diag_func)
-
-        self.chkbox_diag_functional_domain_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
-        self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
-        self.btn_diag_reset_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
-
-        # Connect dtc control buttons to diagnostic handling function
-        self.btn_dtc_cont_en.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_dis.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_12.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_13.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_7f_en.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_7f_dis.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_22_en.clicked.connect(self.diag_func)
-        self.btn_dtc_cont_nrc_22_dis.clicked.connect(self.diag_func)
-
-        self.chkbox_diag_test_mode_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
-        self.chkbox_diag_functional_domain_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
-        self.chkbox_diag_compression_bit_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
-        self.btn_diag_reset_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.tester_worker = worker.TesterPresent(parent=self)
 
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
         self.btn_tx_console_clear.clicked.connect(self.console_text_clear)
-        self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
-        self.btn_write_data_clear.clicked.connect(self.console_text_clear)
-        self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
@@ -353,12 +194,10 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_filter_p_can.toggled.connect(self.console_text_clear)
         self.btn_filter_diag.toggled.connect(self.console_text_clear)
 
-        self.treeWidget_tx.setColumnWidth(0, 130)
-        self.treeWidget_tx.setColumnWidth(1, 150)
-        self.treeWidget_tx.setColumnWidth(2, 300)
-        self.treeWidget_tx.setColumnWidth(4, 350)
-
-        self.treeWidget_dtc.setColumnWidth(1, 350)
+        self.treeWidget_tx.setColumnWidth(0, 120)
+        self.treeWidget_tx.setColumnWidth(1, 105)
+        self.treeWidget_tx.setColumnWidth(2, 265)
+        self.treeWidget_tx.setColumnWidth(4, 245)
 
         self.comboBox_num.addItem("1")
         self.comboBox_num.addItem("2")
@@ -370,15 +209,10 @@ class Main(QMainWindow, Ui_MainWindow):
         self.set_general_btns_labels(True)
         self.set_node_btns(True)
         self.set_can_basic_btns_labels(False)
-        self.set_diag_basic_btns_labels(False)
-        self.set_diag_did_btns_labels(False)
-        self.set_diag_sec_btns_labels(False)
-        self.set_diag_write_btns_labels(False)
-        self.set_diag_comm_cont_btns_labels(False)
-        self.set_diag_mem_fault_btns_labels(False)
-        self.set_diag_dtc_cont_btns_labels(False)
 
         self.image_initialization()
+        self.diag_obj = None
+        self.chkbox_diag_console.clicked.connect(self.diag_main)
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -413,8 +247,9 @@ class Main(QMainWindow, Ui_MainWindow):
                 try:
                     temp_num = 0
                     self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-                    while temp_num < 10000:
+                    while temp_num < 1000:
                         self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                        self.console_text_clear("tx_console_clear")
                         temp_num += 1
                     self.bus_flag = True
                     self.bus_console.appendPlainText("Vector bus is connected")
@@ -427,7 +262,6 @@ class Main(QMainWindow, Ui_MainWindow):
                 except can.exceptions.CanInterfaceNotImplementedError as e3:
                     print(e3)
                     self.bus_console.appendPlainText("CAN device is not connected")
-                self.bus_console.appendPlainText("Vector bus is connected")
         else:
             self.bus_console.appendPlainText("CAN bus is already connected")
 
@@ -453,14 +287,8 @@ class Main(QMainWindow, Ui_MainWindow):
             self.set_mmi_labels_init(True)
             self.set_general_btns_labels(True)
             self.set_can_basic_btns_labels(True)
-            self.set_diag_basic_btns_labels(True)
-            self.set_diag_did_btns_labels(True)
-            self.set_diag_sec_btns_labels(True)
-            self.set_diag_write_btns_labels(True)
-            self.set_diag_comm_cont_btns_labels(True)
-            self.set_diag_mem_fault_btns_labels(True)
-            self.set_diag_dtc_cont_btns_labels(True)
-            self.diag_initialization()
+            if self.diag_obj:
+                self.diag_handle(True)
 
             self.chkbox_can_dump.setEnabled(False)
         else:
@@ -470,40 +298,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.set_mmi_labels_init(False)
         self.set_general_btns_labels(False)
         self.set_can_basic_btns_labels(False)
-
-        self.set_diag_basic_btns_labels(False)
-        if self.chkbox_diag_test_mode_basic.isChecked():
-            self.chkbox_diag_test_mode_basic.toggle()
-        if self.chkbox_diag_compression_bit_basic.isChecked():
-            self.chkbox_diag_compression_bit_basic.toggle()
-        if self.chkbox_diag_functional_domain_basic.isChecked():
-            self.chkbox_diag_functional_domain_basic.toggle()
-
-        self.set_diag_did_btns_labels(False)
-        if self.chkbox_diag_test_mode_did.isChecked():
-            self.chkbox_diag_test_mode_did.toggle()
-
-        self.set_diag_sec_btns_labels(False)
-        if self.chkbox_diag_test_mode_sec.isChecked():
-            self.chkbox_diag_test_mode_sec.toggle()
-
-        self.set_diag_write_btns_labels(False)
-        if self.chkbox_diag_test_mode_write.isChecked():
-            self.chkbox_diag_test_mode_write.toggle()
-
-        self.set_diag_comm_cont_btns_labels(False)
-        if self.chkbox_diag_compression_bit_comm_cont.isChecked():
-            self.chkbox_diag_compression_bit_comm_cont.toggle()
-        if self.chkbox_diag_functional_domain_comm_cont.isChecked():
-            self.chkbox_diag_functional_domain_comm_cont.toggle()
-
-        self.set_diag_mem_fault_btns_labels(False)
-
-        self.set_diag_dtc_cont_btns_labels(False)
-        if self.chkbox_diag_compression_bit_dtc_cont.isChecked():
-            self.chkbox_diag_compression_bit_dtc_cont.toggle()
-        if self.chkbox_diag_functional_domain_dtc_cont.isChecked():
-            self.chkbox_diag_functional_domain_dtc_cont.toggle()
 
         self.comboBox_log_format.setEnabled(False)
 
@@ -523,12 +317,15 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.chkbox_can_dump.setEnabled(True)
 
+        if self.diag_obj:
+            self.diag_handle(False)
+
     def send_message(self, bus, sig_id, send_data):
-        if sig_id == 0x18da41f1:
-            self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
-        elif sig_id == 0x18db33f1:
-            self.diag_console.appendPlainText("Tester sends the (functional) diagnosis message")
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
+        if sig_id == 0x18da41f1:
+            self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Physical Tester)")
+        elif sig_id == 0x18db33f1:
+            self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Functional Tester)")
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
         self.thread_worker.signal_emit(message)
@@ -733,6 +530,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_SigFailr.setEnabled(flag)
 
         self.slider_speed.setEnabled(flag)
+        self.slider_battery.setEnabled(flag)
+        self.chkbox_charge.setEnabled(flag)
         if self.p_can_bus:
             self.slider_battery.setEnabled(flag)
             self.chkbox_charge.setEnabled(flag)
@@ -749,6 +548,548 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.chkbox_drv_invalid.setEnabled(flag)
         self.chkbox_pass_invalid.setEnabled(flag)
+
+    def console_text_clear(self, txt=None):
+        btn_name = self.sender().objectName()
+        if btn_name == "btn_diag_console_clear":
+            self.diag_console.clear()
+        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
+                or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
+                or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
+                or btn_name == "btn_bus_start" or txt == "tx_console_clear":
+            self.tx_set = set()
+            self.item = []
+            self.treeWidget_tx.clear()
+        elif btn_name == "btn_write_data_clear" or txt:
+            self.label_flag_send.setText("Fill the data")
+            self.lineEdit_write_data.clear()
+        elif btn_name == "btn_diag_dtc_console_clear":
+            self.diag_initialization()
+
+    def data_converter(self, conv):
+        if conv == 'a2c':
+            entire_ch = ''
+            for ch in self.raw_data[3:]:
+                entire_ch += chr(ch)
+            return entire_ch
+        elif conv == 'c2a':
+            txt_len = len(self.write_txt)
+            if txt_len > 0:
+                while self.write_txt[0] == ' ' or self.write_txt[txt_len - 1] == ' ':
+                    if self.write_txt[0] == ' ':
+                        self.write_txt = self.write_txt[1:]
+                    if self.write_txt[txt_len - 1] == ' ':
+                        self.write_txt = self.write_txt[:txt_len - 1]
+                ascii_li = []
+                for i, ch in zip(range(txt_len), self.write_txt):
+                    # LMPA1KMB7NC002090
+                    ascii_li.append(int(hex(ord(ch))[2:], 16))
+                self.write_txt = ascii_li[:]
+        elif conv == 'bcd':
+            bcd_li = []
+            for i in range(0, len(self.write_txt), 2):
+                try:
+                    bcd_li.append(int(self.write_txt[i:i+2]))
+                except ValueError:
+                    return False
+            self.write_txt = bcd_li[:]
+        elif conv == 'hex':
+            self.write_txt = self.write_txt.split(' ')
+            for i in range(len(self.write_txt)):
+                try:
+                    self.write_txt[i] = int(self.write_txt[i], 16)
+                except ValueError:
+                    return False
+        return True
+
+    def write_data_sender(self):
+        self.write_txt = self.lineEdit_write_data.text()
+        self.label_flag_send.setText(f'Sended data : {self.write_txt}, length: {len(self.write_txt)}')
+
+    def write_data_not_correct(self, txt):
+        if txt == "btn_write_vin":
+            err = "Length Error"
+            message = "Incorrect length of VIN number \n (Need to 17 Character)"
+        elif txt == "btn_write_install_date":
+            err = "Data Format or Length Error"
+            message = "Incorrect data \n (Data should be number and 'yyyymmdd' format)"
+        elif txt == "btn_write_veh_name":
+            err = "Length Error"
+            message = "Incorrect length of Vehicle name \n (Need to 8 Character)"
+        elif txt == "btn_write_sys_name":
+            err = "Length Error"
+            message = "Incorrect length of System name \n (Need to 8 Character)"
+        elif txt == "btn_write_net_config":
+            err = "Data Format or Length Error"
+            message = "Incorrect length of Network Configuration \n (Data should be hex number and 'nn nn nn nn nn nn nn nn' format)"
+        QMessageBox.warning(self, err, message)
+        self.console_text_clear(err)
+
+    @pyqtSlot(can.Message)
+    def signal_presenter(self, tx_single):
+        tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
+        tx_time = str(tx_datetime)[11:-4]
+        tx_id = hex(tx_single.arbitration_id)
+        if tx_single.channel:
+            if str(tx_single.channel) == self.c_can_name:
+                tx_channel = "C-CAN"
+            else:
+                tx_channel = "P-CAN"
+        else:
+            tx_channel = "C-CAN"
+        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
+        tx_name = tx_message_info[0]
+        tx_data = ''
+        for hex_val in tx_single.data:
+            tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
+        if not self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel):
+            return 0
+        if self.btn_chronicle_watch.isChecked():
+            item = QTreeWidgetItem()
+            item.setText(0, tx_id)
+            item.setText(1, tx_time)
+            item.setText(2, tx_name)
+            item.setText(3, tx_channel)
+            item.setText(4, tx_data)
+            self.treeWidget_tx.addTopLevelItems([item])
+            # self.treeWidget_tx.invisibleRootItem().addChild(item)
+        elif self.btn_fixed_watch.isChecked():
+            len_prev = len(self.tx_set)
+            identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
+            self.tx_set.add(identifier)
+            len_now = len(self.tx_set)
+            if len_now - len_prev == 0:
+                for item in self.item:
+                    if tx_id == item.text(0) and tx_channel == item.text(3):
+                        item.setText(1, tx_time)
+                        item.setText(4, tx_data)
+                        for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
+                            item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
+                        break
+            else:
+                item = QTreeWidgetItem()
+                item.setText(0, tx_id)
+                item.setText(1, tx_time)
+                item.setText(2, tx_name)
+                item.setText(3, tx_channel)
+                item.setText(4, tx_data)
+                for sub_message in tx_message_info[1:]:
+                    sub_item = QTreeWidgetItem(item)
+                    sub_item.setText(2, sub_message["name"])
+                    sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
+                self.item.append(item)
+                self.treeWidget_tx.addTopLevelItems(self.item)
+                self.comboBox_id.addItem(tx_name)
+                # self.treeWidget_tx.clear()
+        if tx_id == "0x18ffa57f":
+            # print(tx_data, type(tx_data))
+            if len(self.graph_data_list) == 10:
+                self.graph_data_list.pop(0)
+            self.graph_data_list.append(int(tx_data[:2], 16))
+        self.graph_presenter(self.graph_data_list)
+
+    def graph_presenter(self, graph_list):
+        plot_num = self.comboBox_num.currentText()
+        # print(plot_num)
+        # print(graph_list)
+        # x = [1, 2, 3, 4]
+        # y = [1, 4, 9, 16]
+        # self.curve = self.graph_widget.plot()
+        # self.curve.setData(graph_list)
+
+    @pyqtSlot(str, int, list)
+    def can_signal_sender(self, bus_mess, send_id, send_data):
+        if send_id == 0xFF:
+            if not self.chkbox_can_dump.isChecked():
+                self.bus_console.appendPlainText(bus_mess)
+        else:
+            if bus_mess == 'c':
+                self.send_message(self.c_can_bus, send_id, send_data)
+            elif bus_mess == 'p':
+                self.send_message(self.p_can_bus, send_id, send_data)
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key.Key_Enter:
+            self.write_data_sender()
+
+    def image_initialization(self):
+        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
+        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(100)
+        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(100)
+        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(100)
+        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(100)
+        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(100)
+        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(100)
+        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(100)
+        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(100)
+        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(100)
+        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(100)
+        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(100)
+        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(100)
+        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(100)
+        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(100)
+        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(100)
+
+        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(100)
+        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(100)
+        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(100)
+        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(100)
+
+        self.img_str_whl_heat_off = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_1 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_2 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(
+            100)
+        self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
+            100)
+
+    def tx_filter(self, tx_id, tx_name, tx_channel):
+        if self.btn_filter_all.isChecked():
+            return True
+        elif self.btn_filter_tx.isChecked():
+            if tx_name[:3] == "MMI":
+                return True
+            else:
+                return False
+        elif self.btn_filter_rx.isChecked():
+            if tx_name[:3] != "MMI":
+                return True
+            else:
+                return False
+        elif self.btn_filter_c_can.isChecked():
+            if tx_channel == "C-CAN":
+                return True
+            else:
+                return False
+        elif self.btn_filter_p_can.isChecked():
+            if tx_channel == "P-CAN":
+                return True
+            else:
+                return False
+        elif self.btn_filter_diag.isChecked():
+            if tx_id == 0x18DA41F1 or tx_id == 0x18DAF141 or tx_id == 0x18DB33F1:
+                return True
+            else:
+                return False
+
+    def node_acu_control(self, flag=True):
+        if self.chkbox_node_acu.isChecked() and flag:
+            self.acu_seatbelt_worker._isRunning = True
+            self.acu_seatbelt_worker.start()
+        else:
+            self.acu_seatbelt_worker.stop()
+
+    def node_bcm_control(self, flag=True):
+        if self.chkbox_node_bcm.isChecked() and flag:
+            self.bcm_mmi_worker._isRunning = True
+            self.bcm_swrc_worker._isRunning = True
+            self.bcm_strwhl_heat_worker._isRunning = True
+            self.bcm_lightchime_worker._isRunning = True
+            self.bcm_stateupdate_worker._isRunning = True
+            self.bcm_mmi_worker.start()
+            self.bcm_swrc_worker.start()
+            self.bcm_strwhl_heat_worker.start()
+            self.bcm_lightchime_worker.start()
+            self.bcm_stateupdate_worker.start()
+        else:
+            self.bcm_mmi_worker.stop()
+            self.bcm_swrc_worker.stop()
+            self.bcm_strwhl_heat_worker.stop()
+            self.bcm_lightchime_worker.stop()
+            self.bcm_stateupdate_worker.stop()
+
+    def node_esc_control(self, flag=True):
+        if self.chkbox_node_esc.isChecked() and flag:
+            self.esc_tpms_worker._isRunning = True
+            self.esc_tpms_worker.start()
+        else:
+            self.esc_tpms_worker.stop()
+
+    def node_fcs_control(self, flag=True):
+        if self.chkbox_node_fcs.isChecked() and flag:
+            self.fcs_aeb_worker._isRunning = True
+            self.fcs_ldw_worker._isRunning = True
+            self.fcs_aeb_worker.start()
+            self.fcs_ldw_worker.start()
+        else:
+            self.fcs_aeb_worker.stop()
+            self.fcs_ldw_worker.stop()
+
+    def node_ic_control(self, flag=True):
+        if self.chkbox_node_ic.isChecked() and flag:
+            self.ic_distance_worker._isRunning = True
+            self.ic_tachospeed_worker._isRunning = True
+            self.ic_distance_worker.start()
+            self.ic_tachospeed_worker.start()
+        else:
+            self.ic_distance_worker.stop()
+            self.ic_tachospeed_worker.stop()
+
+    def node_pms_control(self, flag=True):
+        if self.chkbox_node_pms.isChecked() and flag:
+            self.pms_bodycont_c_worker._isRunning = True
+            self.pms_ptinfo_worker._isRunning = True
+            self.pms_bodycont_p_worker._isRunning = True
+            self.pms_vri_worker._isRunning = True
+            self.pms_bodycont_c_worker.start()
+            self.pms_ptinfo_worker.start()
+            self.pms_bodycont_p_worker.start()
+            self.pms_vri_worker.start()
+        else:
+            self.pms_bodycont_c_worker.stop()
+            self.pms_ptinfo_worker.stop()
+            self.pms_bodycont_p_worker.stop()
+            self.pms_vri_worker.stop()
+
+    def node_pms_s_control(self, flag=True):
+        if self.chkbox_node_pms_s.isChecked() and flag:
+            self.pms_s_hvsm_worker.start()
+            self.pms_s_hvsm_worker._isRunning = True
+        else:
+            self.pms_s_hvsm_worker.stop()
+
+    def node_pms_c_control(self, flag=True):
+        if self.chkbox_node_pms_c.isChecked() and flag:
+            self.pms_c_strwhl_worker._isRunning = True
+            self.pms_c_strwhl_worker.start()
+        else:
+            self.pms_c_strwhl_worker.stop()
+
+    def node_bms_control(self, flag=True):
+        if self.chkbox_node_bms.isChecked() and flag:
+            self.bms_batt_worker._isRunning = True
+            self.bms_charge_worker._isRunning = True
+            self.bms_batt_worker.start()
+            self.bms_charge_worker.start()
+        else:
+            self.bms_batt_worker.stop()
+            self.bms_charge_worker.stop()
+
+    def node_mcu_control(self, flag=True):
+        if self.chkbox_node_mcu.isChecked() and flag:
+            self.mcu_motor_worker._isRunning = True
+            self.mcu_motor_worker.start()
+        else:
+            self.mcu_motor_worker.stop()
+
+    def diag_main(self):
+        if self.chkbox_diag_console.isChecked():
+            self.diag_obj = Diag_Main()
+            if self.bus_flag and self.thread_worker._isRunning:
+                self.diag_handle(True)
+        else:
+            self.diag_obj.ui_close()
+
+    def diag_handle(self, flag):
+        self.diag_obj.set_diag_basic_btns_labels(flag)
+        self.diag_obj.set_diag_did_btns_labels(flag)
+        self.diag_obj.set_diag_sec_btns_labels(flag)
+        self.diag_obj.set_diag_write_btns_labels(flag)
+        self.diag_obj.set_diag_comm_cont_btns_labels(flag)
+        self.diag_obj.set_diag_mem_fault_btns_labels(flag)
+        self.diag_obj.set_diag_dtc_cont_btns_labels(flag)
+
+
+class Diag_Main(QDialog):
+
+    def __init__(self):
+        super().__init__()
+        self.ui = uic.loadUi(BASE_DIR + r"./src/can_diagnosis_ui.ui", self)
+        self.show()
+
+        if mywindow.c_can_bus:
+            self.c_can_bus = mywindow.c_can_bus
+        if mywindow.p_can_bus:
+            self.p_can_bus = mywindow.p_can_bus
+
+        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
+        self.raw_data = []
+        self.res_data = []
+        self.temp_list = []
+        self.graph_data_list = []
+        self.data_len = 0
+        self.dtc_num = 0
+        self.data_type = None
+        self.req_seed = []
+
+        self.recv_flag = False
+
+        self.diag_tester_id = 0x18da41f1
+
+        self.flow = False
+
+        self.write_txt = ''
+
+        self.diag_btn_text = None
+        self.diag_success_byte = None
+        self.diag_failure_byte = 0x7f
+
+        self.test_mode_basic = False
+
+        self.txt_domain = 'Default'
+        self.color_domain = 'gray'
+        self.flag_domain = False
+
+        self.flow_control_len = 0
+
+        self.write_secu_nrc = True
+
+        # Connect diagnosis basic buttons to diagnostic handling function
+        self.btn_sess_default.clicked.connect(self.diag_func)
+        self.btn_sess_extended.clicked.connect(self.diag_func)
+        self.btn_sess_nrc_12.clicked.connect(self.diag_func)
+        self.btn_sess_nrc_13.clicked.connect(self.diag_func)
+
+        self.btn_reset_sw.clicked.connect(self.diag_func)
+        self.btn_reset_hw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_12.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_13.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_7f_sw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_7f_hw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_22_sw.clicked.connect(self.diag_func)
+        self.btn_reset_nrc_22_hw.clicked.connect(self.diag_func)
+
+        self.btn_tester.released.connect(self.diag_func)
+        self.btn_tester_nrc_12.released.connect(self.diag_func)
+        self.btn_tester_nrc_13.released.connect(self.diag_func)
+
+        mywindow.tester_worker.tester_signal.connect(self.diag_data_collector)
+        self.chkbox_tester_present.released.connect(self.tester_present_handler)
+
+        self.chkbox_diag_test_mode_basic.released.connect(self.set_diag_basic_btns_labels)
+        self.chkbox_diag_functional_domain_basic.released.connect(self.set_diag_basic_btns_labels)
+        self.chkbox_diag_compression_bit_basic.released.connect(self.set_diag_basic_btns_labels)
+        self.btn_diag_reset_basic.released.connect(self.set_diag_basic_btns_labels)
+
+        # Connect data identification buttons to diagnostic handling function
+        self.btn_id_ecu_num.released.connect(self.diag_func)
+        self.btn_id_ecu_supp.released.connect(self.diag_func)
+        self.btn_id_vin.released.connect(self.diag_func)
+        self.btn_id_install_date.released.connect(self.diag_func)
+        self.btn_id_diag_ver.released.connect(self.diag_func)
+        self.btn_id_sys_name.released.connect(self.diag_func)
+        self.btn_id_active_sess.released.connect(self.diag_func)
+        self.btn_id_veh_name.released.connect(self.diag_func)
+        self.btn_id_ecu_serial.released.connect(self.diag_func)
+        self.btn_id_hw_ver.released.connect(self.diag_func)
+        self.btn_id_sw_ver.released.connect(self.diag_func)
+        self.btn_id_ecu_manu_date.released.connect(self.diag_func)
+        self.btn_id_assy_num.released.connect(self.diag_func)
+        self.btn_id_net_config.released.connect(self.diag_func)
+        self.btn_id_ecu_sts_info.released.connect(self.diag_func)
+        self.btn_id_nrc_13.released.connect(self.diag_func)
+        self.btn_id_nrc_31.released.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_did.released.connect(self.set_diag_did_btns_labels)
+        self.chkbox_diag_functional_domain_did.released.connect(self.set_diag_did_btns_labels)
+        self.btn_diag_reset_did.released.connect(self.set_diag_did_btns_labels)
+
+        # Connect communication control buttons to diagnostic handling function
+        self.btn_comm_cont_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_all_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_12.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_13.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_31.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_22_all_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_all_en.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_tx_dis.released.connect(self.diag_func)
+        self.btn_comm_cont_nrc_7f_all_dis.released.connect(self.diag_func)
+
+        self.chkbox_diag_functional_domain_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+        self.chkbox_diag_compression_bit_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+        self.chkbox_diag_test_mode_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+        self.btn_diag_reset_comm_cont.released.connect(self.set_diag_comm_cont_btns_labels)
+
+        # Connect security control buttons to diagnostic handling function
+        self.btn_sec_req_seed.released.connect(self.diag_func)
+        self.btn_sec_send_key.released.connect(self.diag_func)
+        self.btn_sec_seed_plus_send.released.connect(self.diag_func)
+        self.btn_sec_nrc_12.released.connect(self.diag_func)
+        self.btn_sec_nrc_13.released.connect(self.diag_func)
+        self.btn_sec_nrc_24.released.connect(self.diag_func)
+        self.btn_sec_nrc_35.released.connect(self.diag_func)
+        self.btn_sec_nrc_36.released.connect(self.diag_func)
+        self.btn_sec_nrc_37.released.connect(self.diag_func)
+        self.btn_sec_nrc_7f_req.released.connect(self.diag_func)
+        self.btn_sec_nrc_7f_send.released.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_sec.released.connect(self.set_diag_sec_btns_labels)
+        self.btn_diag_reset_sec.released.connect(self.set_diag_sec_btns_labels)
+
+        # Connect data write buttons to diagnostic handling function
+        self.btn_write_vin.released.connect(self.diag_func)
+        self.btn_write_install_date.released.connect(self.diag_func)
+        self.btn_write_veh_name.released.connect(self.diag_func)
+        self.btn_write_sys_name.released.connect(self.diag_func)
+        self.btn_write_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_13.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_7f_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_33_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_33_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_33_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_33_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_33_net_config.released.connect(self.diag_func)
+        self.btn_write_nrc_22_vin.released.connect(self.diag_func)
+        self.btn_write_nrc_22_install_date.released.connect(self.diag_func)
+        self.btn_write_nrc_22_veh_name.released.connect(self.diag_func)
+        self.btn_write_nrc_22_sys_name.released.connect(self.diag_func)
+        self.btn_write_nrc_22_net_config.released.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_write.released.connect(self.set_diag_write_btns_labels)
+        self.btn_write_data_send.clicked.connect(self.write_data_sender)
+
+        # Connect dtc buttons to diagnostic handling function
+        self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
+        self.btn_mem_fault_list_check.clicked.connect(self.diag_func)
+        self.btn_mem_fault_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_avail_sts_mask.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_12.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_13.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_13_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_22_reset.clicked.connect(self.diag_func)
+        self.btn_mem_fault_nrc_31_reset.clicked.connect(self.diag_func)
+
+        self.chkbox_diag_functional_domain_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
+        self.chkbox_diag_test_mode_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
+        self.btn_diag_reset_mem_fault.released.connect(self.set_diag_mem_fault_btns_labels)
+
+        # Connect dtc control buttons to diagnostic handling function
+        self.btn_dtc_cont_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_dis.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_12.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_13.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_7f_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_7f_dis.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_22_en.clicked.connect(self.diag_func)
+        self.btn_dtc_cont_nrc_22_dis.clicked.connect(self.diag_func)
+
+        self.chkbox_diag_test_mode_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.chkbox_diag_functional_domain_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.chkbox_diag_compression_bit_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+        self.btn_diag_reset_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
+
+        self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
+        self.btn_write_data_clear.clicked.connect(self.console_text_clear)
+        self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
+
+        self.treeWidget_dtc.setColumnWidth(1, 350)
+
+        self.set_diag_basic_btns_labels(False)
+        self.set_diag_did_btns_labels(False)
+        self.set_diag_sec_btns_labels(False)
+        self.set_diag_write_btns_labels(False)
+        self.set_diag_comm_cont_btns_labels(False)
+        self.set_diag_mem_fault_btns_labels(False)
+        self.set_diag_dtc_cont_btns_labels(False)
 
     def set_diag_basic_btns_labels(self, flag=True):
         if self.chkbox_diag_test_mode_basic.isChecked():
@@ -853,8 +1194,10 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.sender():
             if self.sender().objectName() == "btn_bus_start":
                 self.label_id.setStyleSheet(f"color: black")
+                self.label_id_data_length.setStyleSheet(f"color: black")
             elif self.sender().objectName() == "btn_bus_stop":
                 self.label_id.setStyleSheet(f"color: gray")
+                self.label_id_data_length.setStyleSheet(f"color: gray")
 
         self.lineEdit_id_data.setEnabled(flag)
         self.btn_id_ecu_num.setEnabled(self.flag_domain)
@@ -914,31 +1257,46 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_did.setEnabled(flag)
 
     def set_diag_sec_btns_labels(self, flag=True):
-        if flag:
+        if self.chkbox_diag_test_mode_sec.isChecked():
             color = "black"
+            txt = "Not tested"
         else:
             color = "gray"
+            txt = "Default"
 
         self.btn_sec_req_seed.setEnabled(flag)
+        self.label_sec_req_seed.setText(f"{txt}")
         self.label_sec_req_seed.setStyleSheet(f"color: {color}")
         self.btn_sec_send_key.setEnabled(flag)
+        self.label_sec_send_key.setText(f"{txt}")
         self.label_sec_send_key.setStyleSheet(f"color: {color}")
+        self.btn_sec_seed_plus_send.setEnabled(flag)
+        self.label_sec_seed_plus_send.setText(f"{txt}")
+        self.label_sec_seed_plus_send.setStyleSheet(f"color: {color}")
 
         self.btn_sec_nrc_12.setEnabled(flag)
+        self.label_sec_nrc_12.setText(f"{txt}")
         self.label_sec_nrc_12.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_13.setEnabled(flag)
+        self.label_sec_nrc_13.setText(f"{txt}")
         self.label_sec_nrc_13.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_24.setEnabled(flag)
+        self.label_sec_nrc_24.setText(f"{txt}")
         self.label_sec_nrc_24.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_35.setEnabled(flag)
+        self.label_sec_nrc_35.setText(f"{txt}")
         self.label_sec_nrc_35.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_36.setEnabled(flag)
+        self.label_sec_nrc_36.setText(f"{txt}")
         self.label_sec_nrc_36.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_37.setEnabled(flag)
+        self.label_sec_nrc_37.setText(f"{txt}")
         self.label_sec_nrc_37.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_7f_req.setEnabled(flag)
+        self.label_sec_nrc_7f_req.setText(f"{txt}")
         self.label_sec_nrc_7f_req.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_7f_send.setEnabled(flag)
+        self.label_sec_nrc_7f_send.setText(f"{txt}")
         self.label_sec_nrc_7f_send.setStyleSheet(f"color: {color}")
 
         self.btn_diag_reset_sec.setEnabled(flag)
@@ -1101,7 +1459,6 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             color = 'gray'
             txt = "Default"
-
         self.btn_diag_reset_mem_fault.setEnabled(flag)
         self.chkbox_diag_test_mode_mem_fault.setEnabled(flag)
         self.chkbox_diag_functional_domain_mem_fault.setEnabled(flag)
@@ -1112,6 +1469,11 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_reset.setEnabled(flag)
         self.btn_mem_fault_avail_sts_mask.setEnabled(flag)
         if self.sender():
+            if self.sender().objectName() == "btn_bus_start":
+                self.label_mem_fault_dtc_num.setStyleSheet(f"color: black")
+            elif self.sender().objectName() == "btn_bus_stop":
+                self.label_mem_fault_dtc_num.setStyleSheet(f"color: gray")
+
             if self.chkbox_diag_test_mode_mem_fault.isChecked():
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(True)
                 self.btn_mem_fault_num_check.setEnabled(not flag)
@@ -1225,14 +1587,14 @@ class Main(QMainWindow, Ui_MainWindow):
     def diag_data_collector(self, mess, multi=False, comp=False):
         for i, mess_data in zip(range(len(mess)), mess):
             self.data[i] = mess_data
-        self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+        mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
         time.sleep(0.030)
         if multi:
             self.data[0] = 0x30
-            self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+            mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
         time.sleep(0.200)
-        self.res_data = self.thread_worker.reservoir[:]
-        self.thread_worker.reservoir = []
+        self.res_data = mywindow.thread_worker.reservoir[:]
+        mywindow.thread_worker.reservoir = []
         if comp:
             return False
         if len(self.res_data) < self.flow_control_len:
@@ -1324,82 +1686,11 @@ class Main(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, err, message)
         self.console_text_clear(err)
 
-    @pyqtSlot(can.Message)
-    def signal_presenter(self, tx_single):
-        tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
-        tx_time = str(tx_datetime)[11:-4]
-        tx_id = hex(tx_single.arbitration_id)
-        if tx_single.channel:
-            if str(tx_single.channel) == self.c_can_name:
-                tx_channel = "C-CAN"
-            else:
-                tx_channel = "P-CAN"
-        else:
-            tx_channel = "C-CAN"
-        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
-        tx_name = tx_message_info[0]
-        tx_data = ''
-        for hex_val in tx_single.data:
-            tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
-        if not self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel):
-            return 0
-        if self.btn_chronicle_watch.isChecked():
-            item = QTreeWidgetItem()
-            item.setText(0, tx_id)
-            item.setText(1, tx_time)
-            item.setText(2, tx_name)
-            item.setText(3, tx_channel)
-            item.setText(4, tx_data)
-            self.treeWidget_tx.addTopLevelItems([item])
-            # self.treeWidget_tx.invisibleRootItem().addChild(item)
-        elif self.btn_fixed_watch.isChecked():
-            len_prev = len(self.tx_set)
-            identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
-            self.tx_set.add(identifier)
-            len_now = len(self.tx_set)
-            if len_now - len_prev == 0:
-                for item in self.item:
-                    if tx_id == item.text(0) and tx_channel == item.text(3):
-                        item.setText(1, tx_time)
-                        item.setText(4, tx_data)
-                        for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
-                            item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
-                        break
-            else:
-                item = QTreeWidgetItem()
-                item.setText(0, tx_id)
-                item.setText(1, tx_time)
-                item.setText(2, tx_name)
-                item.setText(3, tx_channel)
-                item.setText(4, tx_data)
-                for sub_message in tx_message_info[1:]:
-                    sub_item = QTreeWidgetItem(item)
-                    sub_item.setText(2, sub_message["name"])
-                    sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
-                self.item.append(item)
-                self.treeWidget_tx.addTopLevelItems(self.item)
-                self.comboBox_id.addItem(tx_name)
-                # self.treeWidget_tx.clear()
-        if tx_id == "0x18ffa57f":
-            # print(tx_data, type(tx_data))
-            if len(self.graph_data_list) == 10:
-                self.graph_data_list.pop(0)
-            self.graph_data_list.append(int(tx_data[:2], 16))
-        self.graph_presenter(self.graph_data_list)
-
-    def graph_presenter(self, graph_list):
-        plot_num = self.comboBox_num.currentText()
-        # print(plot_num)
-        # print(graph_list)
-        # x = [1, 2, 3, 4]
-        # y = [1, 4, 9, 16]
-        # self.curve = self.graph_widget.plot()
-        # self.curve.setData(graph_list)
-
     @pyqtSlot(str, int, list)
     def can_signal_sender(self, bus_mess, send_id, send_data):
         if send_id == 0xFF:
-            self.bus_console.appendPlainText(bus_mess)
+            if not self.chkbox_can_dump.isChecked():
+                self.bus_console.appendPlainText(bus_mess)
         else:
             if bus_mess == 'c':
                 self.send_message(self.c_can_bus, send_id, send_data)
@@ -1436,9 +1727,10 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_success_byte = 0x62
                     self.diag_did(self.diag_btn_text)
                 elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key" \
-                        or self.diag_btn_text == "btn_sec_nrc_12" or self.diag_btn_text == "btn_sec_nrc_13" \
-                        or self.diag_btn_text == "btn_sec_nrc_24" or self.diag_btn_text == "btn_sec_nrc_35" \
-                        or self.diag_btn_text == "btn_sec_nrc_36" or self.diag_btn_text == "btn_sec_nrc_37" \
+                        or self.diag_btn_text == "btn_sec_seed_plus_send" or self.diag_btn_text == "btn_sec_nrc_12" \
+                        or self.diag_btn_text == "btn_sec_nrc_13" or self.diag_btn_text == "btn_sec_nrc_24" \
+                        or self.diag_btn_text == "btn_sec_nrc_35" or self.diag_btn_text == "btn_sec_nrc_36" \
+                        or self.diag_btn_text == "btn_sec_nrc_37" \
                         or self.diag_btn_text == "btn_sec_nrc_7f_req" or self.diag_btn_text == "btn_sec_nrc_7f_send":
                     self.diag_success_byte = 0x67
                     self.diag_security_access(self.diag_btn_text)
@@ -1551,15 +1843,15 @@ class Main(QMainWindow, Ui_MainWindow):
             self.diag_sess("btn_sess_default", ex_comp_data=ex_comp_data)
             sig_li = [0x02, 0x11, 0x03]
         elif txt == "btn_reset_nrc_22_sw":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data)
             sig_li = [0x02, 0x11, 0x01]
         elif txt == "btn_reset_nrc_22_hw":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data)
             sig_li = [0x02, 0x11, 0x03]
         if self.chkbox_diag_compression_bit_basic.isChecked():
@@ -1604,9 +1896,9 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             self.diag_data_collector(sig_li)
 
-        self.drv_state = False
-        self.set_drv_state()
-        self.thread_worker.slider_speed_func(0)
+        mywindow.drv_state = False
+        mywindow.set_drv_state()
+        mywindow.thread_worker.slider_speed_func(0)
 
     def diag_tester(self, txt):
         # **need to add test failed scenario
@@ -1789,44 +2081,53 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.label_id_nrc_31.setText("Success")
 
     def diag_security_access(self, txt, sess_init=True):
-        if sess_init:
-            self.diag_initialization()
+        self.diag_initialization()
         if txt == "btn_sec_req_seed":
             self.diag_sess("btn_sess_extended")
             sig_li = [0x02, 0x27, 0x01]
             self.diag_data_collector(sig_li)
             self.req_seed = self.res_data[0].data[3:7]
         elif txt == "btn_sec_send_key":
-            while len(self.res_data) < self.flow_control_len:
-                self.diag_security_access("btn_sec_req_seed")
-                seed_converted = algo.secu_algo(self.req_seed)
-                sig_li = [0x06, 0x27, 0x02]
-                self.diag_data_collector(sig_li + seed_converted)
-                if self.res_data[0].data[1] == 0x67 and self.res_data[0].data[2] == 0x02:
-                    break
-                else:
-                    self.res_data = []
+            if len(self.req_seed) == 0:
+                err = "Empty Seed Key"
+                message = "Get seed key first before send key"
+                QMessageBox.warning(self, err, message)
+                return False
+            seed_converted = algo.secu_algo(self.req_seed)
+            sig_li = [0x06, 0x27, 0x02]
+            self.diag_data_collector(sig_li + seed_converted)
+            self.req_seed = []
+        elif txt == "btn_sec_seed_plus_send":
+            self.diag_sess("btn_sess_default")
+            time.sleep(0.100)
+            self.diag_security_access("btn_sec_req_seed")
+            time.sleep(0.100)
+            self.diag_security_access("btn_sec_send_key")
+        elif txt == "btn_sec_nrc_36":
+            self.diag_sess("btn_sess_default")
+            count = 0
+            while count < 3:
+                self.diag_security_access("btn_sec_nrc_35", sess_init=False)
+                count += 1
         else:
             if txt == "btn_sec_nrc_12":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x02, 0x27, 0x03]
             elif txt == "btn_sec_nrc_13":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x03, 0x27, 0x01, 0x01]
             elif txt == "btn_sec_nrc_24":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x02, 0x27, 0x02]
             elif txt == "btn_sec_nrc_35":
+                if sess_init:
+                    self.diag_sess("btn_sess_default")
                 self.diag_security_access("btn_sec_req_seed")
+                time.sleep(0.100)
                 sig_li = [0x06, 0x27, 0x02, 0x00, 0x00, 0x00, 0x00]
-                time.sleep(0.1)
-            elif txt == "btn_sec_nrc_36":
-                self.diag_sess("btn_sess_default")
-                count = 0
-                while count < 3:
-                    self.diag_security_access("btn_sec_nrc_35")
-                    count += 1
-                sig_li = [0x02, 0x27, 0x01]
             elif txt == "btn_sec_nrc_37":
                 self.diag_security_access("btn_sec_nrc_36")
                 sig_li = [0x02, 0x27, 0x01]
@@ -1837,6 +2138,64 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.diag_sess("btn_sess_default")
                 sig_li = [0x02, 0x27, 0x02]
             self.diag_data_collector(sig_li)
+
+            if self.chkbox_diag_test_mode_sec.isChecked():
+                print(self.res_data)
+            #
+            #     if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[
+            #         2] == sig_li[3]:
+            #         if txt == "btn_id_ecu_num":
+            #             self.btn_id_ecu_num.setEnabled(False)
+            #             self.label_id_ecu_num.setText("Success")
+            #         elif txt == "btn_id_ecu_supp":
+            #             self.btn_id_ecu_supp.setEnabled(False)
+            #             self.label_id_ecu_supp.setText("Success")
+            #         elif txt == "btn_id_vin":
+            #             self.btn_id_vin.setEnabled(False)
+            #             self.label_id_vin.setText("Success")
+            #         elif txt == "btn_id_sys_name":
+            #             self.btn_id_sys_name.setEnabled(False)
+            #             self.label_id_sys_name.setText("Success")
+            #         elif txt == "btn_id_veh_name":
+            #             self.btn_id_veh_name.setEnabled(False)
+            #             self.label_id_veh_name.setText("Success")
+            #         elif txt == "btn_id_ecu_serial":
+            #             self.btn_id_ecu_serial.setEnabled(False)
+            #             self.label_id_ecu_serial.setText("Success")
+            #         elif txt == "btn_id_hw_ver":
+            #             self.btn_id_hw_ver.setEnabled(False)
+            #             self.label_id_hw_ver.setText("Success")
+            #         elif txt == "btn_id_sw_ver":
+            #             self.btn_id_sw_ver.setEnabled(False)
+            #             self.label_id_sw_ver.setText("Success")
+            #         elif txt == "btn_id_assy_num":
+            #             self.btn_id_assy_num.setEnabled(False)
+            #             self.label_id_assy_num.setText("Success")
+            #         elif txt == "btn_id_net_config":
+            #             self.btn_id_net_config.setEnabled(False)
+            #             self.label_id_net_config.setText("Success")
+            # else:
+            #     if self.res_data[0].data[1] == self.diag_success_byte:
+            #         if self.res_data[0].data[2] == sig_li[2] and self.res_data[0].data[3] == sig_li[3]:
+            #             if txt == "btn_id_install_date":
+            #                 self.btn_id_install_date.setEnabled(False)
+            #                 self.label_id_install_date.setText("Success")
+            #             elif txt == "btn_id_diag_ver":
+            #                 self.btn_id_diag_ver.setEnabled(False)
+            #                 self.label_id_diag_ver.setText("Success")
+            #             elif txt == "btn_id_active_sess":
+            #                 self.btn_id_active_sess.setEnabled(False)
+            #                 self.label_id_active_sess.setText("Success")
+            #             elif txt == "btn_id_ecu_manu_date":
+            #                 self.btn_id_ecu_manu_date.setEnabled(False)
+            #                 self.label_id_ecu_manu_date.setText("Success")
+            #     elif self.res_data[0].data[1] == self.diag_failure_byte:
+            #         if self.res_data[0].data[3] == 0x13:
+            #             self.btn_id_nrc_13.setEnabled(False)
+            #             self.label_id_nrc_13.setText("Success")
+            #         elif self.res_data[0].data[3] == 0x31:
+            #             self.btn_id_nrc_31.setEnabled(False)
+            #             self.label_id_nrc_31.setText("Success")
 
     def diag_write(self, txt):
         # **need to add test failed scenario
@@ -1933,37 +2292,37 @@ class Main(QMainWindow, Ui_MainWindow):
             self.write_secu_nrc = False
             self.diag_write("btn_write_net_config")
         elif txt == "btn_write_nrc_22_vin":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended")
             self.write_txt = 'abcdefghijklmnopq'
             self.diag_write("btn_write_vin")
         elif txt == "btn_write_nrc_22_install_date":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended")
             self.write_txt = '12345678'
             self.diag_write("btn_write_install_date")
         elif txt == "btn_write_nrc_22_veh_name":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended")
             self.write_txt = 'rstuvwxy'
             self.diag_write("btn_write_veh_name")
         elif txt == "btn_write_nrc_22_sys_name":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended")
             self.write_txt = 'zabcdefg'
             self.diag_write("btn_write_veh_name")
         elif txt == "btn_write_nrc_22_net_config":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended")
             self.write_txt = '01 23 45 67 89 ab cd ef'
             self.diag_write("btn_write_net_config")
@@ -1971,13 +2330,13 @@ class Main(QMainWindow, Ui_MainWindow):
         data_len = len(self.write_txt)
         if write_flag:
             if self.write_secu_nrc:
-                self.diag_security_access("btn_sec_send_key")
+                self.diag_security_access("btn_sec_seed_plus_send")
             else:
                 self.diag_sess("btn_sess_default")
                 self.diag_sess("btn_sess_extended")
-            if self.drv_state:
-                self.set_drv_state()
-                self.thread_worker.slider_speed_func(20)
+            if mywindow.drv_state:
+                mywindow.set_drv_state()
+                mywindow.thread_worker.slider_speed_func(20)
                 time.sleep(0.1)
             temp_li = []
             if len(self.write_txt) > 4:
@@ -2015,13 +2374,13 @@ class Main(QMainWindow, Ui_MainWindow):
                 temp_li.append(self.write_data)
             for w_data in temp_li:
                 self.data = w_data
-                self.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+                mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
             time.sleep(0.3)
-            reservoir = self.thread_worker.reservoir[:]
+            reservoir = mywindow.thread_worker.reservoir[:]
             for qqq in reservoir:
                 if qqq.arbitration_id == 0x18daf141:
                     self.res_data.append(qqq)
-            self.thread_worker.reservoir = []
+            mywindow.thread_worker.reservoir = []
             QtCore.QCoreApplication.processEvents()
             self.diag_console.appendPlainText(str(self.res_data[-1]))
         self.label_flag_send.setText(f'Fill the data')
@@ -2099,58 +2458,67 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.btn_write_nrc_33_net_config.setEnabled(False)
                         self.label_write_nrc_33_net_config.setText("Success")
 
-        self.drv_state = False
-        self.thread_worker.slider_speed_func(0)
-        self.set_drv_state()
+        mywindow.drv_state = False
+        mywindow.thread_worker.slider_speed_func(0)
+        mywindow.set_drv_state()
         self.write_secu_nrc = True
 
     def diag_comm_cont(self, txt):
+        if self.chkbox_diag_compression_bit_comm_cont.isChecked():
+            ex_comp_data = True
+            ex_comp_sig = True
+        else:
+            ex_comp_data = False
+            ex_comp_sig = False
         self.diag_initialization()
         if txt == 'btn_comm_cont_all_en':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x00, 0x01]
         elif txt == 'btn_comm_cont_tx_dis':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x01, 0x01]
         elif txt == 'btn_comm_cont_all_dis':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x03, 0x01]
         elif txt == 'btn_comm_cont_nrc_12':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x0F, 0x01]
         elif txt == 'btn_comm_cont_nrc_13':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x04, 0x28, 0x00, 0x01, 0x01]
         elif txt == 'btn_comm_cont_nrc_31':
-            self.diag_sess("btn_sess_extended")
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x00, 0xFF]
         elif txt == "btn_comm_cont_nrc_7f_all_en":
-            self.diag_sess("btn_sess_default")
+            self.diag_sess("btn_sess_default", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x00, 0x01]
         elif txt == "btn_comm_cont_nrc_7f_tx_dis":
-            self.diag_sess("btn_sess_default")
+            self.diag_sess("btn_sess_default", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x01, 0x01]
         elif txt == "btn_comm_cont_nrc_7f_all_dis":
-            self.diag_sess("btn_sess_default")
+            self.diag_sess("btn_sess_default", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x03, 0x01]
         elif txt == "btn_comm_cont_nrc_22_all_en":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
-            self.diag_sess("btn_sess_extended")
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x00, 0x01]
         elif txt == "btn_comm_cont_nrc_22_tx_dis":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
-            self.diag_sess("btn_sess_extended")
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x01, 0x01]
         elif txt == "btn_comm_cont_nrc_22_all_dis":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
-            self.diag_sess("btn_sess_extended")
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
+            self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x03, 0x28, 0x03, 0x01]
+
+        if self.chkbox_diag_compression_bit_comm_cont.isChecked():
+            sig_li[2] = sig_gen.binary_sig(sig_li[2], 0, 1, 1)
 
         if self.chkbox_diag_test_mode_comm_cont.isChecked():
             if self.chkbox_diag_compression_bit_comm_cont.isChecked() and (
@@ -2206,9 +2574,9 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             self.diag_data_collector(sig_li)
 
-        self.thread_worker.slider_speed_func(0)
-        self.drv_state = False
-        self.set_drv_state()
+        mywindow.thread_worker.slider_speed_func(0)
+        mywindow.drv_state = False
+        mywindow.set_drv_state()
 
     def diag_memory_fault(self, txt):
         self.diag_initialization()
@@ -2220,7 +2588,7 @@ class Main(QMainWindow, Ui_MainWindow):
         elif txt == "btn_mem_fault_list_check":
             self.diag_memory_fault("btn_mem_fault_num_check")
             if self.res_data[0].data[6] == 0x00:
-                self.label_mem_fault_dtc_num.setText(f'- Number of DTCs : 0')
+                self.label_mem_fault_dtc_num.setText(f'Number of DTCs : 0')
                 return True
             dtc_num = self.res_data[0].data[6]
             multi_flag = False
@@ -2270,9 +2638,9 @@ class Main(QMainWindow, Ui_MainWindow):
             elif txt == "btn_mem_fault_nrc_13_reset":
                 sig_li = [0x02, 0x14, 0xFF]
             elif txt == "btn_mem_fault_nrc_22_reset":
-                self.drv_state = True
-                self.set_drv_state()
-                self.thread_worker.slider_speed_func(20)
+                mywindow.drv_state = True
+                mywindow.set_drv_state()
+                mywindow.thread_worker.slider_speed_func(20)
                 self.diag_sess("btn_sess_default")
                 sig_li = [0x04, 0x14, 0xFF, 0xFF, 0xFF]
             elif txt == "btn_mem_fault_nrc_31_reset":
@@ -2299,9 +2667,9 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.label_mem_fault_nrc_31_reset.setText("Success")
 
         if txt == "btn_mem_fault_nrc_22_reset":
-            self.thread_worker.slider_speed_func(0)
-            self.drv_state = False
-            self.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(0)
+            mywindow.drv_state = False
+            mywindow.set_drv_state()
 
     def diag_dtc_cont(self, txt):
         if self.chkbox_diag_compression_bit_dtc_cont.isChecked():
@@ -2330,15 +2698,15 @@ class Main(QMainWindow, Ui_MainWindow):
             self.diag_sess("btn_sess_default", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x02, 0x85, 0x02]
         elif txt == "btn_dtc_cont_nrc_22_en":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x02, 0x85, 0x01]
         elif txt == "btn_dtc_cont_nrc_22_dis":
-            self.drv_state = True
-            self.set_drv_state()
-            self.thread_worker.slider_speed_func(20)
+            mywindow.drv_state = True
+            mywindow.set_drv_state()
+            mywindow.thread_worker.slider_speed_func(20)
             self.diag_sess("btn_sess_extended", ex_comp_data=ex_comp_data, ex_comp_sig=ex_comp_sig)
             sig_li = [0x02, 0x85, 0x02]
 
@@ -2385,174 +2753,24 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             self.diag_data_collector(sig_li)
 
-        self.drv_state = False
-        self.set_drv_state()
-        self.thread_worker.slider_speed_func(0)
+        mywindow.drv_state = False
+        mywindow.set_drv_state()
+        mywindow.thread_worker.slider_speed_func(0)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_Enter:
             self.write_data_sender()
 
-    def image_initialization(self):
-        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
-        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(100)
-        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(100)
-        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(100)
-        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(100)
-        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(100)
-        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(100)
-        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(100)
-        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(100)
-        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(100)
-        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(100)
-        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(100)
-        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(100)
-        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(100)
-        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(100)
-        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(100)
-
-        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(100)
-        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(100)
-        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(100)
-        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(100)
-
-        self.img_str_whl_heat_off = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(
-            100)
-        self.img_str_whl_heat_1 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(
-            100)
-        self.img_str_whl_heat_2 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(
-            100)
-        self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
-            100)
-
-    def tx_filter(self, tx_id, tx_name, tx_channel):
-        if self.btn_filter_all.isChecked():
-            return True
-        elif self.btn_filter_tx.isChecked():
-            if tx_name[:3] == "MMI":
-                return True
-            else:
-                return False
-        elif self.btn_filter_rx.isChecked():
-            if tx_name[:3] != "MMI":
-                return True
-            else:
-                return False
-        elif self.btn_filter_c_can.isChecked():
-            if tx_channel == "C-CAN":
-                return True
-            else:
-                return False
-        elif self.btn_filter_p_can.isChecked():
-            if tx_channel == "P-CAN":
-                return True
-            else:
-                return False
-        elif self.btn_filter_diag.isChecked():
-            if tx_id == 0x18DA41F1 or tx_id == 0x18DAF141 or tx_id == 0x18DB33F1:
-                return True
-            else:
-                return False
-
-    def node_acu_control(self, flag=True):
-        if self.chkbox_node_acu.isChecked() and flag:
-            self.acu_seatbelt_worker._isRunning = True
-            self.acu_seatbelt_worker.start()
+    def tester_present_handler(self):
+        if self.chkbox_tester_present.isChecked():
+            print("aaa")
+            mywindow.tester_present_flag = True
         else:
-            self.acu_seatbelt_worker.stop()
+            print("bbb")
+            mywindow.tester_present_flag = False
 
-    def node_bcm_control(self, flag=True):
-        if self.chkbox_node_bcm.isChecked() and flag:
-            self.bcm_mmi_worker._isRunning = True
-            self.bcm_swrc_worker._isRunning = True
-            self.bcm_strwhl_heat_worker._isRunning = True
-            self.bcm_lightchime_worker._isRunning = True
-            self.bcm_stateupdate_worker._isRunning = True
-            self.bcm_mmi_worker.start()
-            self.bcm_swrc_worker.start()
-            self.bcm_strwhl_heat_worker.start()
-            self.bcm_lightchime_worker.start()
-            self.bcm_stateupdate_worker.start()
-        else:
-            self.bcm_mmi_worker.stop()
-            self.bcm_swrc_worker.stop()
-            self.bcm_strwhl_heat_worker.stop()
-            self.bcm_lightchime_worker.stop()
-            self.bcm_stateupdate_worker.stop()
-
-    def node_esc_control(self, flag=True):
-        if self.chkbox_node_esc.isChecked() and flag:
-            self.esc_tpms_worker._isRunning = True
-            self.esc_tpms_worker.start()
-        else:
-            self.esc_tpms_worker.stop()
-
-    def node_fcs_control(self, flag=True):
-        if self.chkbox_node_fcs.isChecked() and flag:
-            self.fcs_aeb_worker._isRunning = True
-            self.fcs_ldw_worker._isRunning = True
-            self.fcs_aeb_worker.start()
-            self.fcs_ldw_worker.start()
-        else:
-            self.fcs_aeb_worker.stop()
-            self.fcs_ldw_worker.stop()
-
-    def node_ic_control(self, flag=True):
-        if self.chkbox_node_ic.isChecked() and flag:
-            self.ic_distance_worker._isRunning = True
-            self.ic_tachospeed_worker._isRunning = True
-            self.ic_distance_worker.start()
-            self.ic_tachospeed_worker.start()
-        else:
-            self.ic_distance_worker.stop()
-            self.ic_tachospeed_worker.stop()
-
-    def node_pms_control(self, flag=True):
-        if self.chkbox_node_pms.isChecked() and flag:
-            self.pms_bodycont_c_worker._isRunning = True
-            self.pms_ptinfo_worker._isRunning = True
-            self.pms_bodycont_p_worker._isRunning = True
-            self.pms_vri_worker._isRunning = True
-            self.pms_bodycont_c_worker.start()
-            self.pms_ptinfo_worker.start()
-            self.pms_bodycont_p_worker.start()
-            self.pms_vri_worker.start()
-        else:
-            self.pms_bodycont_c_worker.stop()
-            self.pms_ptinfo_worker.stop()
-            self.pms_bodycont_p_worker.stop()
-            self.pms_vri_worker.stop()
-
-    def node_pms_s_control(self, flag=True):
-        if self.chkbox_node_pms_s.isChecked() and flag:
-            self.pms_s_hvsm_worker.start()
-            self.pms_s_hvsm_worker._isRunning = True
-        else:
-            self.pms_s_hvsm_worker.stop()
-
-    def node_pms_c_control(self, flag=True):
-        if self.chkbox_node_pms_c.isChecked() and flag:
-            self.pms_c_strwhl_worker._isRunning = True
-            self.pms_c_strwhl_worker.start()
-        else:
-            self.pms_c_strwhl_worker.stop()
-
-    def node_bms_control(self, flag=True):
-        if self.chkbox_node_bms.isChecked() and flag:
-            self.bms_batt_worker._isRunning = True
-            self.bms_charge_worker._isRunning = True
-            self.bms_batt_worker.start()
-            self.bms_charge_worker.start()
-        else:
-            self.bms_batt_worker.stop()
-            self.bms_charge_worker.stop()
-
-    def node_mcu_control(self, flag=True):
-        if self.chkbox_node_mcu.isChecked() and flag:
-            self.mcu_motor_worker._isRunning = True
-            self.mcu_motor_worker.start()
-        else:
-            self.mcu_motor_worker.stop()
+    def ui_close(self):
+        self.close()
 
 
 if __name__ == '__main__':
@@ -2560,3 +2778,6 @@ if __name__ == '__main__':
     mywindow = Main()
     mywindow.show()
     sys.exit(app.exec_())
+
+
+

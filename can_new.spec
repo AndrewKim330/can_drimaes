@@ -3,10 +3,10 @@
 
 block_cipher = None
 
-ui = [('./src/master_ui.ui', '.')]
+ui = [('./src/can_basic_ui.ui', '.'), ('./src/can_diagnosis_ui.ui', '.')]
 
 a = Analysis(
-    ['can_new.py'],
+    ['can_new_devide.py'],
     pathex=[],
     binaries=[],
     datas=ui,
@@ -30,7 +30,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='can_new',
+    name='can_new_devide',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

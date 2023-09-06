@@ -38,6 +38,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.dtc_num = 0
         self.data_type = None
         self.log_data = []
+        self.req_seed = []
 
         self.tx_chronicle = False
         self.recv_flag = False
@@ -245,6 +246,7 @@ class Main(QMainWindow, Ui_MainWindow):
         # Connect security control buttons to diagnostic handling function
         self.btn_sec_req_seed.released.connect(self.diag_func)
         self.btn_sec_send_key.released.connect(self.diag_func)
+        self.btn_sec_seed_plus_send.released.connect(self.diag_func)
         self.btn_sec_nrc_12.released.connect(self.diag_func)
         self.btn_sec_nrc_13.released.connect(self.diag_func)
         self.btn_sec_nrc_24.released.connect(self.diag_func)
@@ -478,6 +480,8 @@ class Main(QMainWindow, Ui_MainWindow):
             self.chkbox_diag_compression_bit_basic.toggle()
         if self.chkbox_diag_functional_domain_basic.isChecked():
             self.chkbox_diag_functional_domain_basic.toggle()
+        if self.chkbox_tester_present.isChecked():
+            self.chkbox_tester_present.toggle()
 
         self.set_diag_did_btns_labels(False)
         if self.chkbox_diag_test_mode_did.isChecked():
@@ -524,11 +528,11 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_can_dump.setEnabled(True)
 
     def send_message(self, bus, sig_id, send_data):
-        if sig_id == 0x18da41f1:
-            self.diag_console.appendPlainText("Tester sends the (physical) diagnosis message")
-        elif sig_id == 0x18db33f1:
-            self.diag_console.appendPlainText("Tester sends the (functional) diagnosis message")
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
+        if sig_id == 0x18da41f1:
+            self.diag_console.appendPlainText(f"{str(message)} (Physical Tester)")
+        elif sig_id == 0x18db33f1:
+            self.diag_console.appendPlainText(f"{str(message)} (Functional Tester)")
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
         self.thread_worker.signal_emit(message)
@@ -733,6 +737,7 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_SigFailr.setEnabled(flag)
 
         self.slider_speed.setEnabled(flag)
+        self.slider_battery.setEnabled(flag)
         if self.p_can_bus:
             self.slider_battery.setEnabled(flag)
             self.chkbox_charge.setEnabled(flag)
@@ -853,8 +858,10 @@ class Main(QMainWindow, Ui_MainWindow):
         if self.sender():
             if self.sender().objectName() == "btn_bus_start":
                 self.label_id.setStyleSheet(f"color: black")
+                self.label_id_data_length.setStyleSheet(f"color: black")
             elif self.sender().objectName() == "btn_bus_stop":
                 self.label_id.setStyleSheet(f"color: gray")
+                self.label_id_data_length.setStyleSheet(f"color: gray")
 
         self.lineEdit_id_data.setEnabled(flag)
         self.btn_id_ecu_num.setEnabled(self.flag_domain)
@@ -914,31 +921,46 @@ class Main(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_test_mode_did.setEnabled(flag)
 
     def set_diag_sec_btns_labels(self, flag=True):
-        if flag:
+        if self.chkbox_diag_test_mode_sec.isChecked():
             color = "black"
+            txt = "Not tested"
         else:
             color = "gray"
+            txt = "Default"
 
         self.btn_sec_req_seed.setEnabled(flag)
+        self.label_sec_req_seed.setText(f"{txt}")
         self.label_sec_req_seed.setStyleSheet(f"color: {color}")
         self.btn_sec_send_key.setEnabled(flag)
+        self.label_sec_send_key.setText(f"{txt}")
         self.label_sec_send_key.setStyleSheet(f"color: {color}")
+        self.btn_sec_seed_plus_send.setEnabled(flag)
+        self.label_sec_seed_plus_send.setText(f"{txt}")
+        self.label_sec_seed_plus_send.setStyleSheet(f"color: {color}")
 
         self.btn_sec_nrc_12.setEnabled(flag)
+        self.label_sec_nrc_12.setText(f"{txt}")
         self.label_sec_nrc_12.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_13.setEnabled(flag)
+        self.label_sec_nrc_13.setText(f"{txt}")
         self.label_sec_nrc_13.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_24.setEnabled(flag)
+        self.label_sec_nrc_24.setText(f"{txt}")
         self.label_sec_nrc_24.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_35.setEnabled(flag)
+        self.label_sec_nrc_35.setText(f"{txt}")
         self.label_sec_nrc_35.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_36.setEnabled(flag)
+        self.label_sec_nrc_36.setText(f"{txt}")
         self.label_sec_nrc_36.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_37.setEnabled(flag)
+        self.label_sec_nrc_37.setText(f"{txt}")
         self.label_sec_nrc_37.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_7f_req.setEnabled(flag)
+        self.label_sec_nrc_7f_req.setText(f"{txt}")
         self.label_sec_nrc_7f_req.setStyleSheet(f"color: {color}")
         self.btn_sec_nrc_7f_send.setEnabled(flag)
+        self.label_sec_nrc_7f_send.setText(f"{txt}")
         self.label_sec_nrc_7f_send.setStyleSheet(f"color: {color}")
 
         self.btn_diag_reset_sec.setEnabled(flag)
@@ -1101,7 +1123,6 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             color = 'gray'
             txt = "Default"
-
         self.btn_diag_reset_mem_fault.setEnabled(flag)
         self.chkbox_diag_test_mode_mem_fault.setEnabled(flag)
         self.chkbox_diag_functional_domain_mem_fault.setEnabled(flag)
@@ -1112,6 +1133,11 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mem_fault_reset.setEnabled(flag)
         self.btn_mem_fault_avail_sts_mask.setEnabled(flag)
         if self.sender():
+            if self.sender().objectName() == "btn_bus_start":
+                self.label_mem_fault_dtc_num.setStyleSheet(f"color: black")
+            elif self.sender().objectName() == "btn_bus_stop":
+                self.label_mem_fault_dtc_num.setStyleSheet(f"color: gray")
+
             if self.chkbox_diag_test_mode_mem_fault.isChecked():
                 self.chkbox_diag_functional_domain_mem_fault.setEnabled(True)
                 self.btn_mem_fault_num_check.setEnabled(not flag)
@@ -1399,7 +1425,8 @@ class Main(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str, int, list)
     def can_signal_sender(self, bus_mess, send_id, send_data):
         if send_id == 0xFF:
-            self.bus_console.appendPlainText(bus_mess)
+            if not self.chkbox_can_dump.isChecked():
+                self.bus_console.appendPlainText(bus_mess)
         else:
             if bus_mess == 'c':
                 self.send_message(self.c_can_bus, send_id, send_data)
@@ -1436,9 +1463,10 @@ class Main(QMainWindow, Ui_MainWindow):
                     self.diag_success_byte = 0x62
                     self.diag_did(self.diag_btn_text)
                 elif self.diag_btn_text == "btn_sec_req_seed" or self.diag_btn_text == "btn_sec_send_key" \
-                        or self.diag_btn_text == "btn_sec_nrc_12" or self.diag_btn_text == "btn_sec_nrc_13" \
-                        or self.diag_btn_text == "btn_sec_nrc_24" or self.diag_btn_text == "btn_sec_nrc_35" \
-                        or self.diag_btn_text == "btn_sec_nrc_36" or self.diag_btn_text == "btn_sec_nrc_37" \
+                        or self.diag_btn_text == "btn_sec_seed_plus_send" or self.diag_btn_text == "btn_sec_nrc_12" \
+                        or self.diag_btn_text == "btn_sec_nrc_13" or self.diag_btn_text == "btn_sec_nrc_24" \
+                        or self.diag_btn_text == "btn_sec_nrc_35" or self.diag_btn_text == "btn_sec_nrc_36" \
+                        or self.diag_btn_text == "btn_sec_nrc_37" \
                         or self.diag_btn_text == "btn_sec_nrc_7f_req" or self.diag_btn_text == "btn_sec_nrc_7f_send":
                     self.diag_success_byte = 0x67
                     self.diag_security_access(self.diag_btn_text)
@@ -1789,44 +1817,53 @@ class Main(QMainWindow, Ui_MainWindow):
                         self.label_id_nrc_31.setText("Success")
 
     def diag_security_access(self, txt, sess_init=True):
-        if sess_init:
-            self.diag_initialization()
+        self.diag_initialization()
         if txt == "btn_sec_req_seed":
             self.diag_sess("btn_sess_extended")
             sig_li = [0x02, 0x27, 0x01]
             self.diag_data_collector(sig_li)
             self.req_seed = self.res_data[0].data[3:7]
         elif txt == "btn_sec_send_key":
-            while len(self.res_data) < self.flow_control_len:
-                self.diag_security_access("btn_sec_req_seed")
-                seed_converted = algo.secu_algo(self.req_seed)
-                sig_li = [0x06, 0x27, 0x02]
-                self.diag_data_collector(sig_li + seed_converted)
-                if self.res_data[0].data[1] == 0x67 and self.res_data[0].data[2] == 0x02:
-                    break
-                else:
-                    self.res_data = []
+            if len(self.req_seed) == 0:
+                err = "Empty Seed Key"
+                message = "Get seed key first before send key"
+                QMessageBox.warning(self, err, message)
+                return False
+            seed_converted = algo.secu_algo(self.req_seed)
+            sig_li = [0x06, 0x27, 0x02]
+            self.diag_data_collector(sig_li + seed_converted)
+            self.req_seed = []
+        elif txt == "btn_sec_seed_plus_send":
+            self.diag_sess("btn_sess_default")
+            time.sleep(0.100)
+            self.diag_security_access("btn_sec_req_seed")
+            time.sleep(0.100)
+            self.diag_security_access("btn_sec_send_key")
+        elif txt == "btn_sec_nrc_36":
+            self.diag_sess("btn_sess_default")
+            count = 0
+            while count < 3:
+                self.diag_security_access("btn_sec_nrc_35", sess_init=False)
+                count += 1
         else:
             if txt == "btn_sec_nrc_12":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x02, 0x27, 0x03]
             elif txt == "btn_sec_nrc_13":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x03, 0x27, 0x01, 0x01]
             elif txt == "btn_sec_nrc_24":
                 self.diag_sess("btn_sess_extended")
+                time.sleep(0.100)
                 sig_li = [0x02, 0x27, 0x02]
             elif txt == "btn_sec_nrc_35":
+                if sess_init:
+                    self.diag_sess("btn_sess_default")
                 self.diag_security_access("btn_sec_req_seed")
+                time.sleep(0.100)
                 sig_li = [0x06, 0x27, 0x02, 0x00, 0x00, 0x00, 0x00]
-                time.sleep(0.1)
-            elif txt == "btn_sec_nrc_36":
-                self.diag_sess("btn_sess_default")
-                count = 0
-                while count < 3:
-                    self.diag_security_access("btn_sec_nrc_35")
-                    count += 1
-                sig_li = [0x02, 0x27, 0x01]
             elif txt == "btn_sec_nrc_37":
                 self.diag_security_access("btn_sec_nrc_36")
                 sig_li = [0x02, 0x27, 0x01]
@@ -1837,6 +1874,64 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.diag_sess("btn_sess_default")
                 sig_li = [0x02, 0x27, 0x02]
             self.diag_data_collector(sig_li)
+
+            if self.chkbox_diag_test_mode_sec.isChecked():
+                print(self.res_data)
+            #
+            #     if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[
+            #         2] == sig_li[3]:
+            #         if txt == "btn_id_ecu_num":
+            #             self.btn_id_ecu_num.setEnabled(False)
+            #             self.label_id_ecu_num.setText("Success")
+            #         elif txt == "btn_id_ecu_supp":
+            #             self.btn_id_ecu_supp.setEnabled(False)
+            #             self.label_id_ecu_supp.setText("Success")
+            #         elif txt == "btn_id_vin":
+            #             self.btn_id_vin.setEnabled(False)
+            #             self.label_id_vin.setText("Success")
+            #         elif txt == "btn_id_sys_name":
+            #             self.btn_id_sys_name.setEnabled(False)
+            #             self.label_id_sys_name.setText("Success")
+            #         elif txt == "btn_id_veh_name":
+            #             self.btn_id_veh_name.setEnabled(False)
+            #             self.label_id_veh_name.setText("Success")
+            #         elif txt == "btn_id_ecu_serial":
+            #             self.btn_id_ecu_serial.setEnabled(False)
+            #             self.label_id_ecu_serial.setText("Success")
+            #         elif txt == "btn_id_hw_ver":
+            #             self.btn_id_hw_ver.setEnabled(False)
+            #             self.label_id_hw_ver.setText("Success")
+            #         elif txt == "btn_id_sw_ver":
+            #             self.btn_id_sw_ver.setEnabled(False)
+            #             self.label_id_sw_ver.setText("Success")
+            #         elif txt == "btn_id_assy_num":
+            #             self.btn_id_assy_num.setEnabled(False)
+            #             self.label_id_assy_num.setText("Success")
+            #         elif txt == "btn_id_net_config":
+            #             self.btn_id_net_config.setEnabled(False)
+            #             self.label_id_net_config.setText("Success")
+            # else:
+            #     if self.res_data[0].data[1] == self.diag_success_byte:
+            #         if self.res_data[0].data[2] == sig_li[2] and self.res_data[0].data[3] == sig_li[3]:
+            #             if txt == "btn_id_install_date":
+            #                 self.btn_id_install_date.setEnabled(False)
+            #                 self.label_id_install_date.setText("Success")
+            #             elif txt == "btn_id_diag_ver":
+            #                 self.btn_id_diag_ver.setEnabled(False)
+            #                 self.label_id_diag_ver.setText("Success")
+            #             elif txt == "btn_id_active_sess":
+            #                 self.btn_id_active_sess.setEnabled(False)
+            #                 self.label_id_active_sess.setText("Success")
+            #             elif txt == "btn_id_ecu_manu_date":
+            #                 self.btn_id_ecu_manu_date.setEnabled(False)
+            #                 self.label_id_ecu_manu_date.setText("Success")
+            #     elif self.res_data[0].data[1] == self.diag_failure_byte:
+            #         if self.res_data[0].data[3] == 0x13:
+            #             self.btn_id_nrc_13.setEnabled(False)
+            #             self.label_id_nrc_13.setText("Success")
+            #         elif self.res_data[0].data[3] == 0x31:
+            #             self.btn_id_nrc_31.setEnabled(False)
+            #             self.label_id_nrc_31.setText("Success")
 
     def diag_write(self, txt):
         # **need to add test failed scenario
@@ -1971,7 +2066,7 @@ class Main(QMainWindow, Ui_MainWindow):
         data_len = len(self.write_txt)
         if write_flag:
             if self.write_secu_nrc:
-                self.diag_security_access("btn_sec_send_key")
+                self.diag_security_access("btn_sec_seed_plus_send")
             else:
                 self.diag_sess("btn_sess_default")
                 self.diag_sess("btn_sess_extended")
