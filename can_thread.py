@@ -624,10 +624,10 @@ class IC_Distance(NodeThread):
         self.send_id = 0x18fec117
 
     def thread_func(self):
-        self.data[0] = 0x10
-        self.data[1] = 0x10
-        self.data[2] = 0x10
-        self.data[3] = 0x10
+        self.data[0] = 0x00
+        self.data[1] = 0x00
+        self.data[2] = 0x00
+        self.data[3] = 0x00
 
         if self.parent.c_can_bus:
             self.ic_distance_signal.emit('c', self.send_id, self.data)
@@ -762,7 +762,7 @@ class TesterPresent(NodeThread):
         self.send_id = 0x18da41f1
 
     def thread_func(self):
-        if self.parent.chkbox_tester_present.isChecked():
+        if self.parent.tester_present_flag:
             self.data[0] = 0x02
             self.data[1] = 0x3E
             self.data[2] = 0x00
