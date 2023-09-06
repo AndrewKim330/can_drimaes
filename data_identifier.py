@@ -433,6 +433,20 @@ def message_info_by_can_id(can_id, bus):
         info_set.append("PMS_VRI")
         info_set.append({"name": "PMS_VehCruisingDistance", "bit_st_pos": 0, "bit_len": 32})
         return info_set
+    elif can_id == 0x1CFFD841:
+        info_set.append("MMI_Debug")
+        info_set.append({"name": "APSleepCheckTimer", "bit_st_pos": 0, "bit_len": 12})
+        info_set.append({"name": "AP_Status1_PIN", "bit_st_pos": 12, "bit_len": 1})
+        info_set.append({"name": "APSPIALiveCount", "bit_st_pos": 16, "bit_len": 8})
+        info_set.append({"name": "C_CAN_BusOff", "bit_st_pos": 32, "bit_len": 2})
+        info_set.append({"name": "BCM_RxStatus", "bit_st_pos": 40, "bit_len": 2})
+        info_set.append({"name": "APSleepStatusPIN", "bit_st_pos": 56, "bit_len": 1})
+        info_set.append({"name": "EEP_Init", "bit_st_pos": 57, "bit_len": 1})
+        info_set.append({"name": "AP_Boot_Complete", "bit_st_pos": 58, "bit_len": 1})
+        info_set.append({"name": "AP_Camera_Control", "bit_st_pos": 59, "bit_len": 1})
+        info_set.append({"name": "AP_BT_WiFi_Menu_Status", "bit_st_pos": 60, "bit_len": 1})
+        info_set.append({"name": "SPI_BCM_PowerMode", "bit_st_pos": 61, "bit_len": 3})
+        return info_set
     else:
         info_set.append("No matching id")
         return info_set
