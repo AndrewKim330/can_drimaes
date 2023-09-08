@@ -210,6 +210,9 @@ class Main(QMainWindow):
         self.set_node_btns(True)
         self.set_can_basic_btns_labels(False)
 
+        self.pbar_save_log.setValue(0)
+        self.pbar_save_log.setVisible(False)
+
         self.image_initialization()
         self.diag_obj = None
         self.chkbox_diag_console.clicked.connect(self.diag_main)
@@ -362,7 +365,6 @@ class Main(QMainWindow):
             if len(self.log_data) > 0:
                 # path = QFileDialog.getOpenFileName(self)
                 path = QFileDialog.getExistingDirectory(self)
-                # print(path)
                 if path:
                     if self.chkbox_save_log.isChecked():
                         self.bus_console.appendPlainText("Can Log Writing Stop")
@@ -372,6 +374,7 @@ class Main(QMainWindow):
                     # log_dir = path[0]
                     f = open(log_path, 'w')
                     count = 0
+                    self.pbar_save_log.setVisible(True)
                     while count < len(self.log_data):
                         sig_id = self.log_data[count].arbitration_id
                         if sig_id == 0x18ffd741 or sig_id == 0x18ffd841 or sig_id == 0x0c0ba021 or sig_id == 0x18a9e821 or sig_id == 0x18ff6341 or sig_id == 0x18ff4b41:
@@ -381,9 +384,12 @@ class Main(QMainWindow):
                         f.write(data)
                         f.write('\n')
                         count += 1
+                        save_progress = int((count / len(self.log_data)) * 100)
+                        self.pbar_save_log.setValue(save_progress)
                     f.close()
                     self.bus_console.appendPlainText("Can Log saving End")
                     QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
+                    self.pbar_save_log.setVisible(False)
                     self.log_data = []
                 else:
                     QMessageBox.warning(self, "Log Save", "Set appropriate directory")
