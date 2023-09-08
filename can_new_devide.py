@@ -247,7 +247,7 @@ class Main(QMainWindow):
                 try:
                     temp_num = 0
                     self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-                    while temp_num < 1000:
+                    while temp_num < 100:
                         self.can_signal_sender('p', 0x0cfa01ef, self.data)
                         self.console_text_clear("tx_console_clear")
                         temp_num += 1
@@ -1192,7 +1192,7 @@ class Diag_Main(QDialog):
             self.color_domain = color
 
         if self.sender():
-            if self.sender().objectName() == "btn_bus_start":
+            if self.sender().objectName() == "btn_bus_start" or self.sender().objectName() == "chkbox_diag_console":
                 self.label_id.setStyleSheet(f"color: black")
                 self.label_id_data_length.setStyleSheet(f"color: black")
             elif self.sender().objectName() == "btn_bus_stop":
@@ -1311,7 +1311,7 @@ class Diag_Main(QDialog):
             txt = "Default"
 
         if self.sender():
-            if self.sender().objectName() == "btn_bus_start":
+            if self.sender().objectName() == "btn_bus_start" or self.sender().objectName() == "chkbox_diag_console":
                 self.label_write.setStyleSheet(f"color: black")
                 self.label_flag_send.setStyleSheet(f"color: black")
             elif self.sender().objectName() == "btn_bus_stop":
@@ -1469,7 +1469,7 @@ class Diag_Main(QDialog):
         self.btn_mem_fault_reset.setEnabled(flag)
         self.btn_mem_fault_avail_sts_mask.setEnabled(flag)
         if self.sender():
-            if self.sender().objectName() == "btn_bus_start":
+            if self.sender().objectName() == "btn_bus_start" or self.sender().objectName() == "chkbox_diag_console":
                 self.label_mem_fault_dtc_num.setStyleSheet(f"color: black")
             elif self.sender().objectName() == "btn_bus_stop":
                 self.label_mem_fault_dtc_num.setStyleSheet(f"color: gray")
