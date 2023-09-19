@@ -38,16 +38,19 @@ class ThreadWorker(NodeThread):
 
     def run(self):
         while self._isRunning and self.parent.c_can_bus:
-            mmi_recv = self.parent.c_can_bus.recv()
-            self.signal_emit(mmi_recv)
+            c_recv = self.parent.c_can_bus.recv()
+            self.signal_emit(c_recv)
+            if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
+                p_recv = self.parent.p_can_bus.recv()
+                self.signal_emit(p_recv)
 
             if self.parent.chkbox_save_log.isChecked():
-                self.parent.log_data.append(mmi_recv)
-            if mmi_recv.arbitration_id == 0x18daf141:
-                self.reservoir.append(mmi_recv)
-            if mmi_recv.arbitration_id == 0x18ffd741:
-                self.parent.pms_s_hvsm_worker.data[0] = mmi_recv.data[1]
-                hvsm_tx = bin(mmi_recv.data[1])[2:].zfill(8)
+                self.parent.log_data.append(c_recv)
+            if c_recv.arbitration_id == 0x18daf141:
+                self.reservoir.append(c_recv)
+            if c_recv.arbitration_id == 0x18ffd741:
+                self.parent.pms_s_hvsm_worker.data[0] = c_recv.data[1]
+                hvsm_tx = bin(c_recv.data[1])[2:].zfill(8)
 
                 self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
                 if int(hvsm_tx[6:], 2) == 3:
@@ -89,7 +92,7 @@ class ThreadWorker(NodeThread):
                 elif int(hvsm_tx[:2], 2) == 0:
                     self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
 
-                str_whl_heat_tx = mmi_recv.data[0]
+                str_whl_heat_tx = c_recv.data[0]
                 if str_whl_heat_tx == 0xc0:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
                 elif str_whl_heat_tx == 0xc3:
@@ -99,8 +102,8 @@ class ThreadWorker(NodeThread):
                 elif str_whl_heat_tx == 0xc1:
                     self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
 
-                self.parent.bcm_mmi_worker.single_tx_side_mani = mmi_recv.data[2]
-                side_mani_tx = mmi_recv.data[2]
+                self.parent.bcm_mmi_worker.single_tx_side_mani = c_recv.data[2]
+                side_mani_tx = c_recv.data[2]
                 if side_mani_tx == 0xf4:
                     self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
                 elif side_mani_tx == 0xf8:
@@ -108,9 +111,9 @@ class ThreadWorker(NodeThread):
                 # else:
                 #     self.parent.txt_res_side_mani.setText("None")
 
-            if mmi_recv.arbitration_id == 0x18ffd841:
-                self.parent.bcm_mmi_worker.single_tx_softswset = mmi_recv.data
-                light_tx = mmi_recv.data[3]
+            if c_recv.arbitration_id == 0x18ffd841:
+                self.parent.bcm_mmi_worker.single_tx_softswset = c_recv.data
+                light_tx = c_recv.data[3]
                 if light_tx == 0xcf:
                     self.parent.txt_res_light.setText("30s")
                 elif light_tx == 0xd7:
@@ -120,7 +123,7 @@ class ThreadWorker(NodeThread):
                 else:
                     self.parent.txt_res_light.setText("OFF")
 
-                side_heat_tx = mmi_recv.data[7]
+                side_heat_tx = c_recv.data[7]
                 if side_heat_tx == 0x7f:
                     self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
                 elif side_heat_tx == 0xbf:
@@ -128,9 +131,9 @@ class ThreadWorker(NodeThread):
                 # else:
                 #     self.parent.txt_res_side_heat.setText("None")
 
-            if mmi_recv.arbitration_id == 0x0c0ba021:
-                self.parent.fcs_aeb_worker.single_tx = mmi_recv.data[0]
-                aeb_tx = mmi_recv.data[0]
+            if c_recv.arbitration_id == 0x0c0ba021:
+                self.parent.fcs_aeb_worker.single_tx = c_recv.data[0]
+                aeb_tx = c_recv.data[0]
                 if aeb_tx == 0xfd:
                     self.parent.txt_res_aeb.setText("ON")
                 elif aeb_tx == 0xfc:
@@ -281,73 +284,62 @@ class BCM_SWRC(NodeThread):
         self.long_count = 0
         self.long_threshold = 40
         self.count = 0
-        self.btn_state = 0
+        self.btn_name = None
         self.send_id = 0x18fa7f21
 
     def thread_func(self):  # SWS-LIN
         self.data[0] = 0x00
         self.data[1] = 0x00
-        if self.parent.btn_left_long.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[0] = 0x02
-                self.long_count += 1
-            else:
-                self.data[0] = 0x04
-        elif self.parent.btn_right_long.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[0] = 0x08
-                self.long_count += 1
-            else:
-                self.data[0] = 0x10
-        elif self.parent.btn_call_long.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[1] = 0x01
-                self.long_count += 1
-            else:
-                self.data[1] = 0x02
-        elif self.parent.btn_vol_up_long.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[1] = 0x10
-                self.long_count += 1
-            else:
-                self.data[1] = 0x20
-        elif self.parent.btn_vol_down_long.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[1] = 0x40
-                self.long_count += 1
-            else:
-                self.data[1] = 0x80
-        elif self.parent.btn_reset.isChecked():
-            if self.long_count < self.long_threshold:
-                self.data[0] = 0x02
-                self.data[1] = 0x40
-                self.long_count += 1
-            else:
-                self.data[0] = 0x04
-                self.data[1] = 0x80
+
+        if self.btn_name:
+            if self.btn_name == "btn_ok":
+                self.data[0] = 0x01
+            elif self.btn_name == "btn_undo":
+                self.data[0] = 0x20
+            elif self.btn_name == "btn_mode":
+                self.data[0] = 0x40
+            elif self.btn_name == "btn_mute":
+                self.data[0] = 0x80
+            elif self.btn_name == "btn_left":
+                if self.long_count < self.long_threshold:
+                    self.data[0] = 0x02
+                    self.long_count += 1
+                else:
+                    self.data[0] = 0x04
+            elif self.btn_name == "btn_right":
+                if self.long_count < self.long_threshold:
+                    self.data[0] = 0x08
+                    self.long_count += 1
+                else:
+                    self.data[0] = 0x10
+            elif self.btn_name == "btn_call":
+                if self.long_count < self.long_threshold:
+                    self.data[1] = 0x01
+                    self.long_count += 1
+                else:
+                    self.data[1] = 0x02
+            elif self.btn_name == "btn_vol_up":
+                if self.long_count < self.long_threshold:
+                    self.data[1] = 0x10
+                    self.long_count += 1
+                else:
+                    self.data[1] = 0x20
+            elif self.btn_name == "btn_vol_down":
+                if self.long_count < self.long_threshold:
+                    self.data[1] = 0x40
+                    self.long_count += 1
+                else:
+                    self.data[1] = 0x80
+            elif self.btn_name == "btn_reset":
+                if self.long_count < self.long_threshold:
+                    self.data[0] = 0x02
+                    self.data[1] = 0x40
+                    self.long_count += 1
+                else:
+                    self.data[0] = 0x04
+                    self.data[1] = 0x80
         else:
             self.long_count = 0
-
-        if self.sender():
-            btn_text = self.sender().objectName()
-            if btn_text == "btn_ok":
-                self.data[0] = 0x01
-            elif btn_text == "btn_left":
-                self.data[0] = 0x02
-            elif btn_text == "btn_right":
-                self.data[0] = 0x08
-            elif btn_text == "btn_undo":
-                self.data[0] = 0x20
-            elif btn_text == "btn_mode":
-                self.data[0] = 0x40
-            elif btn_text == "btn_mute":
-                self.data[0] = 0x80
-            elif btn_text == "btn_call":
-                self.data[1] = 0x01
-            elif btn_text == "btn_vol_up":
-                self.data[1] = 0x10
-            elif btn_text == "btn_vol_down":
-                self.data[1] = 0x40
 
         if self.parent.c_can_bus:
             self.bcm_swrc_signal.emit('c', self.send_id, self.data)
@@ -355,21 +347,6 @@ class BCM_SWRC(NodeThread):
         else:
             self.bcm_swrc_signal.emit("C-CAN bus error (BCM - SWRC)", 0xFF, self.data)
             self.parent.bcm_swrc_worker._isRunning = False
-
-    # def long_press(self):
-    #     while True:
-    #         print(self.btn_state, time.time())
-    #         message = can.Message(arbitration_id=0x18fa7f21, data=self.data)
-    #         self.parent.c_can_bus.send(message)
-    #         time.sleep(self.period)
-    #         QtCore.QCoreApplication.processEvents()
-    #         if self.btn_state == 2:
-    #             self.btn_state = 0
-    #             break
-    #
-    #     self.long_count = 0
-    #     # print("bbb", self.parent.btn_right.released.signal)
-    #     # print(self.parent.btn_right.released.signal, self.parent.btn_right.pressed.signal)
 
 
 class BCM_StrWhl_Heat(NodeThread):

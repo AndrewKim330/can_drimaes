@@ -453,6 +453,7 @@ def message_info_by_can_id(can_id, bus):
 
 
 def data_matcher(tx, sub_mess):
+    # print(tx, sub_mess)
     sig = ''
     byte_len = int(sub_mess["bit_len"] / 8)
     if sub_mess["bit_len"] < 8:

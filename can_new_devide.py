@@ -49,6 +49,9 @@ class Main(QMainWindow):
 
         self.tester_present_flag = None
 
+        self.user_filter = True
+        self.user_filter_obj = None
+
         self.tx_set = set()
 
         self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
@@ -77,17 +80,28 @@ class Main(QMainWindow):
         self.bcm_swrc_worker = worker.BCM_SWRC(parent=self)
         self.bcm_swrc_worker.bcm_swrc_signal.connect(self.can_signal_sender)
 
-        self.btn_ok.clicked.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_left.pressed.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_right.pressed.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_right.released.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_undo.clicked.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_mode.clicked.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_mute.clicked.connect(self.bcm_swrc_worker.thread_func)
+        self.btn_ok.pressed.connect(self.btn_press_handler)
+        self.btn_ok.released.connect(self.btn_release_handler)
+        self.btn_undo.pressed.connect(self.btn_press_handler)
+        self.btn_undo.released.connect(self.btn_release_handler)
+        self.btn_mode.pressed.connect(self.btn_press_handler)
+        self.btn_mode.released.connect(self.btn_release_handler)
+        self.btn_mute.pressed.connect(self.btn_press_handler)
+        self.btn_mute.released.connect(self.btn_release_handler)
+        self.btn_left.pressed.connect(self.btn_press_handler)
+        self.btn_left.released.connect(self.btn_release_handler)
+        self.btn_right.pressed.connect(self.btn_press_handler)
+        self.btn_right.released.connect(self.btn_release_handler)
 
-        self.btn_call.clicked.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_vol_up.released.connect(self.bcm_swrc_worker.thread_func)
-        self.btn_vol_down.released.connect(self.bcm_swrc_worker.thread_func)
+        self.btn_call.pressed.connect(self.btn_press_handler)
+        self.btn_call.released.connect(self.btn_release_handler)
+        self.btn_vol_up.pressed.connect(self.btn_press_handler)
+        self.btn_vol_up.released.connect(self.btn_release_handler)
+        self.btn_vol_down.pressed.connect(self.btn_press_handler)
+        self.btn_vol_down.released.connect(self.btn_release_handler)
+
+        self.btn_reset.pressed.connect(self.btn_press_handler)
+        self.btn_reset.released.connect(self.btn_release_handler)
 
         self.bcm_strwhl_heat_worker = worker.BCM_StrWhl_Heat(parent=self)
         self.bcm_strwhl_heat_worker.bcm_strwhl_heat_signal.connect(self.can_signal_sender)
@@ -193,6 +207,7 @@ class Main(QMainWindow):
         self.btn_filter_c_can.toggled.connect(self.console_text_clear)
         self.btn_filter_p_can.toggled.connect(self.console_text_clear)
         self.btn_filter_diag.toggled.connect(self.console_text_clear)
+        self.btn_filter_user.toggled.connect(self.console_text_clear)
 
         self.treeWidget_tx.setColumnWidth(0, 120)
         self.treeWidget_tx.setColumnWidth(1, 105)
@@ -219,52 +234,107 @@ class Main(QMainWindow):
 
     def bus_connect(self):
         if not self.bus_flag:
-            try:
-                temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-                self.bus_console.appendPlainText("1 Channel is connected")
+            bus_count = 0
+            if self.chkbox_can_dump.isChecked():
                 try:
-                    temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                    if temp1.recv(1):
-                        self.c_can_bus = temp1
-                        self.c_can_name = temp1.channel_info
-                        self.p_can_bus = temp2
-                    else:
-                        self.c_can_bus = temp2
-                        self.c_can_name = temp2.channel_info
-                        self.p_can_bus = temp1
-                    self.bus_console.appendPlainText("2 Channel is connected")
-                except:
-                    if temp1.recv(1):
-                        self.c_can_bus = temp1
-                        self.c_can_name = temp1.channel_info
-                    else:
-                        self.p_can_bus = temp1
-
-                self.bus_flag = True
-                self.bus_console.appendPlainText("PEAK-CAN bus is connected")
-            except interfaces.pcan.pcan.PcanCanInitializationError as e1:
-                print(e1)
-                self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
-                self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
-                self.c_can_name = self.c_can_bus.channel_info
-                try:
-                    temp_num = 0
-                    self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-                    while temp_num < 100:
-                        self.can_signal_sender('p', 0x0cfa01ef, self.data)
-                        self.console_text_clear("tx_console_clear")
-                        temp_num += 1
-                    self.bus_flag = True
-                    self.bus_console.appendPlainText("Vector bus is connected")
-                except interfaces.vector.VectorError as e2:
-                    print(e2)
-                    self.console_text_clear("tx_console_clear")
-                    self.bus_flag = True
-                    self.p_can_bus = None
+                    temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
                     self.bus_console.appendPlainText("1 Channel is connected")
-                except can.exceptions.CanInterfaceNotImplementedError as e3:
-                    print(e3)
-                    self.bus_console.appendPlainText("CAN device is not connected")
+                    try:
+                        temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+                        while bus_count < 1000:
+                            bus_count += 1
+                            if temp1.recv().arbitration_id == 0x18ffd741:
+                                self.c_can_bus = temp1
+                                self.c_can_name = temp1.channel_info
+                                self.p_can_bus = temp2
+                                break
+                            elif temp1.recv().arbitration_id == 0x0cfa01ef:
+                                self.c_can_bus = temp2
+                                self.c_can_name = temp2.channel_info
+                                self.p_can_bus = temp1
+                                break
+                        self.bus_console.appendPlainText("2 Channel is connected")
+                    except:
+                        while bus_count < 1000:
+                            bus_count += 1
+                            if temp1.recv().arbitration_id == 0x18ffd741:
+                                self.c_can_bus = temp1
+                                self.c_can_name = temp1.channel_info
+                                break
+                            else:
+                                self.p_can_bus = temp1
+
+                    self.bus_flag = True
+                    self.bus_console.appendPlainText("PEAK-CAN bus is connected")
+                except interfaces.pcan.pcan.PcanCanInitializationError as e1:
+                    print(e1)
+                    self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
+                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.c_can_name = self.c_can_bus.channel_info
+                    try:
+                        bus_count = 0
+                        self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                        while bus_count < 100:
+                            self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                            self.console_text_clear("tx_console_clear")
+                            bus_count += 1
+                        self.bus_flag = True
+                        self.bus_console.appendPlainText("Vector bus is connected")
+                    except interfaces.vector.VectorError as e2:
+                        print(e2)
+                        self.console_text_clear("tx_console_clear")
+                        self.bus_flag = True
+                        self.p_can_bus = None
+                        self.bus_console.appendPlainText("1 Channel is connected")
+                    except can.exceptions.CanInterfaceNotImplementedError as e3:
+                        print(e3)
+                        self.bus_console.appendPlainText("CAN device is not connected")
+            else:
+                try:
+                    temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                    self.bus_console.appendPlainText("1 Channel is connected")
+                    try:
+                        temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+                        if temp1.recv(1):
+                            self.c_can_bus = temp1
+                            self.c_can_name = temp1.channel_info
+                            self.p_can_bus = temp2
+                        else:
+                            self.c_can_bus = temp2
+                            self.c_can_name = temp2.channel_info
+                            self.p_can_bus = temp1
+                        self.bus_console.appendPlainText("2 Channel is connected")
+                    except:
+                        if temp1.recv(1):
+                            self.c_can_bus = temp1
+                            self.c_can_name = temp1.channel_info
+                        else:
+                            self.p_can_bus = temp1
+
+                    self.bus_flag = True
+                    self.bus_console.appendPlainText("PEAK-CAN bus is connected")
+                except interfaces.pcan.pcan.PcanCanInitializationError as e1:
+                    print(e1)
+                    self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
+                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                    self.c_can_name = self.c_can_bus.channel_info
+                    try:
+                        self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                        while bus_count < 100:
+                            self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                            self.console_text_clear("tx_console_clear")
+                            bus_count += 1
+                        self.bus_flag = True
+                        self.bus_console.appendPlainText("Vector bus is connected")
+                    except interfaces.vector.VectorError as e2:
+                        print(e2)
+                        self.console_text_clear("tx_console_clear")
+                        self.bus_flag = True
+                        self.p_can_bus = None
+                        self.bus_console.appendPlainText("1 Channel is connected")
+                    except can.exceptions.CanInterfaceNotImplementedError as e3:
+                        print(e3)
+                        self.bus_console.appendPlainText("CAN device is not connected")
         else:
             self.bus_console.appendPlainText("CAN bus is already connected")
 
@@ -386,6 +456,7 @@ class Main(QMainWindow):
                         count += 1
                         save_progress = int((count / len(self.log_data)) * 100)
                         self.pbar_save_log.setValue(save_progress)
+                        QtCore.QCoreApplication.processEvents()
                     f.close()
                     self.bus_console.appendPlainText("Can Log saving End")
                     QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
@@ -500,19 +571,14 @@ class Main(QMainWindow):
 
         self.btn_ok.setEnabled(flag)
         self.btn_left.setEnabled(flag)
-        self.btn_left_long.setEnabled(flag)
         self.btn_right.setEnabled(flag)
-        self.btn_right_long.setEnabled(flag)
         self.btn_undo.setEnabled(flag)
         self.btn_mode.setEnabled(flag)
         self.btn_mute.setEnabled(flag)
 
         self.btn_call.setEnabled(flag)
-        self.btn_call_long.setEnabled(flag)
         self.btn_vol_up.setEnabled(flag)
-        self.btn_vol_up_long.setEnabled(flag)
         self.btn_vol_down.setEnabled(flag)
-        self.btn_vol_down_long.setEnabled(flag)
 
         self.btn_reset.setEnabled(flag)
 
@@ -562,7 +628,7 @@ class Main(QMainWindow):
         elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
                 or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
                 or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
-                or btn_name == "btn_bus_start" or txt == "tx_console_clear":
+                or btn_name == "btn_filter_user" or btn_name == "btn_bus_start" or txt == "tx_console_clear":
             self.tx_set = set()
             self.item = []
             self.treeWidget_tx.clear()
@@ -649,7 +715,9 @@ class Main(QMainWindow):
         for hex_val in tx_single.data:
             tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
         if not self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel):
-            return 0
+            return False
+        # elif type(self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel)) == str:
+
         if self.btn_chronicle_watch.isChecked():
             item = QTreeWidgetItem()
             item.setText(0, tx_id)
@@ -687,12 +755,12 @@ class Main(QMainWindow):
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 self.comboBox_id.addItem(tx_name)
                 # self.treeWidget_tx.clear()
-        if tx_id == "0x18ffa57f":
-            # print(tx_data, type(tx_data))
-            if len(self.graph_data_list) == 10:
-                self.graph_data_list.pop(0)
-            self.graph_data_list.append(int(tx_data[:2], 16))
-        self.graph_presenter(self.graph_data_list)
+        # if tx_id == "0x18ffa57f":
+        #     # print(tx_data, type(tx_data))
+        #     if len(self.graph_data_list) == 10:
+        #         self.graph_data_list.pop(0)
+        #     self.graph_data_list.append(int(tx_data[:2], 16))
+        # self.graph_presenter(self.graph_data_list)
 
     def graph_presenter(self, graph_list):
         plot_num = self.comboBox_num.currentText()
@@ -719,38 +787,45 @@ class Main(QMainWindow):
             self.write_data_sender()
 
     def image_initialization(self):
-        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(100)
-        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(100)
-        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(100)
-        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(100)
-        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(100)
-        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(100)
-        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(100)
-        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(100)
-        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(100)
-        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(100)
-        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(100)
-        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(100)
-        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(100)
-        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(100)
-        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(100)
-        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(100)
+        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(80)
+        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(80)
+        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(80)
+        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(80)
+        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(80)
+        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(80)
+        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(80)
+        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(80)
+        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(80)
+        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(80)
+        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(80)
+        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(80)
+        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(80)
+        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(80)
+        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(80)
+        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(80)
 
-        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(100)
-        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(100)
-        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(100)
-        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(100)
+        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(80)
+        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(80)
+        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(80)
+        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(80)
 
         self.img_str_whl_heat_off = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(
-            100)
+            80)
         self.img_str_whl_heat_1 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(
-            100)
+            80)
         self.img_str_whl_heat_2 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(
-            100)
+            80)
         self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
-            100)
+            80)
 
     def tx_filter(self, tx_id, tx_name, tx_channel):
+        if self.btn_filter_user.isChecked():
+            return self.user_filter_handler(tx_name=tx_name)
+        else:
+            if self.user_filter_obj:
+                self.user_filter_obj.ui_close()
+                self.user_filter_obj = None
+
         if self.btn_filter_all.isChecked():
             return True
         elif self.btn_filter_tx.isChecked():
@@ -895,6 +970,21 @@ class Main(QMainWindow):
         self.diag_obj.set_diag_comm_cont_btns_labels(flag)
         self.diag_obj.set_diag_mem_fault_btns_labels(flag)
         self.diag_obj.set_diag_dtc_cont_btns_labels(flag)
+
+    def btn_press_handler(self):
+        self.bcm_swrc_worker.btn_name = self.sender().objectName()
+
+    def btn_release_handler(self):
+        self.bcm_swrc_worker.btn_name = False
+
+    def user_filter_handler(self, tx_name):
+        if not self.user_filter_obj:
+            self.user_filter_obj = User_Filter()
+        if self.user_filter_obj.node_filter(tx_name):
+            return True
+        else:
+            return self.user_filter_obj.user_filter(tx_name)
+
 
 
 class Diag_Main(QDialog):
@@ -2769,11 +2859,185 @@ class Diag_Main(QDialog):
 
     def tester_present_handler(self):
         if self.chkbox_tester_present.isChecked():
-            print("aaa")
             mywindow.tester_present_flag = True
         else:
-            print("bbb")
             mywindow.tester_present_flag = False
+
+    def ui_close(self):
+        self.close()
+
+
+class User_Filter(QDialog):
+
+    def __init__(self, ):
+        super().__init__()
+        self.filter_ui = uic.loadUi(BASE_DIR + r"./src/can_basic_user_filter_ui.ui", self)
+        self.show()
+
+        self.tx_name_set = set()
+        self.default_item = "--Select signal--"
+        self.comboBox_user_filter.addItem(self.default_item)
+
+        self.filtered_list = []
+
+        self.filter_list_flag = True
+
+        self.prev_list_num = 0
+
+        self.chkbox_filter_node_acu.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_bcm.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_esc.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_ic.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_pms.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_pms_s.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_pms_c.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_fcs.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_bms.toggled.connect(self.node_filter_toggling)
+        self.chkbox_filter_node_mcu.toggled.connect(self.node_filter_toggling)
+
+        self.chkbox_1st.toggled.connect(self.node_filter_toggling)
+        self.chkbox_2nd.toggled.connect(self.node_filter_toggling)
+        self.chkbox_3rd.toggled.connect(self.node_filter_toggling)
+        self.chkbox_4th.toggled.connect(self.node_filter_toggling)
+        self.chkbox_5th.toggled.connect(self.node_filter_toggling)
+
+    def node_filter_toggling(self):
+        mywindow.console_text_clear("tx_console_clear")
+
+    def node_filter(self, tx_name):
+        if self.chkbox_filter_node_acu.isChecked():
+            if tx_name == "ACU_Status":
+                return True
+
+        if self.chkbox_filter_node_bcm.isChecked():
+            if tx_name == "BCM_StateUpdate" or tx_name == "BCM_LightChimeReq" or tx_name == "BCM_MMIFBSts" \
+                    or tx_name == "SWS-LIN" or tx_name == "SwmCem_Lin4Fr02":
+                return True
+
+        if self.chkbox_filter_node_esc.isChecked():
+            if tx_name == "ESC_ABS_BrakeSysSts":
+                return True
+
+        if self.chkbox_filter_node_ic.isChecked():
+            if tx_name == "IC_TC01" or tx_name == "IC_VDHR":
+                return True
+
+        if self.chkbox_filter_node_pms.isChecked():
+            if tx_name == "PMS_BodyControlInfo" or tx_name == "PMS_PTInfoIndicate" or tx_name == "PMS_VRI":
+                return True
+
+        if self.chkbox_filter_node_pms_s.isChecked():
+            if tx_name == "HVSM_MMIFBSts":
+                return True
+
+        if self.chkbox_filter_node_pms_c.isChecked():
+            if tx_name == "SasChas1Fr01":
+                return True
+
+        if self.chkbox_filter_node_fcs.isChecked():
+            if tx_name == "FCS_AEBS1" or tx_name == "FCS_LDWSystemState":
+                return True
+
+        if self.chkbox_filter_node_bms.isChecked():
+            if tx_name == "BMS_BatteryInfo" or tx_name == "BMS_ChgInfo":
+                return True
+
+        if self.chkbox_filter_node_mcu.isChecked():
+            if tx_name == "MCU_MotorElePara":
+                return True
+
+        return False
+
+    def user_filter(self, tx_name):
+        prev_num = len(self.tx_name_set)
+        self.tx_name_set.add(tx_name)
+        next_num = len(self.tx_name_set)
+        if next_num - prev_num != 0:
+            self.comboBox_user_filter.addItem(tx_name)
+        if self.comboBox_user_filter.currentText() != self.default_item:
+            if len(self.filtered_list) == 0:
+                self.filtered_list.append(self.comboBox_user_filter.currentText())
+            else:
+                temp_list = self.filtered_list[:]
+                append_flag = True
+                for elem in temp_list:
+                    if self.comboBox_user_filter.currentText() == elem:
+                        append_flag = False
+                if append_flag:
+                    self.filtered_list.append(self.comboBox_user_filter.currentText())
+        self.user_filter_chkbox(self.filtered_list)
+        for i in range(len(self.filtered_list)):
+            if tx_name == self.filtered_list[i]:
+                return self.user_filter_chkbox(self.filtered_list, chkbox_num=i)
+        return False
+
+    def user_filter_chkbox(self, li, chkbox_num=0):
+        present_list_num = len(li)
+        if self.prev_list_num != present_list_num:
+            self.filter_list_init = True
+        self.prev_list_num = len(li)
+        if len(li) == 0 or self.comboBox_user_filter.currentText() == self.default_item:
+            self.chkbox_1st.setVisible(False)
+            self.chkbox_2nd.setVisible(False)
+            self.chkbox_3rd.setVisible(False)
+            self.chkbox_4th.setVisible(False)
+            self.chkbox_5th.setVisible(False)
+        else:
+            if len(li) == 1 or chkbox_num == 1:
+                if self.filter_list_init:
+                    self.chkbox_1st.setVisible(True)
+                    self.chkbox_1st.setChecked(True)
+                    self.filter_list_init = False
+                    self.chkbox_1st.setText(li[0])
+                else:
+                    if self.chkbox_1st.isChecked():
+                        return True
+                    else:
+                        return False
+            if len(li) == 2 or chkbox_num == 2:
+                if self.filter_list_init:
+                    self.chkbox_2nd.setVisible(True)
+                    self.chkbox_2nd.setChecked(True)
+                    self.filter_list_init = False
+                    self.chkbox_2nd.setText(li[1])
+                else:
+                    if self.chkbox_2nd.isChecked():
+                        return True
+                    else:
+                        return False
+            elif len(li) == 3 or chkbox_num == 3:
+                if self.filter_list_init:
+                    self.chkbox_3rd.setVisible(True)
+                    self.chkbox_3rd.setChecked(True)
+                    self.filter_list_init = False
+                    self.chkbox_3rd.setText(li[2])
+                else:
+                    if self.chkbox_3rd.isChecked():
+                        return True
+                    else:
+                        return False
+            elif len(li) == 4 or chkbox_num == 4:
+                if self.filter_list_init:
+                    self.chkbox_4th.setVisible(True)
+                    self.chkbox_4th.setChecked(True)
+                    self.filter_list_init = False
+                    self.chkbox_4th.setText(li[3])
+                else:
+                    if self.chkbox_4th.isChecked():
+                        return True
+                    else:
+                        return False
+            elif len(li) == 5 or chkbox_num == 5:
+                if self.filter_list_init:
+                    self.chkbox_5th.setVisible(True)
+                    self.chkbox_5th.setChecked(True)
+                    self.filter_list_init = False
+                    self.chkbox_5th.setText(li[4])
+                else:
+                    if self.chkbox_5th.isChecked():
+                        return True
+                    else:
+                        return False
 
     def ui_close(self):
         self.close()
