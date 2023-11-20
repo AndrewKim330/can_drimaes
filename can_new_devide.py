@@ -2,6 +2,7 @@ import os
 import sys
 import can
 import time
+import usb
 from datetime import datetime
 import security_algorithm as algo
 import data_identifier as data_id
@@ -16,15 +17,15 @@ import can_thread as worker
 import pyqtgraph as pg
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/can_basic_ui.ui")
+Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/can_basic_ui.ui")
 
-
-class Main(QMainWindow):
+class Main(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         super().__init__()
 
-        self.ui = uic.loadUi(BASE_DIR + r"./src/can_basic_ui.ui", self)
+        self.setupUi(self)
+        self.curve = self.graph_widget.plot()
         self.show()
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -32,11 +33,16 @@ class Main(QMainWindow):
         self.c_can_name = ''
 
         self.temp_list = []
-        self.graph_data_list = []
+        self.graph_x_list = []
+        self.graph_y_list = []
         self.log_data = []
+
+        self.curve = self.graph_widget.plot()
 
         self.tx_chronicle = False
         self.recv_flag = False
+
+        self.time_init = None
 
         self.diag_tester_id = 0x18da41f1
 
@@ -47,10 +53,13 @@ class Main(QMainWindow):
 
         self.drv_state = False
 
+        self.tx_time_rel = None
+
         self.tester_present_flag = None
 
-        self.user_filter = True
         self.user_filter_obj = None
+
+        self.user_signal_obj = None
 
         self.tx_set = set()
 
@@ -123,8 +132,8 @@ class Main(QMainWindow):
         self.esc_tpms_worker = worker.ESC_TPMS(parent=self)
         self.esc_tpms_worker.esc_tpms_signal.connect(self.can_signal_sender)
 
-        self.btn_tpms_success.clicked.connect(self.esc_tpms_worker.thread_func)
-        self.btn_tpms_fail.clicked.connect(self.esc_tpms_worker.thread_func)
+        self.btn_tpms_success.clicked.connect(self.tpms_handler)
+        self.btn_tpms_fail.clicked.connect(self.tpms_handler)
 
         self.btn_bright_afternoon.setChecked(True)
 
@@ -171,6 +180,9 @@ class Main(QMainWindow):
 
         self.tester_worker = worker.TesterPresent(parent=self)
 
+        self.user_signal_worker = worker.UserSignal(parent=self)
+        self.user_signal_worker.user_defined_signal.connect(self.can_signal_sender)
+
         self.btn_bus_connect.clicked.connect(self.bus_connect)
 
         self.btn_tx_console_clear.clicked.connect(self.console_text_clear)
@@ -209,10 +221,15 @@ class Main(QMainWindow):
         self.btn_filter_diag.toggled.connect(self.console_text_clear)
         self.btn_filter_user.toggled.connect(self.console_text_clear)
 
+        self.btn_time_absolute.setChecked(True)
+        self.btn_time_absolute.toggled.connect(self.console_text_clear)
+        self.btn_time_relative.toggled.connect(self.console_text_clear)
+        self.btn_time_delta.toggled.connect(self.console_text_clear)
+
         self.treeWidget_tx.setColumnWidth(0, 120)
         self.treeWidget_tx.setColumnWidth(1, 105)
-        self.treeWidget_tx.setColumnWidth(2, 265)
-        self.treeWidget_tx.setColumnWidth(4, 245)
+        self.treeWidget_tx.setColumnWidth(2, 200)
+        self.treeWidget_tx.setColumnWidth(4, 170)
 
         self.comboBox_num.addItem("1")
         self.comboBox_num.addItem("2")
@@ -231,6 +248,23 @@ class Main(QMainWindow):
         self.image_initialization()
         self.diag_obj = None
         self.chkbox_diag_console.clicked.connect(self.diag_main)
+
+        self.chkbox_arbitrary_signal_1.clicked.connect(self.user_signal_handler)
+
+        self.btn_0th_byte_up.clicked.connect(self.temp_distance)
+        self.btn_1st_byte_up.clicked.connect(self.temp_distance)
+
+    def tpms_handler(self):
+        if self.sender().objectName() == "btn_tpms_success":
+            self.esc_tpms_worker.tpms_val = 1
+        elif self.sender().objectName() == "btn_tpms_fail":
+            self.esc_tpms_worker.tpms_val = 2
+
+    def temp_distance(self):
+        if self.sender().objectName() == "btn_0th_byte_up":
+            self.ic_distance_worker.dist_0_up += 1
+        elif self.sender().objectName() == "btn_1st_byte_up":
+            self.ic_distance_worker.dist_1_up += 1
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -393,16 +427,23 @@ class Main(QMainWindow):
         if self.diag_obj:
             self.diag_handle(False)
 
-    def send_message(self, bus, sig_id, send_data):
+    def send_message(self, bus_str, sig_id, send_data, time_delta_diff):
+        if bus_str == 'c':
+            bus = self.c_can_bus
+        elif bus_str == 'p':
+            bus = self.p_can_bus
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
+        #message = can.Message(arbitration_id=sig_id, data=send_data, channel=bus)
         if sig_id == 0x18da41f1:
             self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Physical Tester)")
+            # print(message)
         elif sig_id == 0x18db33f1:
             self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Functional Tester)")
+            # print(message)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
-        self.thread_worker.signal_emit(message)
         bus.send(message)
+        self.thread_worker.signal_emit(message, bus_str, time_delta_diff)
 
     def can_dump_mode(self):
         if self.chkbox_can_dump.isChecked():
@@ -550,6 +591,9 @@ class Main(QMainWindow):
             self.slider_speed.sliderMoved.connect(self.thread_worker.slider_speed_func)
             self.slider_speed.valueChanged.connect(self.thread_worker.slider_speed_func)
 
+            self.slider_stwhl_angle.sliderMoved.connect(self.thread_worker.slider_stwhl_func)
+            self.slider_stwhl_angle.valueChanged.connect(self.thread_worker.slider_stwhl_func)
+
             if self.p_can_bus:
                 self.slider_battery.sliderMoved.connect(self.thread_worker.slider_battery_func)
                 self.slider_battery.valueChanged.connect(self.thread_worker.slider_battery_func)
@@ -592,6 +636,28 @@ class Main(QMainWindow):
         self.btn_bright_afternoon.setEnabled(flag)
         self.btn_bright_night.setEnabled(flag)
 
+        self.slider_speed.setEnabled(flag)
+        self.slider_stwhl_angle.setEnabled(flag)
+        self.slider_battery.setEnabled(flag)
+        self.chkbox_charge.setEnabled(flag)
+        if self.p_can_bus:
+            self.slider_battery.setEnabled(flag)
+            self.chkbox_charge.setEnabled(flag)
+
+        self.tick_0_speed.setStyleSheet(f"color: {color}")
+        self.tick_120_speed.setStyleSheet(f"color: {color}")
+        self.tick_240_speed.setStyleSheet(f"color: {color}")
+        self.label_speed.setStyleSheet(f"color: {color}")
+
+        self.tick_0_batt.setStyleSheet(f"color: {color}")
+        self.tick_50_batt.setStyleSheet(f"color: {color}")
+        self.tick_100_batt.setStyleSheet(f"color: {color}")
+        self.label_battery.setStyleSheet(f"color: {color}")
+
+        self.tick_0_stwhl.setStyleSheet(f"color: {color}")
+        self.tick_10_stwhl.setStyleSheet(f"color: {color}")
+        self.tick_minus_10_stwhl.setStyleSheet(f"color: {color}")
+
         self.btn_mscs_ok.setEnabled(flag)
         self.btn_mscs_CmnFail.setEnabled(flag)
         self.btn_mscs_NotEdgePress.setEnabled(flag)
@@ -601,22 +667,8 @@ class Main(QMainWindow):
         self.btn_mscs_FltSwtHiSide.setEnabled(flag)
         self.btn_mscs_SigFailr.setEnabled(flag)
 
-        self.slider_speed.setEnabled(flag)
-        self.slider_battery.setEnabled(flag)
-        self.chkbox_charge.setEnabled(flag)
-        if self.p_can_bus:
-            self.slider_battery.setEnabled(flag)
-            self.chkbox_charge.setEnabled(flag)
-
-        self.tick_0_speed.setStyleSheet(f"color: {color}")
-        self.tick_120.setStyleSheet(f"color: {color}")
-        self.tick_240.setStyleSheet(f"color: {color}")
-        self.label_speed.setStyleSheet(f"color: {color}")
-
-        self.tick_0_batt.setStyleSheet(f"color: {color}")
-        self.tick_50.setStyleSheet(f"color: {color}")
-        self.tick_100.setStyleSheet(f"color: {color}")
-        self.label_battery.setStyleSheet(f"color: {color}")
+        self.btn_0th_byte_up.setEnabled(False)
+        self.btn_1st_byte_up.setEnabled(False)
 
         self.chkbox_drv_invalid.setEnabled(flag)
         self.chkbox_pass_invalid.setEnabled(flag)
@@ -624,19 +676,23 @@ class Main(QMainWindow):
     def console_text_clear(self, txt=None):
         btn_name = self.sender().objectName()
         if btn_name == "btn_diag_console_clear":
-            self.diag_console.clear()
+            if self.diag_obj:
+                self.diag_obj.diag_console.clear()
         elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
                 or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
                 or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
-                or btn_name == "btn_filter_user" or btn_name == "btn_bus_start" or txt == "tx_console_clear":
+                or btn_name == "btn_filter_user" or btn_name == "btn_time_absolute" or btn_name == "btn_time_relative" \
+                or btn_name == "btn_time_delta" or btn_name == "btn_bus_start" or txt == "tx_console_clear":
             self.tx_set = set()
             self.item = []
             self.treeWidget_tx.clear()
         elif btn_name == "btn_write_data_clear" or txt:
-            self.label_flag_send.setText("Fill the data")
-            self.lineEdit_write_data.clear()
+            if self.diag_obj:
+                self.diag_obj.label_flag_send.setText("Fill the data")
+                self.diag_obj.lineEdit_write_data.clear()
         elif btn_name == "btn_diag_dtc_console_clear":
-            self.diag_initialization()
+            if self.diag_obj:
+                self.diag_obj.diag_initialization()
 
     def data_converter(self, conv):
         if conv == 'a2c':
@@ -674,41 +730,14 @@ class Main(QMainWindow):
                     return False
         return True
 
-    def write_data_sender(self):
-        self.write_txt = self.lineEdit_write_data.text()
-        self.label_flag_send.setText(f'Sended data : {self.write_txt}, length: {len(self.write_txt)}')
-
-    def write_data_not_correct(self, txt):
-        if txt == "btn_write_vin":
-            err = "Length Error"
-            message = "Incorrect length of VIN number \n (Need to 17 Character)"
-        elif txt == "btn_write_install_date":
-            err = "Data Format or Length Error"
-            message = "Incorrect data \n (Data should be number and 'yyyymmdd' format)"
-        elif txt == "btn_write_veh_name":
-            err = "Length Error"
-            message = "Incorrect length of Vehicle name \n (Need to 8 Character)"
-        elif txt == "btn_write_sys_name":
-            err = "Length Error"
-            message = "Incorrect length of System name \n (Need to 8 Character)"
-        elif txt == "btn_write_net_config":
-            err = "Data Format or Length Error"
-            message = "Incorrect length of Network Configuration \n (Data should be hex number and 'nn nn nn nn nn nn nn nn' format)"
-        QMessageBox.warning(self, err, message)
-        self.console_text_clear(err)
-
-    @pyqtSlot(can.Message)
-    def signal_presenter(self, tx_single):
-        tx_datetime = datetime.fromtimestamp(tx_single.timestamp)
-        tx_time = str(tx_datetime)[11:-4]
+    @pyqtSlot(can.Message, str, float)
+    def signal_presenter(self, tx_single, bus_num, time_delta_diff):
+        tx_time = self.time_mode(tx_single.timestamp, time_delta_diff)
         tx_id = hex(tx_single.arbitration_id)
-        if tx_single.channel:
-            if str(tx_single.channel) == self.c_can_name:
-                tx_channel = "C-CAN"
-            else:
-                tx_channel = "P-CAN"
-        else:
+        if bus_num == 'c':
             tx_channel = "C-CAN"
+        elif bus_num == 'p':
+            tx_channel = "P-CAN"
         tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
         tx_name = tx_message_info[0]
         tx_data = ''
@@ -760,27 +789,34 @@ class Main(QMainWindow):
         #     if len(self.graph_data_list) == 10:
         #         self.graph_data_list.pop(0)
         #     self.graph_data_list.append(int(tx_data[:2], 16))
-        # self.graph_presenter(self.graph_data_list)
 
-    def graph_presenter(self, graph_list):
+        if self.tx_time_rel:
+            if len(self.graph_x_list) == 10:
+                self.graph_x_list.pop(0)
+                self.graph_y_list.pop(0)
+            self.graph_x_list.append(float(self.tx_time_rel))
+            self.graph_y_list.append(12)
+
+        self.graph_presenter(self.graph_x_list, self.graph_y_list)
+
+    def graph_presenter(self, graph_x_list, graph_y_list):
+        # print(graph_x_list)
+        # print(graph_y_list)
+        # print(graph_x_list)
         plot_num = self.comboBox_num.currentText()
         # print(plot_num)
         # print(graph_list)
-        # x = [1, 2, 3, 4]
-        # y = [1, 4, 9, 16]
-        # self.curve = self.graph_widget.plot()
-        # self.curve.setData(graph_list)
+        # print(self.curve)
+        # self.graph_widget.plot(x, y)
+        self.curve.setData(graph_x_list, graph_y_list)
 
-    @pyqtSlot(str, int, list)
-    def can_signal_sender(self, bus_mess, send_id, send_data):
+    @pyqtSlot(str, int, list, float)
+    def can_signal_sender(self, bus_mess, send_id, send_data, time_diff_delta):
         if send_id == 0xFF:
             if not self.chkbox_can_dump.isChecked():
                 self.bus_console.appendPlainText(bus_mess)
         else:
-            if bus_mess == 'c':
-                self.send_message(self.c_can_bus, send_id, send_data)
-            elif bus_mess == 'p':
-                self.send_message(self.p_can_bus, send_id, send_data)
+            self.send_message(bus_mess, send_id, send_data, time_diff_delta)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_Enter:
@@ -826,6 +862,9 @@ class Main(QMainWindow):
                 self.user_filter_obj.ui_close()
                 self.user_filter_obj = None
 
+        if self.user_signal_obj and tx_name[:3] != "MMI":
+            self.user_signal_handler(tx_name=tx_name, tx_channel=tx_channel, tx_id=tx_id)
+
         if self.btn_filter_all.isChecked():
             return True
         elif self.btn_filter_tx.isChecked():
@@ -853,6 +892,25 @@ class Main(QMainWindow):
                 return True
             else:
                 return False
+
+    def time_mode(self, tx_timestamp, time_delta_diff):
+        if not self.time_init:
+            self.time_init = tx_timestamp
+        else:
+            self.tx_time_rel = '%0.3f' % (tx_timestamp - self.time_init)
+        if self.btn_time_absolute.isChecked():
+            tx_datetime = datetime.fromtimestamp(tx_timestamp)
+            tx_time = str(tx_datetime)[11:-4]
+        elif self.btn_time_relative.isChecked():
+            tx_time = self.tx_time_rel
+        elif self.btn_time_delta.isChecked():
+            if self.btn_chronicle_watch.isChecked():
+                self.btn_time_relative.setChecked(True)
+                tx_time = self.time_mode(tx_timestamp, time_delta_diff)
+            else:
+                tx_time_f = '%0.3f' % time_delta_diff
+                tx_time = str(tx_time_f)
+        return tx_time
 
     def node_acu_control(self, flag=True):
         if self.chkbox_node_acu.isChecked() and flag:
@@ -985,6 +1043,19 @@ class Main(QMainWindow):
         else:
             return self.user_filter_obj.user_filter(tx_name)
 
+    def user_signal_handler(self, tx_name=None, tx_channel=None, tx_id=None):
+        if not self.chkbox_arbitrary_signal_1.isChecked():
+            self.user_signal_obj.ui_close()
+            self.user_signal_obj = None
+            return 0
+        if not self.user_signal_obj:
+            self.user_signal_obj = User_Signal()
+        if type(tx_name) != bool:
+            self.user_signal_obj.user_signal_list(tx_name, tx_channel, tx_id)
+        if self.user_signal_obj.chkbox_period.isChecked():
+            self.user_signal_obj.lineEdit_period.setEnabled(True)
+        else:
+            self.user_signal_obj.lineEdit_period.setEnabled(False)
 
 
 class Diag_Main(QDialog):
@@ -998,6 +1069,8 @@ class Diag_Main(QDialog):
             self.c_can_bus = mywindow.c_can_bus
         if mywindow.p_can_bus:
             self.p_can_bus = mywindow.p_can_bus
+
+        # print(self.c_can_bus, self.p_can_bus)
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         self.write_data = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
@@ -1119,6 +1192,7 @@ class Diag_Main(QDialog):
 
         # Connect data write buttons to diagnostic handling function
         self.btn_write_vin.released.connect(self.diag_func)
+        self.btn_write_vin_init.released.connect(self.diag_func)
         self.btn_write_install_date.released.connect(self.diag_func)
         self.btn_write_veh_name.released.connect(self.diag_func)
         self.btn_write_sys_name.released.connect(self.diag_func)
@@ -1173,9 +1247,9 @@ class Diag_Main(QDialog):
         self.chkbox_diag_compression_bit_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
         self.btn_diag_reset_dtc_cont.released.connect(self.set_diag_dtc_cont_btns_labels)
 
-        self.btn_diag_console_clear.clicked.connect(self.console_text_clear)
-        self.btn_write_data_clear.clicked.connect(self.console_text_clear)
-        self.btn_diag_dtc_console_clear.released.connect(self.console_text_clear)
+        self.btn_diag_console_clear.clicked.connect(mywindow.console_text_clear)
+        self.btn_write_data_clear.clicked.connect(mywindow.console_text_clear)
+        self.btn_diag_dtc_console_clear.released.connect(mywindow.console_text_clear)
 
         self.treeWidget_dtc.setColumnWidth(1, 350)
 
@@ -1294,6 +1368,8 @@ class Diag_Main(QDialog):
             elif self.sender().objectName() == "btn_bus_stop":
                 self.label_id.setStyleSheet(f"color: gray")
                 self.label_id_data_length.setStyleSheet(f"color: gray")
+                self.label_id_data_length.setText("Data Length : -")
+                self.lineEdit_id_data.setText('')
 
         self.lineEdit_id_data.setEnabled(flag)
         self.btn_id_ecu_num.setEnabled(self.flag_domain)
@@ -1413,12 +1489,14 @@ class Diag_Main(QDialog):
             elif self.sender().objectName() == "btn_bus_stop":
                 self.label_write.setStyleSheet(f"color: gray")
                 self.label_flag_send.setStyleSheet(f"color: gray")
+                self.lineEdit_write_data.setText('')
 
         self.lineEdit_write_data.setEnabled(flag)
         self.btn_write_data_clear.setEnabled(flag)
         self.btn_write_data_send.setEnabled(flag)
 
         self.btn_write_vin.setEnabled(flag)
+        self.btn_write_vin_init.setEnabled(flag)
         self.label_write_vin.setText(f"{txt}")
         self.label_write_vin.setStyleSheet(f"color: {color}")
         self.btn_write_install_date.setEnabled(flag)
@@ -1650,23 +1728,6 @@ class Diag_Main(QDialog):
         self.btn_diag_reset_dtc_cont.setEnabled(flag)
         self.chkbox_diag_test_mode_dtc_cont.setEnabled(flag)
 
-    def console_text_clear(self, txt=None):
-        btn_name = self.sender().objectName()
-        if btn_name == "btn_diag_console_clear":
-            self.diag_console.clear()
-        elif btn_name == "btn_tx_console_clear" or btn_name == "btn_chronicle_watch" or btn_name == "btn_fixed_watch" \
-                or btn_name == "btn_filter_all" or btn_name == "btn_filter_tx" or btn_name == "btn_filter_rx" \
-                or btn_name == "btn_filter_c_can" or btn_name == "btn_filter_p_can" or btn_name == "btn_filter_diag" \
-                or btn_name == "btn_bus_start" or txt == "tx_console_clear":
-            self.tx_set = set()
-            self.item = []
-            self.treeWidget_tx.clear()
-        elif btn_name == "btn_write_data_clear" or txt:
-            self.label_flag_send.setText("Fill the data")
-            self.lineEdit_write_data.clear()
-        elif btn_name == "btn_diag_dtc_console_clear":
-            self.diag_initialization()
-
     def diag_initialization(self):
         self.flow_control_len = 1
         self.res_data = []
@@ -1683,12 +1744,12 @@ class Diag_Main(QDialog):
     def diag_data_collector(self, mess, multi=False, comp=False):
         for i, mess_data in zip(range(len(mess)), mess):
             self.data[i] = mess_data
-        mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+        mywindow.send_message('c', self.diag_tester_id, self.data, 0)
         time.sleep(0.030)
         if multi:
             self.data[0] = 0x30
-            mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
-        time.sleep(0.200)
+            mywindow.send_message('c', self.diag_tester_id, self.data, 0)
+        time.sleep(0.250)
         self.res_data = mywindow.thread_worker.reservoir[:]
         mywindow.thread_worker.reservoir = []
         if comp:
@@ -1780,18 +1841,7 @@ class Diag_Main(QDialog):
             err = "Data Format or Length Error"
             message = "Incorrect length of Network Configuration \n (Data should be hex number and 'nn nn nn nn nn nn nn nn' format)"
         QMessageBox.warning(self, err, message)
-        self.console_text_clear(err)
-
-    @pyqtSlot(str, int, list)
-    def can_signal_sender(self, bus_mess, send_id, send_data):
-        if send_id == 0xFF:
-            if not self.chkbox_can_dump.isChecked():
-                self.bus_console.appendPlainText(bus_mess)
-        else:
-            if bus_mess == 'c':
-                self.send_message(self.c_can_bus, send_id, send_data)
-            elif bus_mess == 'p':
-                self.send_message(self.p_can_bus, send_id, send_data)
+        mywindow.console_text_clear(err)
 
     def diag_func(self):
         if self.c_can_bus:
@@ -1840,7 +1890,7 @@ class Diag_Main(QDialog):
                         or self.diag_btn_text == "btn_write_nrc_33_net_config" or self.diag_btn_text == "btn_write_nrc_22_vin" \
                         or self.diag_btn_text == "btn_write_nrc_22_install_date" or self.diag_btn_text == "btn_write_nrc_22_veh_name" \
                         or self.diag_btn_text == "btn_write_nrc_22_sys_name" or self.diag_btn_text == "btn_write_nrc_22_net_config" \
-                        or self.diag_btn_text == "btn_write_nrc_13":
+                        or self.diag_btn_text == "btn_write_nrc_13" or self.diag_btn_text == "btn_write_vin_init":
                     self.diag_success_byte = 0x6e
                     self.diag_write(self.diag_btn_text)
                 elif self.diag_btn_text == 'btn_comm_cont_all_en' or self.diag_btn_text == 'btn_comm_cont_tx_dis' \
@@ -2119,7 +2169,7 @@ class Diag_Main(QDialog):
                         temp_str += hex(temp_ch)[2:].upper().zfill(2)
                         temp_str += ' '
             self.lineEdit_id_data.setText(temp_str)
-            self.label_id_data_length.setText(f'Data Length : {len(self.raw_data)}')
+            self.label_id_data_length.setText(f'Data Length : {len(self.raw_data)} ({len(self.raw_data) - 3} + 3)')
         if self.chkbox_diag_test_mode_did.isChecked():
             if multi:
                 if self.raw_data[0] == self.diag_success_byte and self.raw_data[1] == sig_li[2] and self.raw_data[2] == sig_li[3]:
@@ -2306,6 +2356,9 @@ class Diag_Main(QDialog):
             else:
                 self.write_data_not_correct(txt)
                 return 0
+        elif txt == "btn_write_vin_init":
+            self.write_txt = "LMPA1KMB7NC000000"
+            self.diag_write("btn_write_vin")
         elif txt == "btn_write_install_date":
             if data_len != 8:
                 self.write_data_not_correct(txt)
@@ -2470,7 +2523,7 @@ class Diag_Main(QDialog):
                 temp_li.append(self.write_data)
             for w_data in temp_li:
                 self.data = w_data
-                mywindow.send_message(self.c_can_bus, self.diag_tester_id, self.data)
+                mywindow.send_message('c', self.diag_tester_id, self.data)
             time.sleep(0.3)
             reservoir = mywindow.thread_worker.reservoir[:]
             for qqq in reservoir:
@@ -2869,7 +2922,7 @@ class Diag_Main(QDialog):
 
 class User_Filter(QDialog):
 
-    def __init__(self, ):
+    def __init__(self):
         super().__init__()
         self.filter_ui = uic.loadUi(BASE_DIR + r"./src/can_basic_user_filter_ui.ui", self)
         self.show()
@@ -2971,19 +3024,27 @@ class User_Filter(QDialog):
                 return self.user_filter_chkbox(self.filtered_list, chkbox_num=i)
         return False
 
-    def user_filter_chkbox(self, li, chkbox_num=0):
+    def user_filter_chkbox(self, li, chkbox_num=1000):
         present_list_num = len(li)
         if self.prev_list_num != present_list_num:
             self.filter_list_init = True
+            mywindow.console_text_clear("tx_console_clear")
         self.prev_list_num = len(li)
-        if len(li) == 0 or self.comboBox_user_filter.currentText() == self.default_item:
+        if len(li) == 0:
             self.chkbox_1st.setVisible(False)
             self.chkbox_2nd.setVisible(False)
             self.chkbox_3rd.setVisible(False)
             self.chkbox_4th.setVisible(False)
             self.chkbox_5th.setVisible(False)
+        elif self.comboBox_user_filter.currentText() == self.default_item:
+            self.chkbox_1st.setVisible(False)
+            self.chkbox_2nd.setVisible(False)
+            self.chkbox_3rd.setVisible(False)
+            self.chkbox_4th.setVisible(False)
+            self.chkbox_5th.setVisible(False)
+            self.filtered_list = []
         else:
-            if len(li) == 1 or chkbox_num == 1:
+            if len(li) == 1 or chkbox_num == 0:
                 if self.filter_list_init:
                     self.chkbox_1st.setVisible(True)
                     self.chkbox_1st.setChecked(True)
@@ -2994,7 +3055,7 @@ class User_Filter(QDialog):
                         return True
                     else:
                         return False
-            if len(li) == 2 or chkbox_num == 2:
+            if len(li) == 2 or chkbox_num == 1:
                 if self.filter_list_init:
                     self.chkbox_2nd.setVisible(True)
                     self.chkbox_2nd.setChecked(True)
@@ -3005,7 +3066,7 @@ class User_Filter(QDialog):
                         return True
                     else:
                         return False
-            elif len(li) == 3 or chkbox_num == 3:
+            elif len(li) == 3 or chkbox_num == 2:
                 if self.filter_list_init:
                     self.chkbox_3rd.setVisible(True)
                     self.chkbox_3rd.setChecked(True)
@@ -3016,7 +3077,7 @@ class User_Filter(QDialog):
                         return True
                     else:
                         return False
-            elif len(li) == 4 or chkbox_num == 4:
+            elif len(li) == 4 or chkbox_num == 3:
                 if self.filter_list_init:
                     self.chkbox_4th.setVisible(True)
                     self.chkbox_4th.setChecked(True)
@@ -3027,7 +3088,7 @@ class User_Filter(QDialog):
                         return True
                     else:
                         return False
-            elif len(li) == 5 or chkbox_num == 5:
+            elif len(li) == 5 or chkbox_num == 4:
                 if self.filter_list_init:
                     self.chkbox_5th.setVisible(True)
                     self.chkbox_5th.setChecked(True)
@@ -3043,11 +3104,143 @@ class User_Filter(QDialog):
         self.close()
 
 
+class User_Signal(QDialog):
+
+    def __init__(self):
+        super().__init__()
+        self.signal_ui = uic.loadUi(BASE_DIR + r"./src/can_basic_user_signal_ui.ui", self)
+        self.show()
+
+        self.tx_name_set = set()
+        self.default_item = "--Select signal--"
+        self.comboBox_user_signal.addItem(self.default_item)
+
+        self.signal_list = []
+
+        self.signal_list_flag = True
+
+        self.prev_list_num = 0
+
+        # self.label_message_id.setStyleSheet(f"color: {color}")
+        # self.lineEdit_message_id.setEnabled(flag)
+        # self.btn_arbitrary_send.setEnabled(flag)
+
+    def user_signal_list(self, tx_name, tx_channel, tx_id):
+        prev_num = len(self.tx_name_set)
+        self.tx_name_set.add(tx_name)
+        next_num = len(self.tx_name_set)
+        if next_num - prev_num != 0:
+            self.comboBox_user_signal.addItem(tx_name)
+        if self.comboBox_user_signal.currentText() == tx_name:
+            self.user_signal_sender(tx_channel=tx_channel, tx_id=tx_id)
+
+    def user_signal_sender(self, tx_channel, tx_id):
+        mywindow.user_signal_worker._isRunning = True
+        mywindow.user_signal_worker.start()
+        mywindow.user_signal_worker.bus_selector = tx_channel
+        mywindow.user_signal_worker.send_id = tx_id
+
+        print(self.lineEdit_data_0.text)
+
+        # if self.comboBox_user_filter.currentText() != self.default_item:
+        #     if len(self.filtered_list) == 0:
+        #         self.filtered_list.append(self.comboBox_user_filter.currentText())
+        #     else:
+        #         temp_list = self.filtered_list[:]
+        #         append_flag = True
+        #         for elem in temp_list:
+        #             if self.comboBox_user_filter.currentText() == elem:
+        #                 append_flag = False
+        #         if append_flag:
+        #             self.filtered_list.append(self.comboBox_user_filter.currentText())
+        # self.user_filter_chkbox(self.filtered_list)
+        # for i in range(len(self.filtered_list)):
+        #     if tx_name == self.filtered_list[i]:
+        #         return self.user_filter_chkbox(self.filtered_list, chkbox_num=i)
+        # return False
+
+    # def user_filter_chkbox(self, li, chkbox_num=1000):
+    #     present_list_num = len(li)
+    #     if self.prev_list_num != present_list_num:
+    #         self.filter_list_init = True
+    #         mywindow.console_text_clear("tx_console_clear")
+    #     self.prev_list_num = len(li)
+    #     if len(li) == 0:
+    #         self.chkbox_1st.setVisible(False)
+    #         self.chkbox_2nd.setVisible(False)
+    #         self.chkbox_3rd.setVisible(False)
+    #         self.chkbox_4th.setVisible(False)
+    #         self.chkbox_5th.setVisible(False)
+    #     elif self.comboBox_user_filter.currentText() == self.default_item:
+    #         self.chkbox_1st.setVisible(False)
+    #         self.chkbox_2nd.setVisible(False)
+    #         self.chkbox_3rd.setVisible(False)
+    #         self.chkbox_4th.setVisible(False)
+    #         self.chkbox_5th.setVisible(False)
+    #         self.filtered_list = []
+    #     else:
+    #         if len(li) == 1 or chkbox_num == 0:
+    #             if self.filter_list_init:
+    #                 self.chkbox_1st.setVisible(True)
+    #                 self.chkbox_1st.setChecked(True)
+    #                 self.filter_list_init = False
+    #                 self.chkbox_1st.setText(li[0])
+    #             else:
+    #                 if self.chkbox_1st.isChecked():
+    #                     return True
+    #                 else:
+    #                     return False
+    #         if len(li) == 2 or chkbox_num == 1:
+    #             if self.filter_list_init:
+    #                 self.chkbox_2nd.setVisible(True)
+    #                 self.chkbox_2nd.setChecked(True)
+    #                 self.filter_list_init = False
+    #                 self.chkbox_2nd.setText(li[1])
+    #             else:
+    #                 if self.chkbox_2nd.isChecked():
+    #                     return True
+    #                 else:
+    #                     return False
+    #         elif len(li) == 3 or chkbox_num == 2:
+    #             if self.filter_list_init:
+    #                 self.chkbox_3rd.setVisible(True)
+    #                 self.chkbox_3rd.setChecked(True)
+    #                 self.filter_list_init = False
+    #                 self.chkbox_3rd.setText(li[2])
+    #             else:
+    #                 if self.chkbox_3rd.isChecked():
+    #                     return True
+    #                 else:
+    #                     return False
+    #         elif len(li) == 4 or chkbox_num == 3:
+    #             if self.filter_list_init:
+    #                 self.chkbox_4th.setVisible(True)
+    #                 self.chkbox_4th.setChecked(True)
+    #                 self.filter_list_init = False
+    #                 self.chkbox_4th.setText(li[3])
+    #             else:
+    #                 if self.chkbox_4th.isChecked():
+    #                     return True
+    #                 else:
+    #                     return False
+    #         elif len(li) == 5 or chkbox_num == 4:
+    #             if self.filter_list_init:
+    #                 self.chkbox_5th.setVisible(True)
+    #                 self.chkbox_5th.setChecked(True)
+    #                 self.filter_list_init = False
+    #                 self.chkbox_5th.setText(li[4])
+    #             else:
+    #                 if self.chkbox_5th.isChecked():
+    #                     return True
+    #                 else:
+    #                     return False
+
+    def ui_close(self):
+        self.close()
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mywindow = Main()
     mywindow.show()
     sys.exit(app.exec_())
-
-
-

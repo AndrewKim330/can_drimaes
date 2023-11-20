@@ -13,13 +13,24 @@ class NodeThread(QThread):
         self.parent = parent
         self._isRunning = True
         self.period = 0.100
-        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-        self.mmi_hvac = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        self.time_flag = False
+        self.pre_time = None
+        self.delta_diff = None
+        self.data = [0xFF] * 8
+        self.mmi_hvac = [0x00] * 8
 
     def run(self):
         while self._isRunning:
             self.thread_func()
             QtCore.QCoreApplication.processEvents()
+
+    def calc_delta(self):
+        if self.time_flag:
+            self.delta_diff = time.time() - self.pre_time
+        else:
+            self.delta_diff = self.period
+            self.time_flag = True
+        self.pre_time = time.time()
 
     def thread_func(self):
         pass
@@ -29,122 +40,158 @@ class NodeThread(QThread):
 
 
 class ThreadWorker(NodeThread):
-    signal_presenter = pyqtSignal(can.Message)
+    signal_presenter = pyqtSignal(can.Message, str, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self._isRunning = True
         self.reservoir = []
+        self.time_flag_li = [False] * 6
+        self.delta_diff_li = [None] * 6
+        self.pre_time_li = [None] * 6
 
     def run(self):
-        while self._isRunning and self.parent.c_can_bus:
-            c_recv = self.parent.c_can_bus.recv()
-            self.signal_emit(c_recv)
+        while self._isRunning:
+            if self.parent.c_can_bus:
+                c_recv = self.parent.c_can_bus.recv()
+                self.mmi_calc_delta_controler(c_recv)
+
+                if self.parent.chkbox_save_log.isChecked():
+                    self.parent.log_data.append(c_recv)
+                if c_recv.arbitration_id == 0x18daf141:
+                    self.reservoir.append(c_recv)
+                if c_recv.arbitration_id == 0x18ffd741:
+                    self.parent.pms_s_hvsm_worker.data[0] = c_recv.data[1]
+                    hvsm_tx = bin(c_recv.data[1])[2:].zfill(8)
+
+                    self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
+                    if int(hvsm_tx[6:], 2) == 3:
+                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
+                    elif int(hvsm_tx[6:], 2) == 2:
+                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
+                    elif int(hvsm_tx[6:], 2) == 1:
+                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
+                    elif int(hvsm_tx[6:], 2) == 0:
+                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
+
+                    self.mmi_hvac[4] = int(hvsm_tx[2:4], 2)
+                    if int(hvsm_tx[2:4], 2) == 3:
+                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
+                    elif int(hvsm_tx[2:4], 2) == 2:
+                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
+                    elif int(hvsm_tx[2:4], 2) == 1:
+                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
+                    elif int(hvsm_tx[2:4], 2) == 0:
+                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
+
+                    self.mmi_hvac[3] = int(hvsm_tx[4:6], 2)
+                    if int(hvsm_tx[4:6], 2) == 3:
+                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
+                    elif int(hvsm_tx[4:6], 2) == 2:
+                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
+                    elif int(hvsm_tx[4:6], 2) == 1:
+                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
+                    elif int(hvsm_tx[4:6], 2) == 0:
+                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
+
+                    self.mmi_hvac[5] = int(hvsm_tx[:2], 2)
+                    if int(hvsm_tx[:2], 2) == 3:
+                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
+                    elif int(hvsm_tx[:2], 2) == 2:
+                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
+                    elif int(hvsm_tx[:2], 2) == 1:
+                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
+                    elif int(hvsm_tx[:2], 2) == 0:
+                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
+
+                    str_whl_heat_tx = c_recv.data[0]
+                    if str_whl_heat_tx == 0xc0:
+                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
+                    elif str_whl_heat_tx == 0xc3:
+                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_3)
+                    elif str_whl_heat_tx == 0xc2:
+                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_2)
+                    elif str_whl_heat_tx == 0xc1:
+                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
+
+                    self.parent.bcm_mmi_worker.single_tx_side_mani = c_recv.data[2]
+                    side_mani_tx = c_recv.data[2]
+                    if side_mani_tx == 0xf4:
+                        self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
+                    elif side_mani_tx == 0xf8:
+                        self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
+                    # else:
+                    #     self.parent.txt_res_side_mani.setText("None")
+
+                if c_recv.arbitration_id == 0x18ffd841:
+                    self.parent.bcm_mmi_worker.single_tx_softswset = c_recv.data
+                    light_tx = c_recv.data[3]
+                    if light_tx == 0xcf:
+                        self.parent.txt_res_light.setText("30s")
+                    elif light_tx == 0xd7:
+                        self.parent.txt_res_light.setText("60s")
+                    elif light_tx == 0xdf:
+                        self.parent.txt_res_light.setText("90s")
+                    else:
+                        self.parent.txt_res_light.setText("OFF")
+
+                    side_heat_tx = c_recv.data[7]
+                    if side_heat_tx == 0x7f:
+                        self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
+                    elif side_heat_tx == 0xbf:
+                        self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
+                    # else:
+                    #     self.parent.txt_res_side_heat.setText("None")
+
+                if c_recv.arbitration_id == 0x0c0ba021:
+                    self.parent.fcs_aeb_worker.single_tx = c_recv.data[0]
+                    aeb_tx = c_recv.data[0]
+                    if aeb_tx == 0xfd:
+                        self.parent.txt_res_aeb.setText("ON")
+                    elif aeb_tx == 0xfc:
+                        self.parent.txt_res_aeb.setText("OFF")
+                    else:
+                        self.parent.txt_res_aeb.setText("None")
+
             if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
                 p_recv = self.parent.p_can_bus.recv()
-                self.signal_emit(p_recv)
+                self.signal_emit(p_recv, 'p')
 
-            if self.parent.chkbox_save_log.isChecked():
-                self.parent.log_data.append(c_recv)
-            if c_recv.arbitration_id == 0x18daf141:
-                self.reservoir.append(c_recv)
-            if c_recv.arbitration_id == 0x18ffd741:
-                self.parent.pms_s_hvsm_worker.data[0] = c_recv.data[1]
-                hvsm_tx = bin(c_recv.data[1])[2:].zfill(8)
-
-                self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
-                if int(hvsm_tx[6:], 2) == 3:
-                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
-                elif int(hvsm_tx[6:], 2) == 2:
-                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
-                elif int(hvsm_tx[6:], 2) == 1:
-                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
-                elif int(hvsm_tx[6:], 2) == 0:
-                    self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
-
-                self.mmi_hvac[4] = int(hvsm_tx[2:4], 2)
-                if int(hvsm_tx[2:4], 2) == 3:
-                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
-                elif int(hvsm_tx[2:4], 2) == 2:
-                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
-                elif int(hvsm_tx[2:4], 2) == 1:
-                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
-                elif int(hvsm_tx[2:4], 2) == 0:
-                    self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
-
-                self.mmi_hvac[3] = int(hvsm_tx[4:6], 2)
-                if int(hvsm_tx[4:6], 2) == 3:
-                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
-                elif int(hvsm_tx[4:6], 2) == 2:
-                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
-                elif int(hvsm_tx[4:6], 2) == 1:
-                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
-                elif int(hvsm_tx[4:6], 2) == 0:
-                    self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
-
-                self.mmi_hvac[5] = int(hvsm_tx[:2], 2)
-                if int(hvsm_tx[:2], 2) == 3:
-                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
-                elif int(hvsm_tx[:2], 2) == 2:
-                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
-                elif int(hvsm_tx[:2], 2) == 1:
-                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
-                elif int(hvsm_tx[:2], 2) == 0:
-                    self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
-
-                str_whl_heat_tx = c_recv.data[0]
-                if str_whl_heat_tx == 0xc0:
-                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
-                elif str_whl_heat_tx == 0xc3:
-                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_3)
-                elif str_whl_heat_tx == 0xc2:
-                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_2)
-                elif str_whl_heat_tx == 0xc1:
-                    self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
-
-                self.parent.bcm_mmi_worker.single_tx_side_mani = c_recv.data[2]
-                side_mani_tx = c_recv.data[2]
-                if side_mani_tx == 0xf4:
-                    self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
-                elif side_mani_tx == 0xf8:
-                    self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
-                # else:
-                #     self.parent.txt_res_side_mani.setText("None")
-
-            if c_recv.arbitration_id == 0x18ffd841:
-                self.parent.bcm_mmi_worker.single_tx_softswset = c_recv.data
-                light_tx = c_recv.data[3]
-                if light_tx == 0xcf:
-                    self.parent.txt_res_light.setText("30s")
-                elif light_tx == 0xd7:
-                    self.parent.txt_res_light.setText("60s")
-                elif light_tx == 0xdf:
-                    self.parent.txt_res_light.setText("90s")
-                else:
-                    self.parent.txt_res_light.setText("OFF")
-
-                side_heat_tx = c_recv.data[7]
-                if side_heat_tx == 0x7f:
-                    self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
-                elif side_heat_tx == 0xbf:
-                    self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
-                # else:
-                #     self.parent.txt_res_side_heat.setText("None")
-
-            if c_recv.arbitration_id == 0x0c0ba021:
-                self.parent.fcs_aeb_worker.single_tx = c_recv.data[0]
-                aeb_tx = c_recv.data[0]
-                if aeb_tx == 0xfd:
-                    self.parent.txt_res_aeb.setText("ON")
-                elif aeb_tx == 0xfc:
-                    self.parent.txt_res_aeb.setText("OFF")
-                else:
-                    self.parent.txt_res_aeb.setText("None")
             self.state_check()
             QtCore.QCoreApplication.processEvents()
 
-    def signal_emit(self, sig):
-        self.signal_presenter.emit(sig)
+    def mmi_calc_delta_controler(self, recv_message):
+        if recv_message.arbitration_id == 0x18FFD741:
+            self.calc_delta(0, recv_message)
+        elif recv_message.arbitration_id == 0x18FFD841:
+            self.calc_delta(1, recv_message)
+        elif recv_message.arbitration_id == 0x0C0BA021:
+            self.calc_delta(2, recv_message)
+        elif recv_message.arbitration_id == 0x18A9E821:
+            self.calc_delta(3, recv_message)
+        elif recv_message.arbitration_id == 0x18FF6341:
+            self.calc_delta(4, recv_message)
+        elif recv_message.arbitration_id == 0x18FF4B41:
+            self.calc_delta(5, recv_message)
+        else:
+            self.calc_delta(6, recv_message)
+
+    def calc_delta(self, counting, recv_message):
+        if counting == 6:
+            time_delta = 0
+        else:
+            if self.time_flag_li[counting]:
+                self.delta_diff_li[counting] = time.time() - self.pre_time_li[counting]
+            else:
+                self.delta_diff_li[counting] = self.period
+                self.time_flag_li[counting] = True
+            self.pre_time_li[counting] = time.time()
+            time_delta = self.delta_diff_li[counting]
+
+        self.signal_emit(recv_message, 'c', time_delta)
+
+    def signal_emit(self, sig, bus_str, time_delta_diff):
+        self.signal_presenter.emit(sig, bus_str, time_delta_diff)
 
     def state_check(self):
         # driving state check
@@ -162,7 +209,6 @@ class ThreadWorker(NodeThread):
     def slider_speed_func(self, value):
         speed = f'Speed : {value} km/h'
         if self._isRunning:
-            self.parent.slider_speed.setValue(value)
             self.parent.label_speed.setText(speed)
             self.parent.pms_bodycont_c_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
             self.parent.ic_tachospeed_worker.value = hex(int(value / (1 / 256)))[2:].zfill(4)
@@ -174,14 +220,18 @@ class ThreadWorker(NodeThread):
             else:
                 new_value = value
             battery = f'Battery : {new_value} %'
-            self.parent.slider_battery.setValue(new_value)
             self.parent.pms_vri_worker.value = new_value
             self.parent.label_battery.setText(battery)
             self.parent.bms_batt_worker.value = hex(int(new_value / 0.4))[2:].zfill(2)
 
+    def slider_stwhl_func(self, value):
+        if self._isRunning:
+            value -= (value - 128) * 2
+            self.parent.pms_c_strwhl_worker.value = value
+
 
 class PMS_S_HVSM(NodeThread):
-    pms_s_hvsm_signal = pyqtSignal(str, int, list)
+    pms_s_hvsm_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -189,35 +239,38 @@ class PMS_S_HVSM(NodeThread):
 
     def thread_func(self):  # HVSM_MMIFbSts
         if self.parent.c_can_bus:
-            self.pms_s_hvsm_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.pms_s_hvsm_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_s_hvsm_signal.emit("C-CAN bus error (PMS_S - HVSM)", 0xFF, self.data)
+            self.pms_s_hvsm_signal.emit("C-CAN bus error (PMS_S - HVSM)", 0xFF, self.data, 0)
             self.parent.pms_s_hvsm_worker._isRunning = False
 
 
 class PMS_C_StrWhl(NodeThread):
-    pms_c_strwhl_signal = pyqtSignal(str, int, list)
+    pms_c_strwhl_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.send_id = 0x0cffb291
+        self.data[0] = 0x00
+        self.data[1] = 0x00
+        self.value = 128
 
     def thread_func(self):  # SasChas1Fr01
-        self.data[0] = 0x00
-        self.data[1] = 0x80
-
         if self.parent.c_can_bus:
-            self.pms_c_strwhl_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.data[1] = self.value
+            self.pms_c_strwhl_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_c_strwhl_signal.emit("C-CAN bus error (PMS_C - StrWhl)", 0xFF, self.data)
+            self.pms_c_strwhl_signal.emit("C-CAN bus error (PMS_C - StrWhl)", 0xFF, self.data, 0)
             self.parent.pms_c_strwhl_worker._isRunning = False
 
 
 class BCM_MMI(NodeThread):
-    bcm_mmi_signal = pyqtSignal(str, int, list)
+    bcm_mmi_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -268,15 +321,16 @@ class BCM_MMI(NodeThread):
             self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 7)
 
         if self.parent.c_can_bus:
-            self.bcm_mmi_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.bcm_mmi_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bcm_mmi_signal.emit("C-CAN bus error (BCM - MMI)", 0xFF, self.data)
+            self.bcm_mmi_signal.emit("C-CAN bus error (BCM - MMI)", 0xFF, self.data, 0)
             self.parent.bcm_mmi_worker._isRunning = False
 
 
 class BCM_SWRC(NodeThread):
-    bcm_swrc_signal = pyqtSignal(str, int, list)
+    bcm_swrc_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -342,61 +396,63 @@ class BCM_SWRC(NodeThread):
             self.long_count = 0
 
         if self.parent.c_can_bus:
-            self.bcm_swrc_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.bcm_swrc_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bcm_swrc_signal.emit("C-CAN bus error (BCM - SWRC)", 0xFF, self.data)
+            self.bcm_swrc_signal.emit("C-CAN bus error (BCM - SWRC)", 0xFF, self.data, 0)
             self.parent.bcm_swrc_worker._isRunning = False
 
 
 class BCM_StrWhl_Heat(NodeThread):
-    bcm_strwhl_heat_signal = pyqtSignal(str, int, list)
+    bcm_strwhl_heat_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18ff0721
 
     def thread_func(self):  # SwmCem_LinFr02
-        self.data[0] = 0xFB
+        self.data[0] = 0xFB  # need to fix
 
         if self.parent.c_can_bus:
-            self.bcm_strwhl_heat_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.bcm_strwhl_heat_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bcm_strwhl_heat_signal.emit("C-CAN bus error (BCM - StrWhl_Heat)", 0xFF, self.data)
+            self.bcm_strwhl_heat_signal.emit("C-CAN bus error (BCM - StrWhl_Heat)", 0xFF, self.data, 0)
             self.parent.bcm_strwhl_heat_worker._isRunning = False
 
 
 class BCM_LightChime(NodeThread):
-    bcm_lightchime_signal = pyqtSignal(str, int, list)
+    bcm_lightchime_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
         self.send_id = 0x18ff8721
-
-    def thread_func(self):  # BCM_LightChileReq
         self.data[0] = 0xCF
         self.data[1] = 0xF7
 
+    def thread_func(self):  # BCM_LightChileReq
         if self.parent.c_can_bus:
-            self.bcm_lightchime_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.bcm_lightchime_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bcm_lightchime_signal.emit("C-CAN bus error (BCM - LightChime)", 0xFF, self.data)
+            self.bcm_lightchime_signal.emit("C-CAN bus error (BCM - LightChime)", 0xFF, self.data, 0)
             self.parent.bcm_lightchime_worker._isRunning = False
 
 
 class BCM_StateUpdate(NodeThread):
-    bcm_stateupdate_signal = pyqtSignal(str, int, list)
+    bcm_stateupdate_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18ff8621
-
-    def thread_func(self):  # BCM_StateUpdate
         self.data[0] = 0x97
         self.data[1] = 0x7A
+
+    def thread_func(self):  # BCM_StateUpdate
 
         # Initial mode for ACC (for convenience)
         if self.parent.btn_acc.isChecked():
@@ -414,49 +470,52 @@ class BCM_StateUpdate(NodeThread):
             self.data[2] = 0xFF
 
         if self.parent.c_can_bus:
-            self.bcm_stateupdate_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.bcm_stateupdate_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bcm_stateupdate_signal.emit("C-CAN bus error (BCM - StateUpdate)", 0xFF, self.data)
+            self.bcm_stateupdate_signal.emit("C-CAN bus error (BCM - StateUpdate)", 0xFF, self.data, 0)
             self.parent.bcm_stateupdate_worker._isRunning = False
 
 
 class PMS_BodyCont_C(NodeThread):
-    pms_bodycont_c_signal = pyqtSignal(str, int, list)
+    pms_bodycont_c_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.value = '0000'
         self.send_id = 0x0cfab127
+        self.data[0] = 0xBF
+        self.data[6] = 0xF7
 
     def thread_func(self):  # PMS_BodyControlInfo (C-CAN)
         self.data[1] = int(self.value[2:4], 16)
         self.data[2] = int(self.value[0:2], 16)
-        self.data[6] = 0xF7
 
         if self.parent.c_can_bus:
-            self.pms_bodycont_c_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.pms_bodycont_c_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_bodycont_c_signal.emit("C-CAN bus error (PMS - BodyCont CCAN)", 0xFF, self.data)
+            self.pms_bodycont_c_signal.emit("C-CAN bus error (PMS - BodyCont CCAN)", 0xFF, self.data, 0)
             self.parent.pms_bodycont_c_worker._isRunning = False
 
 
 class PMS_PTInfo(NodeThread):
-    pms_ptinfo_signal = pyqtSignal(str, int, list)
+    pms_ptinfo_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.value = '0000'
         self.send_id = 0x18fab027
-
-    def thread_func(self):  # PMS_PTInfoIndicate
-        self.data[0] = 0xCF
-        self.data[5] = 0xFC
         self.data[6] = 0xF3
         self.data[7] = 0x3F
+        self.dist_init = True
+
+    def thread_func(self):  # PMS_PTInfoIndicate
+        self.data[5] = 0xFC
 
         # initial value for gear N (for convenience)
         if self.parent.btn_gear_n.isChecked():
@@ -468,45 +527,57 @@ class PMS_PTInfo(NodeThread):
 
         if self.parent.chkbox_pt_ready.isChecked():
             self.data[0] = 0xDF
+            if self.dist_init:
+                self.parent.ic_distance_worker.dist_init = True
+            else:
+                self.parent.btn_0th_byte_up.setEnabled(True)
+                self.parent.btn_1st_byte_up.setEnabled(True)
+        else:
+            self.data[0] = 0xCF
+            self.parent.btn_0th_byte_up.setEnabled(False)
+            self.parent.btn_1st_byte_up.setEnabled(False)
 
         if self.parent.chkbox_h_brake.isChecked():
             self.data[5] = 0xFD
 
         if self.parent.c_can_bus:
-            self.pms_ptinfo_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.pms_ptinfo_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_ptinfo_signal.emit("C-CAN bus error (PMS - PTInfo)", 0xFF, self.data)
+            self.pms_ptinfo_signal.emit("C-CAN bus error (PMS - PTInfo)", 0xFF, self.data, 0)
             self.parent.pms_ptinfo_worker._isRunning = False
 
 
 class PMS_BodyCont_P(NodeThread):
-    pms_bodycont_p_signal = pyqtSignal(str, int, list)
+    pms_bodycont_p_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.send_id = 0x0cfab127
-
-    def thread_func(self):  # PMS_BodyControlInfo (P-CAN)
         self.data[4] = 0x00
 
+    def thread_func(self):  # PMS_BodyControlInfo (P-CAN)
         if self.parent.p_can_bus:
-            self.pms_bodycont_p_signal.emit('p', self.send_id, self.data)
+            self.calc_delta()
+            self.pms_bodycont_p_signal.emit('p', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_bodycont_p_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)", 0xFF, self.data)
+            self.pms_bodycont_p_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)", 0xFF, self.data, 0)
             self.parent.pms_bodycont_p_worker._isRunning = False
 
 
 class PMS_VRI(NodeThread):
-    pms_vri_signal = pyqtSignal(str, int, list)
+    pms_vri_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.send_id = 0x18fab327
         self.value = 50
+        self.data[2] = 0x00
+        self.data[3] = 0x00
 
     def thread_func(self):  # PMS_VRI
         unit_dist = self.value * 3 * 0x08
@@ -516,19 +587,18 @@ class PMS_VRI(NodeThread):
             unit_dist_remainder = unit_dist % 0xFF - 2
         self.data[0] = unit_dist_remainder
         self.data[1] = unit_dist_quotient
-        self.data[2] = 0x00
-        self.data[3] = 0x00
 
         if self.parent.p_can_bus:
-            self.pms_vri_signal.emit('p', self.send_id, self.data)
+            self.calc_delta()
+            self.pms_vri_signal.emit('p', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.pms_vri_signal.emit("P-CAN bus error (PMS - VRI)", 0xFF, self.data)
+            self.pms_vri_signal.emit("P-CAN bus error (PMS - VRI)", 0xFF, self.data, 0)
             self.parent.pms_vri_worker._isRunning = False
 
 
 class FCS_AEB(NodeThread):
-    fcs_aeb_signal = pyqtSignal(str, int, list)
+    fcs_aeb_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -539,40 +609,41 @@ class FCS_AEB(NodeThread):
     def thread_func(self):  # FCS_AEBS1
         if self.single_tx:
             if self.single_tx == 0xfd:
-                self.data[0] = 0xF1
+                self.data[0] = 0xF3
             elif self.single_tx == 0xfc:
                 self.data[0] = 0xF2
 
         if self.parent.c_can_bus:
-            self.fcs_aeb_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.fcs_aeb_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.fcs_aeb_signal.emit("C-CAN bus error (FCS - AEB)", 0xFF, self.data)
+            self.fcs_aeb_signal.emit("C-CAN bus error (FCS - AEB)", 0xFF, self.data, 0)
             self.parent.fcs_aeb_worker._isRunning = False
 
 
 class FCS_LDW(NodeThread):
-    fcs_ldw_signal = pyqtSignal(str, int, list)
+    fcs_ldw_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.050
         self.single_tx = None
         self.send_id = 0x18fe5be8
-
-    def thread_func(self):  # FCS_FLI2
         self.data[1] = 0xF0
 
+    def thread_func(self):  # FCS_FLI2
         if self.parent.c_can_bus:
-            self.fcs_ldw_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.fcs_ldw_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.fcs_ldw_signal.emit("C-CAN bus error (FCS - LDW)", 0xFF, self.data)
+            self.fcs_ldw_signal.emit("C-CAN bus error (FCS - LDW)", 0xFF, self.data, 0)
             self.parent.fcs_ldw_worker._isRunning = False
 
 
 class IC_TachoSpeed(NodeThread):
-    ic_tachospeed_signal = pyqtSignal(str, int, list)
+    ic_tachospeed_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -585,62 +656,81 @@ class IC_TachoSpeed(NodeThread):
         self.data[7] = int(self.value[0:2], 16)
 
         if self.parent.c_can_bus:
-            self.ic_tachospeed_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.ic_tachospeed_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.ic_tachospeed_signal.emit("C-CAN bus error (IC - TachoSpeed)", 0xFF, self.data)
+            self.ic_tachospeed_signal.emit("C-CAN bus error (IC - TachoSpeed)", 0xFF, self.data, 0)
             self.parent.ic_tachospeed_worker._isRunning = False
 
 
-class IC_Distance(NodeThread):
-    ic_distance_signal = pyqtSignal(str, int, list)
+class IC_Distance(NodeThread):  # need to fix
+    ic_distance_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 1.000
         self.send_id = 0x18fec117
-
-    def thread_func(self):
+        # need to fix (byte position 0~3)
         self.data[0] = 0x00
         self.data[1] = 0x00
         self.data[2] = 0x00
         self.data[3] = 0x00
+        self.dist_0_up = 0
+        self.dist_1_up = 0
+        self.dist_init = False
 
+    def thread_func(self):
         if self.parent.c_can_bus:
-            self.ic_distance_signal.emit('c', self.send_id, self.data)
+            if self.dist_init:
+                self.data[0] += 0x01
+                if self.data[0] > 0x01:
+                    self.parent.pms_ptinfo_worker.dist_init = False
+                    self.dist_init = False
+
+            self.data[0] = self.dist_0_up * 0x01
+            self.data[1] = self.dist_1_up * 0x01
+            self.calc_delta()
+            self.ic_distance_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.ic_distance_signal.emit("C-CAN bus error (IC - Distance)", 0xFF, self.data)
+            self.ic_distance_signal.emit("C-CAN bus error (IC - Distance)", 0xFF, self.data, 0)
             self.parent.ic_distance_worker._isRunning = False
 
 
 class ESC_TPMS(NodeThread):
-    esc_tpms_signal = pyqtSignal(str, int, list)
+    esc_tpms_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.period = 0.010
         self.send_id = 0x18f0120B
+        self.tpms_val = 0
+        self.tpms_count = 0
 
     def thread_func(self):
         self.data[7] = 0xCF
-        if self.sender():
-            btn_text = self.sender().objectName()
-            if btn_text == "btn_tpms_success":
-                self.data[7] = 0xDF
-            elif btn_text == "btn_tpms_fail":
-                self.data[7] = 0xEF
+        if self.tpms_val == 1:
+            self.data[7] = 0xDF
+            self.tpms_count += 1
+        elif self.tpms_val == 2:
+            self.data[7] = 0xEF
+            self.tpms_count += 1
 
         if self.parent.c_can_bus:
-            self.esc_tpms_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.esc_tpms_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
+            if self.tpms_count > 10:
+                self.tpms_count = 0
+                self.tpms_val = 0
         else:
-            self.esc_tpms_signal.emit("C-CAN bus error (ESC - TPMS)", 0xFF, self.data)
+            self.esc_tpms_signal.emit("C-CAN bus error (ESC - TPMS)", 0xFF, self.data, 0)
             self.parent.esc_tpms_worker._isRunning = False
 
 
 class ACU_SeatBelt(NodeThread):
-    acu_seatbelt_signal = pyqtSignal(str, int, list)
+    acu_seatbelt_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -649,10 +739,11 @@ class ACU_SeatBelt(NodeThread):
 
     def thread_func(self):
         if self.parent.c_can_bus:
-            self.acu_seatbelt_signal.emit('c', self.send_id, self.data)
+            self.calc_delta()
+            self.acu_seatbelt_signal.emit('c', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.acu_seatbelt_signal.emit("C-CAN bus error (ACU - Seatbelt)", 0xFF, self.data)
+            self.acu_seatbelt_signal.emit("C-CAN bus error (ACU - Seatbelt)", 0xFF, self.data, 0)
             self.parent.acu_seatbelt_worker._isRunning = False
 
     def drv_invalid(self):
@@ -669,7 +760,7 @@ class ACU_SeatBelt(NodeThread):
 
 
 class BMS_Batt(NodeThread):
-    bms_batt_signal = pyqtSignal(str, int, list)
+    bms_batt_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -677,56 +768,60 @@ class BMS_Batt(NodeThread):
         self.send_id = 0x18fa40f4
 
     def thread_func(self):
+        self.data[0] = 0x00
+        self.data[1] = 0x00
         self.data[2] = 0x00
         self.data[3] = 0x7D
         self.data[4] = int(self.value, 16)
         self.data[5] = 0x7D
 
         if self.parent.p_can_bus:
-            self.bms_batt_signal.emit('p', self.send_id, self.data)
+            self.calc_delta()
+            self.bms_batt_signal.emit('p', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bms_batt_signal.emit("P-CAN bus error (BMS - Battery)", 0xFF, self.data)
+            self.bms_batt_signal.emit("P-CAN bus error (BMS - Battery)", 0xFF, self.data, 0)
             self.parent.bms_batt_worker._isRunning = False
 
 
 class BMS_Charge(NodeThread):
-    bms_charge_signal = pyqtSignal(str, int, list)
+    bms_charge_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x18fa3ef4
+        self.data[1] = 0xFC
 
     def thread_func(self):
         self.data[0] = 0x0F
-        self.data[1] = 0xFC
         if self.parent.chkbox_charge.isChecked():
             self.data[0] = 0x1F
 
         if self.parent.p_can_bus:
-            self.bms_charge_signal.emit('p', self.send_id, self.data)
+            self.calc_delta()
+            self.bms_charge_signal.emit('p', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.bms_charge_signal.emit("P-CAN bus error (BMS - Charging)", 0xFF, self.data)
+            self.bms_charge_signal.emit("P-CAN bus error (BMS - Charging)", 0xFF, self.data, 0)
             self.parent.bms_charge_worker._isRunning = False
 
 
 class MCU_Motor(NodeThread):
-    mcu_motor_signal = pyqtSignal(str, int, list)
+    mcu_motor_signal = pyqtSignal(str, int, list, float)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.send_id = 0x0cfa01ef
-
-    def thread_func(self):
         self.data[4] = 0x00
         self.data[5] = 0x00
 
+    def thread_func(self):
         if self.parent.p_can_bus:
-            self.mcu_motor_signal.emit('p', self.send_id, self.data)
+            self.calc_delta()
+            self.mcu_motor_signal.emit('p', self.send_id, self.data, self.delta_diff)
             time.sleep(self.period)
         else:
-            self.mcu_motor_signal.emit("P-CAN bus error (MCU - Motor)", 0xFF, self.data)
+            self.mcu_motor_signal.emit("P-CAN bus error (MCU - Motor)", 0xFF, self.data, 0)
             self.parent.mcu_motor_worker._isRunning = False
 
 
@@ -751,3 +846,20 @@ class TesterPresent(NodeThread):
                 time.sleep(self.period)
             else:
                 self.tester_signal.emit("C-CAN bus error (Diagnosis)", 0xFF, self.data)
+
+
+class UserSignal(NodeThread):
+    user_defined_signal = pyqtSignal(str, int, list, float)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        # self.data = []
+        self.bus_selector = None
+
+    def thread_func(self):
+        self.calc_delta()
+        if self.bus_selector == "C-CAN":
+            self.bus_selector = "c"
+        elif self.bus_selector == "P-CAN":
+            self.bus_selector = "p"
+        self.user_defined_signal.emit(self.bus_selector, self.send_id, self.data, self.delta_diff)

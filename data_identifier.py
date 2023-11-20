@@ -307,6 +307,8 @@ def message_info_by_can_id(can_id, bus):
         info_set.append("PMS_BodyControlInfo")
         if bus == "C-CAN":
             info_set.append(
+                {"name": "PMS_Brake_State", "bit_st_pos": 6, "bit_len": 1})
+            info_set.append(
                 {"name": "PMS_VehicleSpd", "bit_st_pos": 8, "bit_len": 16})
             info_set.append(
                 {"name": "PMS_VehicleSpd_flag", 0x0: "Valid", 0x1: "Invalid", "bit_st_pos": 51, "bit_len": 1})
@@ -414,6 +416,7 @@ def message_info_by_can_id(can_id, bus):
         return info_set
     elif can_id == 0x18FA40F4:
         info_set.append("BMS_BatteryInfo")
+        info_set.append({"name": "BMS_BattVolt", "bit_st_pos": 0, "bit_len": 16})
         info_set.append({"name": "BMS_BattCurr", "bit_st_pos": 16, "bit_len": 16})
         info_set.append({"name": "BMS_BattSOC", "bit_st_pos": 32, "bit_len": 8})
         info_set.append({"name": "BMS_BattSOH", "bit_st_pos": 40, "bit_len": 8})
