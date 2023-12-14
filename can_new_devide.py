@@ -19,6 +19,7 @@ import pyqtgraph as pg
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/can_basic_ui.ui")
 
+
 class Main(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
@@ -42,7 +43,11 @@ class Main(QMainWindow, Ui_MainWindow):
         self.tx_chronicle = False
         self.recv_flag = False
 
+        self.graphic_sig_flag = False
+
         self.time_init = None
+
+        self.pre_message = None
 
         self.diag_tester_id = 0x18da41f1
 
@@ -60,6 +65,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.user_filter_obj = None
 
         self.user_signal_obj = None
+
+        self.sub_mess_designated = None
+        self.sub_data_designated = None
 
         self.tx_set = set()
 
@@ -235,6 +243,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.comboBox_num.addItem("2")
         self.comboBox_num.addItem("3")
 
+        self.comboBox_id.addItem("---Select signal---")
+        self.comboBox_id_specific.addItem("---Select signal---")
+
         self.graph_widget.showGrid(x=True, y=True)
 
         self.set_mmi_labels_init(False)
@@ -253,18 +264,6 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.btn_0th_byte_up.clicked.connect(self.temp_distance)
         self.btn_1st_byte_up.clicked.connect(self.temp_distance)
-
-    def tpms_handler(self):
-        if self.sender().objectName() == "btn_tpms_success":
-            self.esc_tpms_worker.tpms_val = 1
-        elif self.sender().objectName() == "btn_tpms_fail":
-            self.esc_tpms_worker.tpms_val = 2
-
-    def temp_distance(self):
-        if self.sender().objectName() == "btn_0th_byte_up":
-            self.ic_distance_worker.dist_0_up += 1
-        elif self.sender().objectName() == "btn_1st_byte_up":
-            self.ic_distance_worker.dist_1_up += 1
 
     def bus_connect(self):
         if not self.bus_flag:
@@ -745,8 +744,6 @@ class Main(QMainWindow, Ui_MainWindow):
             tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
         if not self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel):
             return False
-        # elif type(self.tx_filter(tx_single.arbitration_id, tx_name, tx_channel)) == str:
-
         if self.btn_chronicle_watch.isChecked():
             item = QTreeWidgetItem()
             item.setText(0, tx_id)
@@ -755,7 +752,6 @@ class Main(QMainWindow, Ui_MainWindow):
             item.setText(3, tx_channel)
             item.setText(4, tx_data)
             self.treeWidget_tx.addTopLevelItems([item])
-            # self.treeWidget_tx.invisibleRootItem().addChild(item)
         elif self.btn_fixed_watch.isChecked():
             len_prev = len(self.tx_set)
             identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
@@ -766,8 +762,30 @@ class Main(QMainWindow, Ui_MainWindow):
                     if tx_id == item.text(0) and tx_channel == item.text(3):
                         item.setText(1, tx_time)
                         item.setText(4, tx_data)
+                        specific_signals = []
                         for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
-                            item.child(i).setText(4, data_id.data_matcher(tx_single, sub_mess))
+                            try:
+                                sub_data = sub_mess[int(data_id.data_matcher(tx_single, sub_mess))]
+                            except KeyError:
+                                sub_data = str(data_id.data_matcher(tx_single, sub_mess))
+                            item.child(i).setText(4, sub_data)
+                            specific_signals.append(sub_mess["name"])
+                            if self.sub_mess_designated == sub_mess["name"]:
+                                self.sub_data_designated = data_id.data_matcher(tx_single, sub_mess)
+                        if self.comboBox_id.currentText() == "---Select signal---":
+                            if self.comboBox_id_specific.count() > 1:
+                                self.comboBox_id_specific.clear()
+                                self.comboBox_id_specific.addItem("---Select signal---")
+                        else:
+                            if self.comboBox_id.currentText() == tx_name:
+                                if self.comboBox_id_specific.count() == 1:
+                                    self.comboBox_id_specific.addItems(specific_signals)
+                                    self.pre_message = self.comboBox_id.currentText()
+                                if self.pre_message != self.comboBox_id.currentText():
+                                    self.comboBox_id_specific.clear()
+                                    self.comboBox_id_specific.addItem("---Select signal---")
+                                    self.comboBox_id_specific.addItems(specific_signals)
+                                    self.pre_message = self.comboBox_id.currentText()
                         break
             else:
                 item = QTreeWidgetItem()
@@ -779,35 +797,29 @@ class Main(QMainWindow, Ui_MainWindow):
                 for sub_message in tx_message_info[1:]:
                     sub_item = QTreeWidgetItem(item)
                     sub_item.setText(2, sub_message["name"])
-                    sub_item.setText(4, data_id.data_matcher(tx_single, sub_message))
+                    try:
+                        sub_item.setText(4, sub_message[int(data_id.data_matcher(tx_single, sub_message))])
+                    except KeyError:
+                        sub_item.setText(4, str(data_id.data_matcher(tx_single, sub_message)))
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 self.comboBox_id.addItem(tx_name)
-                # self.treeWidget_tx.clear()
-        # if tx_id == "0x18ffa57f":
-        #     # print(tx_data, type(tx_data))
-        #     if len(self.graph_data_list) == 10:
-        #         self.graph_data_list.pop(0)
-        #     self.graph_data_list.append(int(tx_data[:2], 16))
+        if self.comboBox_id.currentText() == tx_name:
+            if self.tx_time_rel and self.sub_data_designated:
+                if len(self.graph_x_list) == 10:
+                    self.graph_x_list.pop(0)
+                    self.graph_y_list.pop(0)
+                self.graph_x_list.append(float(self.tx_time_rel))
 
-        if self.tx_time_rel:
-            if len(self.graph_x_list) == 10:
-                self.graph_x_list.pop(0)
-                self.graph_y_list.pop(0)
-            self.graph_x_list.append(float(self.tx_time_rel))
-            self.graph_y_list.append(12)
+                self.graph_y_list.append(int(self.sub_data_designated))
+                # print(int(self.sub_data_designated))
 
         self.graph_presenter(self.graph_x_list, self.graph_y_list)
 
+        if self.comboBox_id_specific.currentText() != "---Select signal---":
+            self.sub_mess_designated = self.comboBox_id_specific.currentText()
+
     def graph_presenter(self, graph_x_list, graph_y_list):
-        # print(graph_x_list)
-        # print(graph_y_list)
-        # print(graph_x_list)
-        plot_num = self.comboBox_num.currentText()
-        # print(plot_num)
-        # print(graph_list)
-        # print(self.curve)
-        # self.graph_widget.plot(x, y)
         self.curve.setData(graph_x_list, graph_y_list)
 
     @pyqtSlot(str, int, list, float)
@@ -821,6 +833,18 @@ class Main(QMainWindow, Ui_MainWindow):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key.Key_Enter:
             self.write_data_sender()
+
+    def tpms_handler(self):
+        if self.sender().objectName() == "btn_tpms_success":
+            self.esc_tpms_worker.tpms_val = 1
+        elif self.sender().objectName() == "btn_tpms_fail":
+            self.esc_tpms_worker.tpms_val = 2
+
+    def temp_distance(self):
+        if self.sender().objectName() == "btn_0th_byte_up":
+            self.ic_distance_worker.dist_0_up += 1
+        elif self.sender().objectName() == "btn_1st_byte_up":
+            self.ic_distance_worker.dist_1_up += 1
 
     def image_initialization(self):
         self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(80)
@@ -1749,7 +1773,7 @@ class Diag_Main(QDialog):
         if multi:
             self.data[0] = 0x30
             mywindow.send_message('c', self.diag_tester_id, self.data, 0)
-        time.sleep(0.250)
+        time.sleep(0.300)
         self.res_data = mywindow.thread_worker.reservoir[:]
         mywindow.thread_worker.reservoir = []
         if comp:
@@ -2523,7 +2547,7 @@ class Diag_Main(QDialog):
                 temp_li.append(self.write_data)
             for w_data in temp_li:
                 self.data = w_data
-                mywindow.send_message('c', self.diag_tester_id, self.data)
+                mywindow.send_message('c', self.diag_tester_id, self.data, 0)
             time.sleep(0.3)
             reservoir = mywindow.thread_worker.reservoir[:]
             for qqq in reservoir:

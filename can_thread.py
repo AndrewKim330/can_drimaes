@@ -155,7 +155,8 @@ class ThreadWorker(NodeThread):
 
             if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
                 p_recv = self.parent.p_can_bus.recv()
-                self.signal_emit(p_recv, 'p')
+                self.mmi_calc_delta_controler(p_recv)
+                # self.signal_emit(p_recv, 'p')
 
             self.state_check()
             QtCore.QCoreApplication.processEvents()

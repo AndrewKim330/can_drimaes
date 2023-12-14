@@ -172,8 +172,8 @@ def message_info_by_can_id(can_id, bus):
                          "bit_st_pos": 0, "bit_len": 4})
         return info_set
     elif can_id == 0x18FE5BE8:
-        info_set.append("FCS_LDWSystemState")
-        info_set.append({"name": "FCS_AEBState", 0x0: "system is not ready(initialization not finished)",
+        info_set.append("FCS_FLI2")
+        info_set.append({"name": "FCS_LDWSystemState", 0x0: "system is not ready(initialization not finished)",
                          0x1: "System not available(not all conditions fulfilled)",
                          0x2: "System deactivated by driver",
                          0x3: "System is ready(no warning active)",
@@ -456,18 +456,14 @@ def message_info_by_can_id(can_id, bus):
 
 
 def data_matcher(tx, sub_mess):
-    # print(tx, sub_mess)
     sig = ''
     byte_len = int(sub_mess["bit_len"] / 8)
     if sub_mess["bit_len"] < 8:
         byte_len += 1
-    try:
-        for i in range(byte_len):
-            byte_pos = int(sub_mess["bit_st_pos"] / 8) + i
-            sig += str(signal_idendifier(tx, byte_pos, sub_mess))
-        return sub_mess[int(sig)]
-    except KeyError:
-        return str(sig)
+    for i in range(byte_len):
+        byte_pos = int(sub_mess["bit_st_pos"] / 8) + i
+        sig += str(signal_idendifier(tx, byte_pos, sub_mess))
+    return sig
 
 
 def signal_idendifier(tx, byte_pos, sub_mess):
