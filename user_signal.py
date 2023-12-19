@@ -1,5 +1,6 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 
 class UserSignal(QDialog):
@@ -7,6 +8,7 @@ class UserSignal(QDialog):
     def __init__(self, base_dir, main_obj):
         super().__init__()
         self.signal_ui = uic.loadUi(base_dir + r"./src/can_basic_user_signal_ui.ui", self)
+        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
         self.setWindowTitle("User Defined Signal for E-51 IVI CAN Simulator")
         self.show()
 

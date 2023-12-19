@@ -3,6 +3,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 import security_algorithm as algo
 import sig_generator as sig_gen
 import data_identifier as data_id
@@ -13,6 +14,7 @@ class DiagMain(QDialog):
     def __init__(self, base_dir, main_obj):
         super().__init__()
         self.ui = uic.loadUi(base_dir + r"./src/can_diagnosis_ui.ui", self)
+        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
         self.setWindowTitle("Diagnostic Console for E-51 IVI CAN Simulator")
         self.main_obj = main_obj
         self.show()

@@ -1,5 +1,6 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 import serial.tools.list_ports
 
 
@@ -8,7 +9,7 @@ class SerialPortSelection(QDialog):
     def __init__(self, base_dir, main_obj):
         super().__init__()
         self.ui = uic.loadUi(base_dir + r"./src/can_serial_bus_selection_ui.ui", self)
-
+        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
         self.setWindowTitle("Serial Port Selection for E-51 IVI CAN Simulator")
         self.ui_open()
 
@@ -48,10 +49,10 @@ class SerialPortSelection(QDialog):
     def search_serial(self):
         ports = serial.tools.list_ports.comports()
         if len(ports) == 0:
-            self.main_obj.serial_devices = []
+            serial_devices = []
         else:
-            self.main_obj.serial_devices = ports
-        self.port_setting(self.main_obj.serial_devices)
+            serial_devices = ports
+        self.port_setting(serial_devices)
 
     def selected_port_handler(self):
         selected_list = []

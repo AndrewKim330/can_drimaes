@@ -67,11 +67,8 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.tester_present_flag = None
 
         self.user_filter_obj = None
-
         self.user_signal_obj = None
-
         self.serial_selection_obj = None
-        self.serial_devices = []
 
         self.sub_mess_designated = None
         self.sub_data_designated = None
@@ -219,18 +216,25 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.user_signal_worker = worker.UserSignal(parent=self)
         self.user_signal_worker.user_defined_signal.connect(self.can_signal_sender)
 
-        self.btn_bus_connect.clicked.connect(self.bus_connect)
-
         self.btn_tx_console_clear.clicked.connect(self.console_text_clear)
 
+        self.btn_bus_peak.setChecked(True)
+        self.btn_bus_peak.clicked.connect(self.serial_selector_handler)
+        self.btn_bus_vector.clicked.connect(self.serial_selector_handler)
+        self.btn_bus_canable.clicked.connect(self.serial_selector_handler)
+        self.selected_ports = []
+        self.btn_bus_connect.clicked.connect(self.bus_connect)
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
 
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
-        self.chkbox_can_dump.released.connect(self.can_dump_mode)
+        self.pbar_save_log.setValue(0)
+        self.pbar_save_log.setVisible(False)
         # self.comboBox_log_format.addItem(".blf")
         self.comboBox_log_format.addItem(".asc")
+
+        self.chkbox_can_dump.released.connect(self.can_dump_mode)
 
         self.item = []
         self.btn_fixed_watch.setChecked(True)
@@ -251,8 +255,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.btn_time_relative.toggled.connect(self.console_text_clear)
         self.btn_time_delta.toggled.connect(self.console_text_clear)
 
-        self.btn_bus_peak.setChecked(True)
-
         self.treeWidget_tx.setColumnWidth(0, 120)
         self.treeWidget_tx.setColumnWidth(1, 105)
         self.treeWidget_tx.setColumnWidth(2, 200)
@@ -272,19 +274,12 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.set_node_btns(True)
         self.set_can_basic_btns_labels(False)
 
-        self.pbar_save_log.setValue(0)
-        self.pbar_save_log.setVisible(False)
-
         self.image_initialization()
+
         self.diag_obj = None
         self.chkbox_diag_console.clicked.connect(self.diag_main)
 
         self.chkbox_arbitrary_signal_1.clicked.connect(self.user_signal_handler)
-
-        self.btn_bus_canable.clicked.connect(self.serial_selector_handler)
-        self.btn_bus_peak.clicked.connect(self.serial_selector_handler)
-        self.btn_bus_vector.clicked.connect(self.serial_selector_handler)
-        self.selected_ports = []
 
         self.btn_0th_byte_up.clicked.connect(self.temp_distance)
         self.btn_1st_byte_up.clicked.connect(self.temp_distance)
