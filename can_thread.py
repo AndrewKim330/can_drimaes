@@ -1,4 +1,5 @@
 import time
+import datetime
 
 import can.interfaces.pcan
 import sig_generator as sig_gen
@@ -15,7 +16,6 @@ class NodeThread(QThread):
         self.period = 0.100
         self.time_flag = False
         self.pre_time = None
-        self.delta_diff = None
         self.data = [0xFF] * 8
         self.mmi_hvac = [0x00] * 8
 
@@ -24,13 +24,14 @@ class NodeThread(QThread):
             self.thread_func()
             QtCore.QCoreApplication.processEvents()
 
-    def calc_delta(self):
+    def calc_delta(self, send_id, send_time):
         if self.time_flag:
-            self.delta_diff = time.time() - self.pre_time
+            delta = time.time() - self.pre_time
         else:
-            self.delta_diff = self.period
+            delta = self.period
             self.time_flag = True
-        self.pre_time = time.time()
+        self.pre_time = send_time
+        return delta
 
     def thread_func(self):
         pass
@@ -49,12 +50,13 @@ class ThreadWorker(NodeThread):
         self.time_flag_li = [False] * 6
         self.delta_diff_li = [None] * 6
         self.pre_time_li = [None] * 6
+        self.delta_recv = dict()
 
     def run(self):
         while self._isRunning:
             if self.parent.c_can_bus:
                 c_recv = self.parent.c_can_bus.recv()
-                self.mmi_calc_delta_controler(c_recv)
+                self.calc_delta(c_recv)
 
                 if self.parent.chkbox_save_log.isChecked():
                     self.parent.log_data.append(c_recv)
@@ -154,42 +156,27 @@ class ThreadWorker(NodeThread):
                         self.parent.txt_res_aeb.setText("None")
 
             if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
-                p_recv = self.parent.p_can_bus.recv()
-                self.mmi_calc_delta_controler(p_recv)
+                pass
+                # if self.parent.canable_device:
+                #     frame_type, can_id, can_data, extended, ts = self.parent.c_can_bus.read(600000)
+                #     p_recv = can.Message(timestamp=time.time(), arbitration_id=can_id, data=can_data, channel=self.parent.p_can_bus)
+                # else:
+                #     p_recv = self.parent.p_can_bus.recv()
+                # self.calc_delta(p_recv)
                 # self.signal_emit(p_recv, 'p')
 
             self.state_check()
             QtCore.QCoreApplication.processEvents()
 
-    def mmi_calc_delta_controler(self, recv_message):
-        if recv_message.arbitration_id == 0x18FFD741:
-            self.calc_delta(0, recv_message)
-        elif recv_message.arbitration_id == 0x18FFD841:
-            self.calc_delta(1, recv_message)
-        elif recv_message.arbitration_id == 0x0C0BA021:
-            self.calc_delta(2, recv_message)
-        elif recv_message.arbitration_id == 0x18A9E821:
-            self.calc_delta(3, recv_message)
-        elif recv_message.arbitration_id == 0x18FF6341:
-            self.calc_delta(4, recv_message)
-        elif recv_message.arbitration_id == 0x18FF4B41:
-            self.calc_delta(5, recv_message)
-        else:
-            self.calc_delta(6, recv_message)
+    def calc_delta(self, recv_message):
+        recv_id = recv_message.arbitration_id
+        try:
+            delta_time = recv_message.timestamp - self.delta_recv[recv_id]
+        except KeyError:
+            delta_time = 0
+        self.delta_recv[recv_id] = recv_message.timestamp
 
-    def calc_delta(self, counting, recv_message):
-        if counting == 6:
-            time_delta = 0
-        else:
-            if self.time_flag_li[counting]:
-                self.delta_diff_li[counting] = time.time() - self.pre_time_li[counting]
-            else:
-                self.delta_diff_li[counting] = self.period
-                self.time_flag_li[counting] = True
-            self.pre_time_li[counting] = time.time()
-            time_delta = self.delta_diff_li[counting]
-
-        self.signal_emit(recv_message, 'c', time_delta)
+        self.signal_emit(recv_message, 'c', delta_time)
 
     def signal_emit(self, sig, bus_str, time_delta_diff):
         self.signal_presenter.emit(sig, bus_str, time_delta_diff)
@@ -240,8 +227,8 @@ class PMS_S_HVSM(NodeThread):
 
     def thread_func(self):  # HVSM_MMIFbSts
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.pms_s_hvsm_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.pms_s_hvsm_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_s_hvsm_signal.emit("C-CAN bus error (PMS_S - HVSM)", 0xFF, self.data, 0)
@@ -261,9 +248,9 @@ class PMS_C_StrWhl(NodeThread):
 
     def thread_func(self):  # SasChas1Fr01
         if self.parent.c_can_bus:
-            self.calc_delta()
+            time_delta = self.calc_delta(self.send_id, time.time())
             self.data[1] = self.value
-            self.pms_c_strwhl_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            self.pms_c_strwhl_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_c_strwhl_signal.emit("C-CAN bus error (PMS_C - StrWhl)", 0xFF, self.data, 0)
@@ -322,8 +309,8 @@ class BCM_MMI(NodeThread):
             self.data[3] = sig_gen.binary_sig(self.data[3], 4, 3, 7)
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.bcm_mmi_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bcm_mmi_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bcm_mmi_signal.emit("C-CAN bus error (BCM - MMI)", 0xFF, self.data, 0)
@@ -337,14 +324,24 @@ class BCM_SWRC(NodeThread):
         super().__init__(parent)
         self.period = 0.050
         self.long_count = 0
+        self.reset_count = 0
         self.long_threshold = 40
         self.count = 0
         self.btn_name = None
         self.send_id = 0x18fa7f21
+        self.reset_flag = False
 
     def thread_func(self):  # SWS-LIN
         self.data[0] = 0x00
         self.data[1] = 0x00
+
+        if self.parent.btn_reset.isChecked():
+            self.reset_flag = True
+            self.parent.btn_reset.setText("Reset\npressed")
+        else:
+            self.reset_flag = False
+            self.reset_count = 0
+            self.parent.btn_reset.setText("Reset")
 
         if self.btn_name:
             if self.btn_name == "btn_ok":
@@ -385,20 +382,25 @@ class BCM_SWRC(NodeThread):
                     self.long_count += 1
                 else:
                     self.data[1] = 0x80
-            elif self.btn_name == "btn_reset":
-                if self.long_count < self.long_threshold:
-                    self.data[0] = 0x02
-                    self.data[1] = 0x40
-                    self.long_count += 1
-                else:
-                    self.data[0] = 0x04
-                    self.data[1] = 0x80
         else:
             self.long_count = 0
 
+        if self.reset_flag:
+            if self.reset_count < self.long_threshold:
+                self.data[0] = 0x02
+                self.data[1] = 0x40
+                self.reset_count += 1
+            elif self.reset_count > 180:
+                self.parent.btn_reset.setChecked(False)
+                self.reset_count = 0
+            else:
+                self.data[0] = 0x04
+                self.data[1] = 0x80
+                self.reset_count += 1
+
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.bcm_swrc_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bcm_swrc_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bcm_swrc_signal.emit("C-CAN bus error (BCM - SWRC)", 0xFF, self.data, 0)
@@ -416,8 +418,8 @@ class BCM_StrWhl_Heat(NodeThread):
         self.data[0] = 0xFB  # need to fix
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.bcm_strwhl_heat_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bcm_strwhl_heat_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bcm_strwhl_heat_signal.emit("C-CAN bus error (BCM - StrWhl_Heat)", 0xFF, self.data, 0)
@@ -436,8 +438,8 @@ class BCM_LightChime(NodeThread):
 
     def thread_func(self):  # BCM_LightChileReq
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.bcm_lightchime_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bcm_lightchime_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bcm_lightchime_signal.emit("C-CAN bus error (BCM - LightChime)", 0xFF, self.data, 0)
@@ -471,8 +473,8 @@ class BCM_StateUpdate(NodeThread):
             self.data[2] = 0xFF
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.bcm_stateupdate_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bcm_stateupdate_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bcm_stateupdate_signal.emit("C-CAN bus error (BCM - StateUpdate)", 0xFF, self.data, 0)
@@ -495,8 +497,8 @@ class PMS_BodyCont_C(NodeThread):
         self.data[2] = int(self.value[0:2], 16)
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.pms_bodycont_c_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.pms_bodycont_c_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_bodycont_c_signal.emit("C-CAN bus error (PMS - BodyCont CCAN)", 0xFF, self.data, 0)
@@ -542,8 +544,8 @@ class PMS_PTInfo(NodeThread):
             self.data[5] = 0xFD
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.pms_ptinfo_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.pms_ptinfo_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_ptinfo_signal.emit("C-CAN bus error (PMS - PTInfo)", 0xFF, self.data, 0)
@@ -561,8 +563,8 @@ class PMS_BodyCont_P(NodeThread):
 
     def thread_func(self):  # PMS_BodyControlInfo (P-CAN)
         if self.parent.p_can_bus:
-            self.calc_delta()
-            self.pms_bodycont_p_signal.emit('p', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.pms_bodycont_p_signal.emit('p', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_bodycont_p_signal.emit("P-CAN bus error (PMS - BodyCont PCAN)", 0xFF, self.data, 0)
@@ -590,8 +592,8 @@ class PMS_VRI(NodeThread):
         self.data[1] = unit_dist_quotient
 
         if self.parent.p_can_bus:
-            self.calc_delta()
-            self.pms_vri_signal.emit('p', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.pms_vri_signal.emit('p', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.pms_vri_signal.emit("P-CAN bus error (PMS - VRI)", 0xFF, self.data, 0)
@@ -615,8 +617,8 @@ class FCS_AEB(NodeThread):
                 self.data[0] = 0xF2
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.fcs_aeb_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.fcs_aeb_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.fcs_aeb_signal.emit("C-CAN bus error (FCS - AEB)", 0xFF, self.data, 0)
@@ -635,8 +637,8 @@ class FCS_LDW(NodeThread):
 
     def thread_func(self):  # FCS_FLI2
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.fcs_ldw_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.fcs_ldw_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.fcs_ldw_signal.emit("C-CAN bus error (FCS - LDW)", 0xFF, self.data, 0)
@@ -657,8 +659,8 @@ class IC_TachoSpeed(NodeThread):
         self.data[7] = int(self.value[0:2], 16)
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.ic_tachospeed_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.ic_tachospeed_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.ic_tachospeed_signal.emit("C-CAN bus error (IC - TachoSpeed)", 0xFF, self.data, 0)
@@ -691,8 +693,8 @@ class IC_Distance(NodeThread):  # need to fix
 
             self.data[0] = self.dist_0_up * 0x01
             self.data[1] = self.dist_1_up * 0x01
-            self.calc_delta()
-            self.ic_distance_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.ic_distance_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.ic_distance_signal.emit("C-CAN bus error (IC - Distance)", 0xFF, self.data, 0)
@@ -719,8 +721,8 @@ class ESC_TPMS(NodeThread):
             self.tpms_count += 1
 
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.esc_tpms_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.esc_tpms_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
             if self.tpms_count > 10:
                 self.tpms_count = 0
@@ -740,8 +742,8 @@ class ACU_SeatBelt(NodeThread):
 
     def thread_func(self):
         if self.parent.c_can_bus:
-            self.calc_delta()
-            self.acu_seatbelt_signal.emit('c', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.acu_seatbelt_signal.emit('c', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.acu_seatbelt_signal.emit("C-CAN bus error (ACU - Seatbelt)", 0xFF, self.data, 0)
@@ -777,8 +779,8 @@ class BMS_Batt(NodeThread):
         self.data[5] = 0x7D
 
         if self.parent.p_can_bus:
-            self.calc_delta()
-            self.bms_batt_signal.emit('p', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bms_batt_signal.emit('p', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bms_batt_signal.emit("P-CAN bus error (BMS - Battery)", 0xFF, self.data, 0)
@@ -799,8 +801,8 @@ class BMS_Charge(NodeThread):
             self.data[0] = 0x1F
 
         if self.parent.p_can_bus:
-            self.calc_delta()
-            self.bms_charge_signal.emit('p', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.bms_charge_signal.emit('p', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.bms_charge_signal.emit("P-CAN bus error (BMS - Charging)", 0xFF, self.data, 0)
@@ -818,8 +820,8 @@ class MCU_Motor(NodeThread):
 
     def thread_func(self):
         if self.parent.p_can_bus:
-            self.calc_delta()
-            self.mcu_motor_signal.emit('p', self.send_id, self.data, self.delta_diff)
+            time_delta = self.calc_delta(self.send_id, time.time())
+            self.mcu_motor_signal.emit('p', self.send_id, self.data, time_delta)
             time.sleep(self.period)
         else:
             self.mcu_motor_signal.emit("P-CAN bus error (MCU - Motor)", 0xFF, self.data, 0)
@@ -858,9 +860,9 @@ class UserSignal(NodeThread):
         self.bus_selector = None
 
     def thread_func(self):
-        self.calc_delta()
+        time_delta = self.calc_delta(self.send_id, time.time())
         if self.bus_selector == "C-CAN":
             self.bus_selector = "c"
         elif self.bus_selector == "P-CAN":
             self.bus_selector = "p"
-        self.user_defined_signal.emit(self.bus_selector, self.send_id, self.data, self.delta_diff)
+        self.user_defined_signal.emit(self.bus_selector, self.send_id, self.data, time_delta)

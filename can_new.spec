@@ -3,7 +3,7 @@
 
 block_cipher = None
 
-ui = [('./src/can_basic_ui.ui', '.'), ('./src/can_diagnosis_ui.ui', '.')]
+ui = [('./src/can_basic_ui.ui', '.'), ('./src/can_diagnosis_ui.ui', '.'), ('./src/can_serial_bus_selection_ui.ui', '.')]
 
 a = Analysis(
     ['can_new_devide.py'],
@@ -20,6 +20,7 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -43,4 +44,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='./src/drimaes_icon.ico',
 )

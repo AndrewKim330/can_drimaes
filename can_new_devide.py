@@ -2,7 +2,7 @@ import os
 import sys
 import can
 import time
-import usb
+import serial.tools.list_ports
 from datetime import datetime
 import security_algorithm as algo
 import data_identifier as data_id
@@ -13,6 +13,7 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtGui import *
 from can import interfaces
 import can.interfaces.vector
+import can.interfaces.slcan
 import can_thread as worker
 import pyqtgraph as pg
 
@@ -26,12 +27,14 @@ class Main(QMainWindow, Ui_MainWindow):
         super().__init__()
 
         self.setupUi(self)
-        self.curve = self.graph_widget.plot()
+        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
+        self.setWindowTitle("Main Window for E-51 IVI CAN Simulator")
         self.show()
 
-        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        self.curve = self.graph_widget.plot()
 
-        self.c_can_name = ''
+
+        self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
         self.temp_list = []
         self.graph_x_list = []
@@ -52,8 +55,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.diag_tester_id = 0x18da41f1
 
         self.c_can_bus = None
-
         self.p_can_bus = None
+
         self.bus_flag = False
 
         self.drv_state = False
@@ -65,6 +68,9 @@ class Main(QMainWindow, Ui_MainWindow):
         self.user_filter_obj = None
 
         self.user_signal_obj = None
+
+        self.serial_selection_obj = None
+        self.serial_devices = []
 
         self.sub_mess_designated = None
         self.sub_data_designated = None
@@ -117,8 +123,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_vol_down.pressed.connect(self.btn_press_handler)
         self.btn_vol_down.released.connect(self.btn_release_handler)
 
-        self.btn_reset.pressed.connect(self.btn_press_handler)
-        self.btn_reset.released.connect(self.btn_release_handler)
+        # self.btn_reset.pressed.connect(self.btn_press_handler)
+        # self.btn_reset.released.connect(self.btn_release_handler)
 
         self.bcm_strwhl_heat_worker = worker.BCM_StrWhl_Heat(parent=self)
         self.bcm_strwhl_heat_worker.bcm_strwhl_heat_signal.connect(self.can_signal_sender)
@@ -234,6 +240,8 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_time_relative.toggled.connect(self.console_text_clear)
         self.btn_time_delta.toggled.connect(self.console_text_clear)
 
+        self.btn_bus_peak.setChecked(True)
+
         self.treeWidget_tx.setColumnWidth(0, 120)
         self.treeWidget_tx.setColumnWidth(1, 105)
         self.treeWidget_tx.setColumnWidth(2, 200)
@@ -262,6 +270,11 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.chkbox_arbitrary_signal_1.clicked.connect(self.user_signal_handler)
 
+        self.btn_bus_canable.clicked.connect(self.serial_selector_handler)
+        self.btn_bus_peak.clicked.connect(self.serial_selector_handler)
+        self.btn_bus_vector.clicked.connect(self.serial_selector_handler)
+        self.selected_ports = []
+
         self.btn_0th_byte_up.clicked.connect(self.temp_distance)
         self.btn_1st_byte_up.clicked.connect(self.temp_distance)
 
@@ -269,107 +282,177 @@ class Main(QMainWindow, Ui_MainWindow):
         if not self.bus_flag:
             bus_count = 0
             if self.chkbox_can_dump.isChecked():
-                try:
-                    temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-                    self.bus_console.appendPlainText("1 Channel is connected")
+                if self.btn_bus_peak.isChecked():
                     try:
-                        temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                        while bus_count < 1000:
-                            bus_count += 1
-                            if temp1.recv().arbitration_id == 0x18ffd741:
+                        temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                        self.bus_console.appendPlainText("PEAK-CAN bus is connected")
+                        try:
+                            temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+                            while bus_count < 1000:
+                                bus_count += 1
+                                if temp1.recv().arbitration_id == 0x18ffd741:
+                                    self.c_can_bus = temp1
+                                    self.p_can_bus = temp2
+                                    break
+                                elif temp1.recv().arbitration_id == 0x0cfa01ef:
+                                    self.c_can_bus = temp2
+                                    self.p_can_bus = temp1
+                                    break
+                            self.bus_console.appendPlainText("2 Channel is connected.")
+                        except can.interfaces.pcan.pcan.PcanError as e2:
+                            print(e2)
+                            while bus_count < 1000:
+                                bus_count += 1
+                                if temp1.recv().arbitration_id == 0x18ffd741:
+                                    self.c_can_bus = temp1
+                                    break
+                                else:
+                                    self.p_can_bus = temp1
+                            self.bus_console.appendPlainText("1 Channel is connected.")
+                        self.bus_connect_success()
+                    except ImportError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("PEAK-CAN driver is not installed.")
+                    except can.interfaces.pcan.pcan.PcanError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("Connect the PEAK-CAN device.")
+                elif self.btn_bus_vector.isChecked():
+                    try:
+                        self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                        self.bus_console.appendPlainText("Vector bus is connected.")
+                        try:
+                            self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                            self.bus_console.appendPlainText("2 Channel is connected.")
+                        except interfaces.vector.VectorError as e2:
+                            print(e2)
+                            self.bus_console.appendPlainText("1 Channel is connected.")
+                        self.bus_connect_success()
+                    except interfaces.vector.VectorError as e1:
+                        print(e1)
+                        try:
+                            self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                            self.bus_console.appendPlainText("Vector bus is connected.")
+                            self.bus_console.appendPlainText("1 Channel is connected.")
+                            self.bus_connect_success()
+                        except interfaces.vector.VectorError as e2:
+                            print(e2)
+                            self.bus_console.appendPlainText("Connect the Vector(CANoe) device.")
+                    except ImportError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("Vector(CANoe) driver is not installed.")
+                elif self.btn_bus_canable.isChecked():
+                    try:
+                        temp1 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[0], bitrate='500000')
+                        self.bus_console.appendPlainText("Serial bus(CANable bus) is connected.")
+                        try:
+                            temp2 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[1], bitrate='500000')
+                            while bus_count < 1000:
+                                bus_count += 1
+                                if temp1.recv().arbitration_id == 0x18ffd741:
+                                    self.c_can_bus = temp1
+                                    self.p_can_bus = temp2
+                                    break
+                                elif temp1.recv().arbitration_id == 0x0cfa01ef:
+                                    self.c_can_bus = temp2
+                                    self.p_can_bus = temp1
+                                    break
+                            self.bus_console.appendPlainText("2 Channel is connected.")
+                        except IndexError:
+                            while bus_count < 1000:
+                                bus_count += 1
+                                if temp1.recv().arbitration_id == 0x18ffd741:
+                                    self.c_can_bus = temp1
+                                    break
+                                else:
+                                    self.p_can_bus = temp1
+                            self.bus_console.appendPlainText("1 Channel is connected.")
+                        self.bus_connect_success()
+                    except serial.serialutil.SerialException:
+                        self.bus_console.appendPlainText("Select appropriate serial port.")
+                    except IndexError:
+                        self.bus_console.appendPlainText("Select the serial port first.")
+            else:
+                if self.btn_bus_peak.isChecked():
+                    try:
+                        temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
+                        self.bus_console.appendPlainText("PEAK-CAN bus is connected")
+                        try:
+                            temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
+                            if temp1.recv(1):
                                 self.c_can_bus = temp1
-                                self.c_can_name = temp1.channel_info
                                 self.p_can_bus = temp2
-                                break
-                            elif temp1.recv().arbitration_id == 0x0cfa01ef:
+                            else:
                                 self.c_can_bus = temp2
-                                self.c_can_name = temp2.channel_info
                                 self.p_can_bus = temp1
-                                break
-                        self.bus_console.appendPlainText("2 Channel is connected")
-                    except:
-                        while bus_count < 1000:
-                            bus_count += 1
-                            if temp1.recv().arbitration_id == 0x18ffd741:
+                            self.bus_console.appendPlainText("2 Channel is connected")
+                        except can.interfaces.pcan.pcan.PcanError:
+                            if temp1.recv(1):
                                 self.c_can_bus = temp1
-                                self.c_can_name = temp1.channel_info
-                                break
                             else:
                                 self.p_can_bus = temp1
-
-                    self.bus_flag = True
-                    self.bus_console.appendPlainText("PEAK-CAN bus is connected")
-                except interfaces.pcan.pcan.PcanCanInitializationError as e1:
-                    print(e1)
-                    self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
-                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
-                    self.c_can_name = self.c_can_bus.channel_info
+                            self.bus_console.appendPlainText("1 Channel is connected")
+                        self.bus_connect_success()
+                    except ImportError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("PEAK-CAN driver is not installed.")
+                    except can.interfaces.pcan.pcan.PcanError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("Connect the PEAK-CAN device.")
+                elif self.btn_bus_vector.isChecked():
                     try:
-                        bus_count = 0
-                        self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-                        while bus_count < 100:
-                            self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                        self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
+                        try:
+                            self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
+                            while bus_count < 100:
+                                self.can_signal_sender('p', 0x0cfa01ef, self.data)
+                                self.console_text_clear("tx_console_clear")
+                                bus_count += 1
+                            self.bus_connect_success()
+                            self.bus_console.appendPlainText("Vector bus is connected")
+                        except can.interfaces.vector.exceptions.VectorError as e2:
+                            print(e2)
                             self.console_text_clear("tx_console_clear")
-                            bus_count += 1
-                        self.bus_flag = True
-                        self.bus_console.appendPlainText("Vector bus is connected")
-                    except interfaces.vector.VectorError as e2:
-                        print(e2)
-                        self.console_text_clear("tx_console_clear")
-                        self.bus_flag = True
-                        self.p_can_bus = None
-                        self.bus_console.appendPlainText("1 Channel is connected")
-                    except can.exceptions.CanInterfaceNotImplementedError as e3:
-                        print(e3)
-                        self.bus_console.appendPlainText("CAN device is not connected")
-            else:
-                try:
-                    temp1 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate='500000')
-                    self.bus_console.appendPlainText("1 Channel is connected")
+                            self.bus_connect_success()
+                            self.p_can_bus = None
+                            self.bus_console.appendPlainText("1 Channel is connected")
+                    except ImportError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("Vector(CANoe) driver is not installed.")
+                    except can.interfaces.vector.exceptions.VectorError as e1:
+                        print(e1)
+                        self.bus_console.appendPlainText("Connect the Vector device.")
+                elif self.btn_bus_canable.isChecked():
                     try:
-                        temp2 = can.interface.Bus(bustype='pcan', channel='PCAN_USBBUS2', bitrate='500000')
-                        if temp1.recv(1):
-                            self.c_can_bus = temp1
-                            self.c_can_name = temp1.channel_info
-                            self.p_can_bus = temp2
-                        else:
-                            self.c_can_bus = temp2
-                            self.c_can_name = temp2.channel_info
-                            self.p_can_bus = temp1
-                        self.bus_console.appendPlainText("2 Channel is connected")
-                    except:
-                        if temp1.recv(1):
-                            self.c_can_bus = temp1
-                            self.c_can_name = temp1.channel_info
-                        else:
-                            self.p_can_bus = temp1
-
-                    self.bus_flag = True
-                    self.bus_console.appendPlainText("PEAK-CAN bus is connected")
-                except interfaces.pcan.pcan.PcanCanInitializationError as e1:
-                    print(e1)
-                    self.bus_console.appendPlainText("PEAK-CAN bus is not connected")
-                    self.c_can_bus = can.interface.Bus(bustype='vector', channel=0, bitrate='500000')
-                    self.c_can_name = self.c_can_bus.channel_info
-                    try:
-                        self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
-                        while bus_count < 100:
-                            self.can_signal_sender('p', 0x0cfa01ef, self.data)
-                            self.console_text_clear("tx_console_clear")
-                            bus_count += 1
-                        self.bus_flag = True
-                        self.bus_console.appendPlainText("Vector bus is connected")
-                    except interfaces.vector.VectorError as e2:
-                        print(e2)
-                        self.console_text_clear("tx_console_clear")
-                        self.bus_flag = True
-                        self.p_can_bus = None
-                        self.bus_console.appendPlainText("1 Channel is connected")
-                    except can.exceptions.CanInterfaceNotImplementedError as e3:
-                        print(e3)
-                        self.bus_console.appendPlainText("CAN device is not connected")
+                        temp1 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[0], bitrate='500000')
+                        self.bus_console.appendPlainText("Serial bus(CANable bus) is connected.")
+                        try:
+                            temp2 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[1], bitrate='500000')
+                            if temp1.recv():
+                                self.c_can_bus = temp1
+                                self.p_can_bus = temp2
+                            else:
+                                self.c_can_bus = temp2
+                                self.p_can_bus = temp1
+                            self.bus_console.appendPlainText("2 Channel is connected.")
+                        except IndexError:
+                            if temp1.recv(1):
+                                self.c_can_bus = temp1
+                            else:
+                                self.p_can_bus = temp1
+                            self.bus_console.appendPlainText("1 Channel is connected.")
+                        self.bus_connect_success()
+                    except serial.serialutil.SerialException:
+                        self.bus_console.appendPlainText("Select appropriate serial port.")
+                    except IndexError:
+                        self.bus_console.appendPlainText("Select the serial port first.")
         else:
-            self.bus_console.appendPlainText("CAN bus is already connected")
+            self.bus_console.appendPlainText("CAN bus is already connected.")
+
+    def bus_connect_success(self):
+        self.bus_flag = True
+        self.btn_bus_peak.setEnabled(False)
+        self.btn_bus_vector.setEnabled(False)
+        self.btn_bus_canable.setEnabled(False)
 
     def thread_start(self):
         if self.bus_flag:
@@ -398,7 +481,7 @@ class Main(QMainWindow, Ui_MainWindow):
 
             self.chkbox_can_dump.setEnabled(False)
         else:
-            self.bus_console.appendPlainText("Can bus is not connected")
+            self.bus_console.appendPlainText("CAN bus is not connected")
 
     def thread_stop(self):
         self.set_mmi_labels_init(False)
@@ -1036,6 +1119,12 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             self.mcu_motor_worker.stop()
 
+    def btn_press_handler(self):
+        self.bcm_swrc_worker.btn_name = self.sender().objectName()
+
+    def btn_release_handler(self):
+        self.bcm_swrc_worker.btn_name = False
+
     def diag_main(self):
         if self.chkbox_diag_console.isChecked():
             self.diag_obj = Diag_Main()
@@ -1052,12 +1141,6 @@ class Main(QMainWindow, Ui_MainWindow):
         self.diag_obj.set_diag_comm_cont_btns_labels(flag)
         self.diag_obj.set_diag_mem_fault_btns_labels(flag)
         self.diag_obj.set_diag_dtc_cont_btns_labels(flag)
-
-    def btn_press_handler(self):
-        self.bcm_swrc_worker.btn_name = self.sender().objectName()
-
-    def btn_release_handler(self):
-        self.bcm_swrc_worker.btn_name = False
 
     def user_filter_handler(self, tx_name):
         if not self.user_filter_obj:
@@ -1081,12 +1164,26 @@ class Main(QMainWindow, Ui_MainWindow):
         else:
             self.user_signal_obj.lineEdit_period.setEnabled(False)
 
+    def serial_selector_handler(self):
+        if self.btn_bus_peak.isChecked() or self.btn_bus_vector.isChecked():
+            if not self.serial_selection_obj:
+                pass
+            else:
+                self.serial_selection_obj.ui_close()
+        else:
+            if not self.serial_selection_obj:
+                self.serial_selection_obj = Serial_Port_Selection()
+                self.serial_selection_obj.search_serial()
+            else:
+                self.serial_selection_obj.ui_open()
+
 
 class Diag_Main(QDialog):
 
     def __init__(self):
         super().__init__()
         self.ui = uic.loadUi(BASE_DIR + r"./src/can_diagnosis_ui.ui", self)
+        self.setWindowTitle("Diagnosic Console for E-51 IVI CAN Simulator")
         self.show()
 
         if mywindow.c_can_bus:
@@ -2546,6 +2643,7 @@ class Diag_Main(QDialog):
                 self.write_data[7] = self.write_txt.pop(0)
                 temp_li.append(self.write_data)
             for w_data in temp_li:
+                time.sleep(0.01)
                 self.data = w_data
                 mywindow.send_message('c', self.diag_tester_id, self.data, 0)
             time.sleep(0.3)
@@ -2949,6 +3047,7 @@ class User_Filter(QDialog):
     def __init__(self):
         super().__init__()
         self.filter_ui = uic.loadUi(BASE_DIR + r"./src/can_basic_user_filter_ui.ui", self)
+        self.setWindowTitle("User Defined Filter for E-51 IVI CAN Simulator")
         self.show()
 
         self.tx_name_set = set()
@@ -3133,6 +3232,7 @@ class User_Signal(QDialog):
     def __init__(self):
         super().__init__()
         self.signal_ui = uic.loadUi(BASE_DIR + r"./src/can_basic_user_signal_ui.ui", self)
+        self.setWindowTitle("User Defined Signal for E-51 IVI CAN Simulator")
         self.show()
 
         self.tx_name_set = set()
@@ -3261,6 +3361,64 @@ class User_Signal(QDialog):
 
     def ui_close(self):
         self.close()
+
+
+class Serial_Port_Selection(QDialog):
+
+    def __init__(self):
+        super().__init__()
+        self.ui = uic.loadUi(BASE_DIR + r"./src/can_serial_bus_selection_ui.ui", self)
+
+        self.setWindowTitle("Serial Port Selection for E-51 IVI CAN Simulator")
+        self.ui_open()
+
+        self.port_chkboxes = [self.chkbox_serial_port_1, self.chkbox_serial_port_2,
+                              self.chkbox_serial_port_3, self.chkbox_serial_port_4,
+                              self.chkbox_serial_port_5, self.chkbox_serial_port_6]
+
+        self.btn_ports_apply.clicked.connect(self.selected_port_handler)
+        self.btn_ports_refresh.clicked.connect(self.search_serial)
+
+        self.ui_visibility()
+
+    def port_setting(self, port_list=None):
+        if len(port_list) != 0:
+            self.ui_visibility(True)
+            for num, device in zip(range(len(port_list)), port_list):
+                self.port_chkboxes[num].setEnabled(True)
+                self.port_chkboxes[num].setText(device.device)
+        else:
+            self.ui_visibility(False)
+
+    def ui_visibility(self, flag=True):
+        for device in self.port_chkboxes:
+            device.setText("Serial port")
+            device.setVisible(flag)
+            device.setChecked(False)
+        self.label_no_port.setVisible(not flag)
+
+    def ui_open(self):
+        self.show()
+
+    def ui_close(self):
+        self.close()
+
+    def search_serial(self):
+        ports = serial.tools.list_ports.comports()
+        if len(ports) == 0:
+            mywindow.serial_devices = []
+        else:
+            mywindow.serial_devices = ports
+        self.port_setting(mywindow.serial_devices)
+
+    def selected_port_handler(self):
+        selected_list = []
+        for port in self.port_chkboxes:
+            if port.isChecked():
+                selected_list.append(port.text())
+        mywindow.selected_ports = selected_list
+        mywindow.bus_console.appendPlainText("Serial port is selected")
+        self.ui_close()
 
 
 if __name__ == '__main__':
