@@ -4,7 +4,6 @@ import can
 import time
 from datetime import datetime
 import serial
-import data_identifier as data_id
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
@@ -12,9 +11,9 @@ from PyQt5.QtGui import *
 from can import interfaces
 import can.interfaces.vector
 import can.interfaces.slcan
-import can_thread as worker
 import pyqtgraph as pg
-
+import data_identifier as data_id
+import can_thread as worker
 import diagnosis
 import user_filter
 import user_signal
@@ -24,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 Ui_MainWindow, QtBaseClass = pg.Qt.loadUiType(BASE_DIR + r"./src/can_basic_ui.ui")
 
 
-class Main(QMainWindow, Ui_MainWindow):
+class SimulatorMain(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         super().__init__()
@@ -79,88 +78,42 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.tx_set = set()
 
-        self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
-        self.pms_s_hvsm_worker.pms_s_hvsm_signal.connect(self.can_signal_sender)
-
-        self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
-        self.pms_c_strwhl_worker.pms_c_strwhl_signal.connect(self.can_signal_sender)
-
-        self.pms_bodycont_c_worker = worker.PMS_BodyCont_C(parent=self)
-        self.pms_bodycont_c_worker.pms_bodycont_c_signal.connect(self.can_signal_sender)
-
-        self.pms_ptinfo_worker = worker.PMS_PTInfo(parent=self)
-        self.pms_ptinfo_worker.pms_ptinfo_signal.connect(self.can_signal_sender)
-
         self.btn_drv_state.clicked.connect(self.set_drv_state)
-
-        # Default value of Power mode radio button
-        self.btn_acc.setChecked(True)
-
-        self.bcm_mmi_worker = worker.BCM_MMI(parent=self)
-        self.bcm_mmi_worker.bcm_mmi_signal.connect(self.can_signal_sender)
-
-        # Default value of Gear radio button
-        self.btn_gear_n.setChecked(True)
-
-        self.bcm_swrc_worker = worker.BCM_SWRC(parent=self)
-        self.bcm_swrc_worker.bcm_swrc_signal.connect(self.can_signal_sender)
-
-        self.btn_ok.pressed.connect(self.btn_press_handler)
-        self.btn_ok.released.connect(self.btn_release_handler)
-        self.btn_undo.pressed.connect(self.btn_press_handler)
-        self.btn_undo.released.connect(self.btn_release_handler)
-        self.btn_mode.pressed.connect(self.btn_press_handler)
-        self.btn_mode.released.connect(self.btn_release_handler)
-        self.btn_mute.pressed.connect(self.btn_press_handler)
-        self.btn_mute.released.connect(self.btn_release_handler)
-        self.btn_left.pressed.connect(self.btn_press_handler)
-        self.btn_left.released.connect(self.btn_release_handler)
-        self.btn_right.pressed.connect(self.btn_press_handler)
-        self.btn_right.released.connect(self.btn_release_handler)
-
-        self.btn_call.pressed.connect(self.btn_press_handler)
-        self.btn_call.released.connect(self.btn_release_handler)
-        self.btn_vol_up.pressed.connect(self.btn_press_handler)
-        self.btn_vol_up.released.connect(self.btn_release_handler)
-        self.btn_vol_down.pressed.connect(self.btn_press_handler)
-        self.btn_vol_down.released.connect(self.btn_release_handler)
-
-        # self.btn_reset.pressed.connect(self.btn_press_handler)
-        # self.btn_reset.released.connect(self.btn_release_handler)
-
-        self.bcm_strwhl_heat_worker = worker.BCM_StrWhl_Heat(parent=self)
-        self.bcm_strwhl_heat_worker.bcm_strwhl_heat_signal.connect(self.can_signal_sender)
-
-        self.bcm_lightchime_worker = worker.BCM_LightChime(parent=self)
-        self.bcm_lightchime_worker.bcm_lightchime_signal.connect(self.can_signal_sender)
-
-        self.bcm_stateupdate_worker = worker.BCM_StateUpdate(parent=self)
-        self.bcm_stateupdate_worker.bcm_stateupdate_signal.connect(self.can_signal_sender)
-
-        self.ic_tachospeed_worker = worker.IC_TachoSpeed(parent=self)
-        self.ic_tachospeed_worker.ic_tachospeed_signal.connect(self.can_signal_sender)
-
-        self.ic_distance_worker = worker.IC_Distance(parent=self)
-        self.ic_distance_worker.ic_distance_signal.connect(self.can_signal_sender)
 
         self.btn_ota_cond.clicked.connect(self.set_ota_cond)
 
-        self.esc_tpms_worker = worker.ESC_TPMS(parent=self)
-        self.esc_tpms_worker.esc_tpms_signal.connect(self.can_signal_sender)
+        # PMS_S
+        self.pms_s_hvsm_worker = worker.PMS_S_HVSM(parent=self)
+        self.pms_s_hvsm_worker.pms_s_hvsm_signal.connect(self.can_signal_sender)
+        pms_s_worker_list = [self.pms_s_hvsm_worker]
+        self.pms_s_worker_handler = NodeHandler(self.chkbox_node_pms_s, pms_s_worker_list).node_handler
 
-        self.btn_tpms_success.clicked.connect(self.tpms_handler)
-        self.btn_tpms_fail.clicked.connect(self.tpms_handler)
+        # PMS_C
+        self.pms_c_strwhl_worker = worker.PMS_C_StrWhl(parent=self)
+        self.pms_c_strwhl_worker.pms_c_strwhl_signal.connect(self.can_signal_sender)
+        pms_c_worker_list = [self.pms_c_strwhl_worker]
+        self.pms_c_worker_handler = NodeHandler(self.chkbox_node_pms_c, pms_c_worker_list).node_handler
 
-        self.btn_bright_afternoon.setChecked(True)
+        # PMS (Separated to C-CAN & P-CAN)
+        # PMS (C-CAN)
+        self.pms_bodycont_c_worker = worker.PMS_BodyCont_C(parent=self)
+        self.pms_bodycont_c_worker.pms_bodycont_c_signal.connect(self.can_signal_sender)
+        self.btn_gear_n.setChecked(True)  # Default value of Gear radio button
+        self.pms_ptinfo_worker = worker.PMS_PTInfo(parent=self)
+        self.pms_ptinfo_worker.pms_ptinfo_signal.connect(self.can_signal_sender)
+        # PMS (P-CAN)
+        self.pms_bodycont_p_worker = worker.PMS_BodyCont_P(parent=self)
+        self.pms_bodycont_p_worker.pms_bodycont_p_signal.connect(self.can_signal_sender)
+        self.pms_vri_worker = worker.PMS_VRI(parent=self)
+        self.pms_vri_worker.pms_vri_signal.connect(self.can_signal_sender)
+        pms_worker_list = [self.pms_bodycont_c_worker, self.pms_ptinfo_worker, self.pms_bodycont_p_worker,
+                           self.pms_vri_worker]
+        self.pms_worker_handler = NodeHandler(self.chkbox_node_pms, pms_worker_list).node_handler
 
-        self.fcs_aeb_worker = worker.FCS_AEB(parent=self)
-        self.fcs_aeb_worker.fcs_aeb_signal.connect(self.can_signal_sender)
-
-        self.fcs_ldw_worker = worker.FCS_LDW(parent=self)
-        self.fcs_ldw_worker.fcs_ldw_signal.connect(self.can_signal_sender)
-
-        self.btn_mscs_ok.setChecked(True)
-
+        # BCM
+        self.bcm_mmi_worker = worker.BCM_MMI(parent=self)
+        self.bcm_mmi_worker.bcm_mmi_signal.connect(self.can_signal_sender)
+        self.btn_mscs_ok.setChecked(True)  # Default value of StWhlDiag signal radio button
         self.btn_mscs_ok.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_CmnFail.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_NotEdgePress.clicked.connect(self.bcm_mmi_worker.thread_func)
@@ -169,27 +122,94 @@ class Main(QMainWindow, Ui_MainWindow):
         self.btn_mscs_FltPwrSplyErr.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_FltSwtHiSide.clicked.connect(self.bcm_mmi_worker.thread_func)
         self.btn_mscs_SigFailr.clicked.connect(self.bcm_mmi_worker.thread_func)
+        self.bcm_swrc_worker = worker.BCM_SWRC(parent=self)
+        self.bcm_swrc_worker.bcm_swrc_signal.connect(self.can_signal_sender)
+        self.btn_ok.pressed.connect(self.btn_press_handler)  # SWRC OK button
+        self.btn_ok.released.connect(self.btn_release_handler)
+        self.btn_undo.pressed.connect(self.btn_press_handler)  # SWRC Undo button
+        self.btn_undo.released.connect(self.btn_release_handler)
+        self.btn_mode.pressed.connect(self.btn_press_handler)  # SWRC Mode button
+        self.btn_mode.released.connect(self.btn_release_handler)
+        self.btn_mute.pressed.connect(self.btn_press_handler)  # SWRC Mute button
+        self.btn_mute.released.connect(self.btn_release_handler)
+        self.btn_left.pressed.connect(self.btn_press_handler)  # SWRC Left button
+        self.btn_left.released.connect(self.btn_release_handler)
+        self.btn_right.pressed.connect(self.btn_press_handler)  # SWRC Right button
+        self.btn_right.released.connect(self.btn_release_handler)
+        self.btn_call.pressed.connect(self.btn_press_handler)  # SWRC Call button
+        self.btn_call.released.connect(self.btn_release_handler)
+        self.btn_vol_up.pressed.connect(self.btn_press_handler)  # SWRC Volume Up button
+        self.btn_vol_up.released.connect(self.btn_release_handler)
+        self.btn_vol_down.pressed.connect(self.btn_press_handler)  # SWRC Volume Down button
+        self.btn_vol_down.released.connect(self.btn_release_handler)
+        self.bcm_strwhl_heat_worker = worker.BCM_StrWhl_Heat(parent=self)
+        self.bcm_strwhl_heat_worker.bcm_strwhl_heat_signal.connect(self.can_signal_sender)
+        self.bcm_lightchime_worker = worker.BCM_LightChime(parent=self)
+        self.bcm_lightchime_worker.bcm_lightchime_signal.connect(self.can_signal_sender)
+        self.bcm_stateupdate_worker = worker.BCM_StateUpdate(parent=self)
+        self.bcm_stateupdate_worker.bcm_stateupdate_signal.connect(self.can_signal_sender)
+        self.btn_acc.setChecked(True)  # Default value of Power mode radio button
+        self.btn_bright_afternoon.setChecked(True)  # Default value of auto brightness radio button
+        bcm_worker_list = [self.bcm_mmi_worker, self.bcm_swrc_worker, self.bcm_strwhl_heat_worker,
+                           self.bcm_lightchime_worker, self.bcm_stateupdate_worker]
+        self.bcm_worker_handler = NodeHandler(self.chkbox_node_bcm, bcm_worker_list).node_handler
 
+        # IC
+        self.ic_tachospeed_worker = worker.IC_TachoSpeed(parent=self)
+        self.ic_tachospeed_worker.ic_tachospeed_signal.connect(self.can_signal_sender)
+        self.ic_distance_worker = worker.IC_Distance(parent=self)
+        self.ic_distance_worker.ic_distance_signal.connect(self.can_signal_sender)
+        ic_worker_list = [self.ic_tachospeed_worker, self.ic_distance_worker]
+        self.ic_worker_handler = NodeHandler(self.chkbox_node_ic, ic_worker_list).node_handler
+
+        # ESC
+        self.esc_tpms_worker = worker.ESC_TPMS(parent=self)
+        self.esc_tpms_worker.esc_tpms_signal.connect(self.can_signal_sender)
+        self.btn_tpms_success.clicked.connect(self.tpms_handler)
+        self.btn_tpms_fail.clicked.connect(self.tpms_handler)
+        esc_worker_list = [self.esc_tpms_worker]
+        self.esc_worker_handler = NodeHandler(self.chkbox_node_esc, esc_worker_list).node_handler
+
+        # FCS
+        self.fcs_aeb_worker = worker.FCS_AEB(parent=self)
+        self.fcs_aeb_worker.fcs_aeb_signal.connect(self.can_signal_sender)
+        self.fcs_ldw_worker = worker.FCS_LDW(parent=self)
+        self.fcs_ldw_worker.fcs_ldw_signal.connect(self.can_signal_sender)
+        fcs_worker_list = [self.fcs_aeb_worker, self.fcs_ldw_worker]
+        self.fcs_worker_handler = NodeHandler(self.chkbox_node_fcs, fcs_worker_list).node_handler
+
+        # ACU
         self.acu_seatbelt_worker = worker.ACU_SeatBelt(parent=self)
         self.acu_seatbelt_worker.acu_seatbelt_signal.connect(self.can_signal_sender)
-
         self.chkbox_drv_invalid.stateChanged.connect(self.acu_seatbelt_worker.drv_invalid)
         self.chkbox_pass_invalid.stateChanged.connect(self.acu_seatbelt_worker.pass_invalid)
+        acu_worker_list = [self.acu_seatbelt_worker]
+        self.acu_worker_handler = NodeHandler(self.chkbox_node_acu, acu_worker_list).node_handler
 
-        self.pms_bodycont_p_worker = worker.PMS_BodyCont_P(parent=self)
-        self.pms_bodycont_p_worker.pms_bodycont_p_signal.connect(self.can_signal_sender)
-
-        self.pms_vri_worker = worker.PMS_VRI(parent=self)
-        self.pms_vri_worker.pms_vri_signal.connect(self.can_signal_sender)
-
+        # BMS
         self.bms_batt_worker = worker.BMS_Batt(parent=self)
         self.bms_batt_worker.bms_batt_signal.connect(self.can_signal_sender)
-
         self.bms_charge_worker = worker.BMS_Charge(parent=self)
         self.bms_charge_worker.bms_charge_signal.connect(self.can_signal_sender)
+        bms_worker_list = [self.bms_batt_worker, self.bms_charge_worker]
+        self.bms_worker_handler = NodeHandler(self.chkbox_node_bms, bms_worker_list).node_handler
 
+        # MCU
         self.mcu_motor_worker = worker.MCU_Motor(parent=self)
         self.mcu_motor_worker.mcu_motor_signal.connect(self.can_signal_sender)
+        mcu_worker_list = [self.mcu_motor_worker]
+        self.mcu_worker_handler = NodeHandler(self.chkbox_node_mcu, mcu_worker_list).node_handler
+
+        self.chkbox_node_acu.released.connect(self.acu_worker_handler)
+        self.chkbox_node_bcm.released.connect(self.bcm_worker_handler)
+        self.chkbox_node_esc.released.connect(self.esc_worker_handler)
+        self.chkbox_node_fcs.released.connect(self.fcs_worker_handler)
+        self.chkbox_node_ic.released.connect(self.ic_worker_handler)
+        self.chkbox_node_pms.released.connect(self.pms_worker_handler)
+        self.chkbox_node_pms_s.released.connect(self.pms_s_worker_handler)
+        self.chkbox_node_pms_c.released.connect(self.pms_c_worker_handler)
+        self.chkbox_node_bms.released.connect(self.bms_worker_handler)
+        self.chkbox_node_mcu.released.connect(self.mcu_worker_handler)
 
         self.thread_worker = worker.ThreadWorker(parent=self)
         self.thread_worker.signal_presenter.connect(self.signal_presenter)
@@ -205,17 +225,6 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
-
-        self.chkbox_node_acu.released.connect(self.node_acu_control)
-        self.chkbox_node_bcm.released.connect(self.node_bcm_control)
-        self.chkbox_node_esc.released.connect(self.node_esc_control)
-        self.chkbox_node_fcs.released.connect(self.node_fcs_control)
-        self.chkbox_node_ic.released.connect(self.node_ic_control)
-        self.chkbox_node_pms.released.connect(self.node_pms_control)
-        self.chkbox_node_pms_s.released.connect(self.node_pms_s_control)
-        self.chkbox_node_pms_c.released.connect(self.node_pms_c_control)
-        self.chkbox_node_bms.released.connect(self.node_bms_control)
-        self.chkbox_node_mcu.released.connect(self.node_mcu_control)
 
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
@@ -461,16 +470,16 @@ class Main(QMainWindow, Ui_MainWindow):
             self.thread_worker._isRunning = True
             self.tester_worker._isRunning = True
 
-            self.node_acu_control()
-            self.node_bcm_control()
-            self.node_esc_control()
-            self.node_fcs_control()
-            self.node_ic_control()
-            self.node_pms_control()
-            self.node_pms_s_control()
-            self.node_pms_c_control()
-            self.node_bms_control()
-            self.node_mcu_control()
+            self.acu_worker_handler()
+            self.bcm_worker_handler()
+            self.esc_worker_handler()
+            self.fcs_worker_handler()
+            self.ic_worker_handler()
+            self.pms_worker_handler()
+            self.pms_s_worker_handler()
+            self.pms_c_worker_handler()
+            self.bms_worker_handler()
+            self.mcu_worker_handler()
 
             self.thread_worker.start()
             self.tester_worker.start()
@@ -492,16 +501,16 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.comboBox_log_format.setEnabled(False)
 
-        self.node_acu_control(flag=False)
-        self.node_bcm_control(flag=False)
-        self.node_esc_control(flag=False)
-        self.node_fcs_control(flag=False)
-        self.node_ic_control(flag=False)
-        self.node_pms_control(flag=False)
-        self.node_pms_s_control(flag=False)
-        self.node_pms_c_control(flag=False)
-        self.node_bms_control(flag=False)
-        self.node_mcu_control(flag=False)
+        self.acu_worker_handler(flag=False)
+        self.bcm_worker_handler(flag=False)
+        self.esc_worker_handler(flag=False)
+        self.fcs_worker_handler(flag=False)
+        self.ic_worker_handler(flag=False)
+        self.pms_worker_handler(flag=False)
+        self.pms_s_worker_handler(flag=False)
+        self.pms_c_worker_handler(flag=False)
+        self.bms_worker_handler(flag=False)
+        self.mcu_worker_handler(flag=False)
 
         self.thread_worker.stop()
         self.tester_worker.stop()
@@ -778,42 +787,6 @@ class Main(QMainWindow, Ui_MainWindow):
             if self.diag_obj:
                 self.diag_obj.diag_initialization()
 
-    def data_converter(self, conv):
-        if conv == 'a2c':
-            entire_ch = ''
-            for ch in self.raw_data[3:]:
-                entire_ch += chr(ch)
-            return entire_ch
-        elif conv == 'c2a':
-            txt_len = len(self.write_txt)
-            if txt_len > 0:
-                while self.write_txt[0] == ' ' or self.write_txt[txt_len - 1] == ' ':
-                    if self.write_txt[0] == ' ':
-                        self.write_txt = self.write_txt[1:]
-                    if self.write_txt[txt_len - 1] == ' ':
-                        self.write_txt = self.write_txt[:txt_len - 1]
-                ascii_li = []
-                for i, ch in zip(range(txt_len), self.write_txt):
-                    # LMPA1KMB7NC002090
-                    ascii_li.append(int(hex(ord(ch))[2:], 16))
-                self.write_txt = ascii_li[:]
-        elif conv == 'bcd':
-            bcd_li = []
-            for i in range(0, len(self.write_txt), 2):
-                try:
-                    bcd_li.append(int(self.write_txt[i:i+2]))
-                except ValueError:
-                    return False
-            self.write_txt = bcd_li[:]
-        elif conv == 'hex':
-            self.write_txt = self.write_txt.split(' ')
-            for i in range(len(self.write_txt)):
-                try:
-                    self.write_txt[i] = int(self.write_txt[i], 16)
-                except ValueError:
-                    return False
-        return True
-
     @pyqtSlot(can.Message, str, float)
     def signal_presenter(self, tx_single, bus_num, time_delta_diff):
         tx_time = self.time_mode(tx_single.timestamp, time_delta_diff)
@@ -1021,106 +994,6 @@ class Main(QMainWindow, Ui_MainWindow):
                 tx_time = str(tx_time_f)
         return tx_time
 
-    def node_acu_control(self, flag=True):
-        if self.chkbox_node_acu.isChecked() and flag:
-            self.acu_seatbelt_worker._isRunning = True
-            self.acu_seatbelt_worker.start()
-        else:
-            self.acu_seatbelt_worker.stop()
-
-    def node_bcm_control(self, flag=True):
-        if self.chkbox_node_bcm.isChecked() and flag:
-            self.bcm_mmi_worker._isRunning = True
-            self.bcm_swrc_worker._isRunning = True
-            self.bcm_strwhl_heat_worker._isRunning = True
-            self.bcm_lightchime_worker._isRunning = True
-            self.bcm_stateupdate_worker._isRunning = True
-            self.bcm_mmi_worker.start()
-            self.bcm_swrc_worker.start()
-            self.bcm_strwhl_heat_worker.start()
-            self.bcm_lightchime_worker.start()
-            self.bcm_stateupdate_worker.start()
-        else:
-            self.bcm_mmi_worker.stop()
-            self.bcm_swrc_worker.stop()
-            self.bcm_strwhl_heat_worker.stop()
-            self.bcm_lightchime_worker.stop()
-            self.bcm_stateupdate_worker.stop()
-
-    def node_esc_control(self, flag=True):
-        if self.chkbox_node_esc.isChecked() and flag:
-            self.esc_tpms_worker._isRunning = True
-            self.esc_tpms_worker.start()
-        else:
-            self.esc_tpms_worker.stop()
-
-    def node_fcs_control(self, flag=True):
-        if self.chkbox_node_fcs.isChecked() and flag:
-            self.fcs_aeb_worker._isRunning = True
-            self.fcs_ldw_worker._isRunning = True
-            self.fcs_aeb_worker.start()
-            self.fcs_ldw_worker.start()
-        else:
-            self.fcs_aeb_worker.stop()
-            self.fcs_ldw_worker.stop()
-
-    def node_ic_control(self, flag=True):
-        if self.chkbox_node_ic.isChecked() and flag:
-            self.ic_distance_worker._isRunning = True
-            self.ic_tachospeed_worker._isRunning = True
-            self.ic_distance_worker.start()
-            self.ic_tachospeed_worker.start()
-        else:
-            self.ic_distance_worker.stop()
-            self.ic_tachospeed_worker.stop()
-
-    def node_pms_control(self, flag=True):
-        if self.chkbox_node_pms.isChecked() and flag:
-            self.pms_bodycont_c_worker._isRunning = True
-            self.pms_ptinfo_worker._isRunning = True
-            self.pms_bodycont_p_worker._isRunning = True
-            self.pms_vri_worker._isRunning = True
-            self.pms_bodycont_c_worker.start()
-            self.pms_ptinfo_worker.start()
-            self.pms_bodycont_p_worker.start()
-            self.pms_vri_worker.start()
-        else:
-            self.pms_bodycont_c_worker.stop()
-            self.pms_ptinfo_worker.stop()
-            self.pms_bodycont_p_worker.stop()
-            self.pms_vri_worker.stop()
-
-    def node_pms_s_control(self, flag=True):
-        if self.chkbox_node_pms_s.isChecked() and flag:
-            self.pms_s_hvsm_worker.start()
-            self.pms_s_hvsm_worker._isRunning = True
-        else:
-            self.pms_s_hvsm_worker.stop()
-
-    def node_pms_c_control(self, flag=True):
-        if self.chkbox_node_pms_c.isChecked() and flag:
-            self.pms_c_strwhl_worker._isRunning = True
-            self.pms_c_strwhl_worker.start()
-        else:
-            self.pms_c_strwhl_worker.stop()
-
-    def node_bms_control(self, flag=True):
-        if self.chkbox_node_bms.isChecked() and flag:
-            self.bms_batt_worker._isRunning = True
-            self.bms_charge_worker._isRunning = True
-            self.bms_batt_worker.start()
-            self.bms_charge_worker.start()
-        else:
-            self.bms_batt_worker.stop()
-            self.bms_charge_worker.stop()
-
-    def node_mcu_control(self, flag=True):
-        if self.chkbox_node_mcu.isChecked() and flag:
-            self.mcu_motor_worker._isRunning = True
-            self.mcu_motor_worker.start()
-        else:
-            self.mcu_motor_worker.stop()
-
     def btn_press_handler(self):
         self.bcm_swrc_worker.btn_name = self.sender().objectName()
 
@@ -1180,8 +1053,22 @@ class Main(QMainWindow, Ui_MainWindow):
                 self.serial_selection_obj.ui_open()
 
 
+class NodeHandler(object):
+    def __init__(self, chkbox_component, worker_list):
+        self.chkbox_comp = chkbox_component
+        self.worker_list = worker_list
+
+    def node_handler(self, flag=True):
+        for node_worker in self.worker_list:
+            if self.chkbox_comp.isChecked() and flag:
+                node_worker._isRunning = True
+                node_worker.start()
+            else:
+                node_worker.stop()
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mywindow = Main()
-    mywindow.show()
+    main_window = SimulatorMain()
+    main_window.show()
     sys.exit(app.exec_())

@@ -1,5 +1,4 @@
 import time
-import datetime
 
 import can.interfaces.pcan
 import sig_generator as sig_gen
