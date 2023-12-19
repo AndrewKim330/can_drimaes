@@ -33,7 +33,6 @@ class Main(QMainWindow, Ui_MainWindow):
 
         self.curve = self.graph_widget.plot()
 
-
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
         self.temp_list = []
