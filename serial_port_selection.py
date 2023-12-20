@@ -9,7 +9,7 @@ class SerialPortSelection(QDialog):
     def __init__(self, base_dir, main_obj):
         super().__init__()
         self.ui = uic.loadUi(base_dir + r"./src/can_serial_bus_selection_ui.ui", self)
-        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
+        self.setWindowIcon(QIcon(base_dir + r"./src/drimaes_icon.ico"))
         self.setWindowTitle("Serial Port Selection for E-51 IVI CAN Simulator")
         self.ui_open()
 
@@ -40,12 +40,6 @@ class SerialPortSelection(QDialog):
             device.setChecked(False)
         self.label_no_port.setVisible(not flag)
 
-    def ui_open(self):
-        self.show()
-
-    def ui_close(self):
-        self.close()
-
     def search_serial(self):
         ports = serial.tools.list_ports.comports()
         if len(ports) == 0:
@@ -62,3 +56,9 @@ class SerialPortSelection(QDialog):
         self.main_obj.selected_ports = selected_list
         self.main_obj.bus_console.appendPlainText("Serial port is selected")
         self.ui_close()
+
+    def ui_open(self):
+        self.show()
+
+    def ui_close(self):
+        self.close()

@@ -1,19 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 block_cipher = None
 
-ui = [('./src/can_basic_ui.ui', '.'), ('./src/can_diagnosis_ui.ui', '.'), ('./src/can_serial_bus_selection_ui.ui', '.')]
-
 a = Analysis(
-    ['can_new_devide.py'],
+    ['can_main_window.py'],
     pathex=[],
     binaries=[],
-    datas=ui,
     hiddenimports=[],
-    hookspath=[],
+    hookspath=None,
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=None,
     excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,

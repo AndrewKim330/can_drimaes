@@ -29,7 +29,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         super().__init__()
 
         self.setupUi(self)
-        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
+        self.setWindowIcon(QIcon(BASE_DIR + r"./src/drimaes_icon.ico"))
         self.setWindowTitle("Main Window for E-51 IVI CAN Simulator")
         self.show()
 

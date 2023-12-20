@@ -14,7 +14,7 @@ class DiagMain(QDialog):
     def __init__(self, base_dir, main_obj):
         super().__init__()
         self.ui = uic.loadUi(base_dir + r"./src/can_diagnosis_ui.ui", self)
-        self.setWindowIcon(QIcon("./src/drimaes_icon.ico"))
+        self.setWindowIcon(QIcon(base_dir + r"./src/drimaes_icon.ico"))
         self.setWindowTitle("Diagnostic Console for E-51 IVI CAN Simulator")
         self.main_obj = main_obj
         self.show()
