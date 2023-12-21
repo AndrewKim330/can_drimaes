@@ -15,6 +15,8 @@ class SerialPortSelection(QDialog):
 
         self.main_obj = main_obj
 
+        self.open_flag = False
+
         self.port_chkboxes = [self.chkbox_serial_port_1, self.chkbox_serial_port_2,
                               self.chkbox_serial_port_3, self.chkbox_serial_port_4,
                               self.chkbox_serial_port_5, self.chkbox_serial_port_6]
@@ -49,16 +51,18 @@ class SerialPortSelection(QDialog):
         self.port_setting(serial_devices)
 
     def selected_port_handler(self):
-        selected_list = []
+        selected_set = set()
         for port in self.port_chkboxes:
             if port.isChecked():
-                selected_list.append(port.text())
-        self.main_obj.selected_ports = selected_list
+                selected_set.add(port.text())
+        self.main_obj.selected_ports = selected_set
         self.main_obj.bus_console.appendPlainText("Serial port is selected")
         self.ui_close()
 
     def ui_open(self):
+        self.open_flag = True
         self.show()
 
     def ui_close(self):
+        self.open_flag = False
         self.close()

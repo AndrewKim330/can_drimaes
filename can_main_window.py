@@ -31,6 +31,26 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setWindowIcon(QIcon(BASE_DIR + r"./src/drimaes_icon.ico"))
         self.setWindowTitle("Main Window for E-51 IVI CAN Simulator")
+
+        self.bot_connection_text_init = "NOT connected     "
+        self.bot_label_font_set = QFont('Arial', 10)
+        self.bot_label_font_set.setBold(True)
+        self.bot_connection_label = QLabel(self.bot_connection_text_init)
+        self.bot_connection_label.setFont(self.bot_label_font_set)
+        self.bot_connection_label.setStyleSheet("Color : red")
+
+        self.bot_disconnect_btn = QPushButton()
+        self.bot_disconnect_btn.setFixedSize(QSize(100, 35))
+        self.bot_disconnect_btn.setText("Disconnect")
+        self.bot_disconnect_btn.released.connect(self.bot_disconnect_btn_handler)
+        self.bot_disconnect_btn.setEnabled(False)
+
+        self.bottom_bar = self.statusBar()
+        self.bottom_bar.setFixedHeight(50)
+
+        self.bottom_bar.addPermanentWidget(self.bot_connection_label)
+        self.bottom_bar.addPermanentWidget(self.bot_disconnect_btn)
+
         self.show()
 
         self.curve = self.graph_widget.plot()
@@ -98,6 +118,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.btn_gear_n.setChecked(True)  # Default value of Gear radio button
         self.pms_ptinfo_worker = worker.PMS_PTInfo(parent=self)
         self.pms_ptinfo_worker.pms_ptinfo_signal.connect(self.can_signal_sender)
+        self.label_pt_ready.setStyleSheet("Color : red")
         # PMS (P-CAN)
         self.pms_bodycont_p_worker = worker.PMS_BodyCont_P(parent=self)
         self.pms_bodycont_p_worker.pms_bodycont_p_signal.connect(self.can_signal_sender)
@@ -222,7 +243,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.btn_bus_peak.clicked.connect(self.serial_selector_handler)
         self.btn_bus_vector.clicked.connect(self.serial_selector_handler)
         self.btn_bus_canable.clicked.connect(self.serial_selector_handler)
-        self.selected_ports = []
+        self.selected_ports = set()
         self.btn_bus_connect.clicked.connect(self.bus_connect)
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
@@ -315,7 +336,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 else:
                                     self.p_can_bus = temp1
                             self.bus_console.appendPlainText("1 Channel is connected.")
-                        self.bus_connect_success()
+                        self.bus_connect_handler(True)
                     except ImportError as e1:
                         print(e1)
                         self.bus_console.appendPlainText("PEAK-CAN driver is not installed.")
@@ -332,14 +353,14 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         except interfaces.vector.VectorError as e2:
                             print(e2)
                             self.bus_console.appendPlainText("1 Channel is connected.")
-                        self.bus_connect_success()
+                        self.bus_connect_handler(True)
                     except interfaces.vector.VectorError as e1:
                         print(e1)
                         try:
                             self.p_can_bus = can.interface.Bus(bustype='vector', channel=1, bitrate='500000')
                             self.bus_console.appendPlainText("Vector bus is connected.")
                             self.bus_console.appendPlainText("1 Channel is connected.")
-                            self.bus_connect_success()
+                            self.bus_connect_handler(True)
                         except interfaces.vector.VectorError as e2:
                             print(e2)
                             self.bus_console.appendPlainText("Connect the Vector(CANoe) device.")
@@ -372,7 +393,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 else:
                                     self.p_can_bus = temp1
                             self.bus_console.appendPlainText("1 Channel is connected.")
-                        self.bus_connect_success()
+                        self.bus_connect_handler(True)
                     except serial.serialutil.SerialException:
                         self.bus_console.appendPlainText("Select appropriate serial port.")
                     except IndexError:
@@ -397,7 +418,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                             else:
                                 self.p_can_bus = temp1
                             self.bus_console.appendPlainText("1 Channel is connected")
-                        self.bus_connect_success()
+                        self.bus_connect_handler(True)
                     except ImportError as e1:
                         print(e1)
                         self.bus_console.appendPlainText("PEAK-CAN driver is not installed.")
@@ -413,12 +434,12 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 self.can_signal_sender('p', 0x0cfa01ef, self.data)
                                 self.console_text_clear("tx_console_clear")
                                 bus_count += 1
-                            self.bus_connect_success()
+                            self.bus_connect_handler(True)
                             self.bus_console.appendPlainText("Vector bus is connected")
                         except can.interfaces.vector.exceptions.VectorError as e2:
                             print(e2)
                             self.console_text_clear("tx_console_clear")
-                            self.bus_connect_success()
+                            self.bus_connect_handler(True)
                             self.p_can_bus = None
                             self.bus_console.appendPlainText("1 Channel is connected")
                     except ImportError as e1:
@@ -428,6 +449,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         print(e1)
                         self.bus_console.appendPlainText("Connect the Vector device.")
                 elif self.btn_bus_canable.isChecked():
+                    self.selected_ports = list(self.selected_ports)
                     try:
                         temp1 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[0], bitrate='500000')
                         self.bus_console.appendPlainText("Serial bus(CANable bus) is connected.")
@@ -446,7 +468,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                             else:
                                 self.p_can_bus = temp1
                             self.bus_console.appendPlainText("1 Channel is connected.")
-                        self.bus_connect_success()
+                        self.bus_connect_handler(True)
                     except serial.serialutil.SerialException:
                         self.bus_console.appendPlainText("Select appropriate serial port.")
                     except IndexError:
@@ -454,11 +476,32 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         else:
             self.bus_console.appendPlainText("CAN bus is already connected.")
 
-    def bus_connect_success(self):
-        self.bus_flag = True
-        self.btn_bus_peak.setEnabled(False)
-        self.btn_bus_vector.setEnabled(False)
-        self.btn_bus_canable.setEnabled(False)
+    def bus_connect_handler(self, flag=True):
+        self.bus_flag = flag
+        self.btn_bus_peak.setEnabled(not flag)
+        self.btn_bus_vector.setEnabled(not flag)
+        self.btn_bus_canable.setEnabled(not flag)
+        if self.c_can_bus:
+            if self.p_can_bus:
+                self.bot_connection_label.setText("C-CAN & P-CAN buses are connected.     ")
+                self.bot_connection_label.setStyleSheet("Color : blue")
+            else:
+                self.bot_connection_label.setText("C-CAN bus is connected.     ")
+                self.bot_connection_label.setStyleSheet("Color : blue")
+        elif self.p_can_bus:
+            self.bot_connection_label.setText("P-CAN bus is connected.     ")
+            self.bot_connection_label.setStyleSheet("Color : blue")
+        else:
+            self.bot_connection_label.setText(self.bot_connection_text_init)
+            self.bot_connection_label.setStyleSheet("Color : red")
+        self.bot_connection_label.setFont(self.bot_label_font_set)
+        self.btn_bus_connect.setEnabled(not flag)
+        self.bot_disconnect_btn.setEnabled(flag)
+        if not flag:
+            self.btn_bus_peak.setChecked(True)
+            self.bus_console.appendPlainText("Current bus is disconnected.")
+        self.drv_state = False
+        self.set_drv_state()
 
     def thread_start(self):
         if self.bus_flag:
@@ -530,7 +573,8 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             # print(message)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
-        bus.send(message)
+        if bus:
+            bus.send(message)
         self.thread_worker.signal_emit(message, bus_str, time_delta_diff)
 
     def can_dump_mode(self):
@@ -605,12 +649,12 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
             self.btn_gear_d.setChecked(True)
-            self.btn_start.setChecked(True)
-            self.chkbox_pt_ready.setChecked(True)
+            self.btn_ign.setChecked(True)
+            self.pms_ptinfo_worker.ptready_flag = True
         else:
             self.btn_gear_n.setChecked(True)
             self.btn_acc.setChecked(True)
-            self.chkbox_pt_ready.setChecked(False)
+            self.pms_ptinfo_worker.ptready_flag = False
             self.thread_worker.slider_speed_func(0)
 
     def set_ota_cond(self):
@@ -697,8 +741,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.btn_ign.setEnabled(flag)
         self.btn_start.setEnabled(flag)
 
-        self.chkbox_pt_ready.setEnabled(flag)
-
         self.btn_drv_state.setEnabled(flag)
 
         self.btn_ok.setEnabled(flag)
@@ -744,7 +786,9 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
 
         self.tick_0_stwhl.setStyleSheet(f"color: {color}")
         self.tick_10_stwhl.setStyleSheet(f"color: {color}")
+        self.tick_14p5_stwhl.setStyleSheet(f"color: {color}")
         self.tick_minus_10_stwhl.setStyleSheet(f"color: {color}")
+        self.tick_minus_14p5_stwhl.setStyleSheet(f"color: {color}")
 
         self.btn_mscs_ok.setEnabled(flag)
         self.btn_mscs_CmnFail.setEnabled(flag)
@@ -1036,16 +1080,26 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
 
     def serial_selector_handler(self):
         if self.btn_bus_peak.isChecked() or self.btn_bus_vector.isChecked():
-            if not self.serial_selection_obj:
-                pass
-            else:
+            if self.serial_selection_obj:
                 self.serial_selection_obj.ui_close()
         else:
             if not self.serial_selection_obj:
                 self.serial_selection_obj = serial_port_selection.SerialPortSelection(BASE_DIR, self)
                 self.serial_selection_obj.search_serial()
-            else:
-                self.serial_selection_obj.ui_open()
+            if self.serial_selection_obj.open_flag:
+                self.serial_selection_obj.ui_close()
+            self.serial_selection_obj.ui_open()
+
+    def bot_disconnect_btn_handler(self):
+        self.thread_stop()
+        if self.c_can_bus:
+            self.c_can_bus = None
+        if self.p_can_bus:
+            self.p_can_bus = None
+        self.bus_connect_handler(False)
+        if self.serial_selection_obj:
+            self.selected_ports = set()
+            self.serial_selection_obj.search_serial()
 
 
 class NodeHandler(object):

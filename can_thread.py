@@ -182,7 +182,7 @@ class ThreadWorker(NodeThread):
 
     def state_check(self):
         # driving state check
-        if self.parent.btn_start.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.chkbox_pt_ready.isChecked():
+        if self.parent.btn_ign.isChecked() and self.parent.btn_gear_d.isChecked() and self.parent.pms_ptinfo_worker.ptready_flag:
             self.parent.btn_drv_state.setText("On Driving State")
         else:
             self.parent.btn_drv_state.setText("Set Driving State")
@@ -453,18 +453,28 @@ class BCM_StateUpdate(NodeThread):
         self.send_id = 0x18ff8621
         self.data[0] = 0x97
         self.data[1] = 0x7A
+        self.start_ignition_flag = False
 
     def thread_func(self):  # BCM_StateUpdate
 
-        # Initial mode for ACC (for convenience)
-        if self.parent.btn_acc.isChecked():
-            self.data[4] = 0xF9
-        if self.parent.btn_acc_off.isChecked():
-            self.data[4] = 0xF8
-        elif self.parent.btn_ign.isChecked():
-            self.data[4] = 0xFA
-        elif self.parent.btn_start.isChecked():
-            self.data[4] = 0xFC
+        if self.start_ignition_flag:
+            self.parent.pms_ptinfo_worker.ptready_flag = True
+            self.parent.btn_ign.setChecked(True)
+            self.start_ignition_flag = False
+
+        else:
+            # Initial mode for ACC (for convenience)
+            if self.parent.btn_acc.isChecked():
+                self.data[4] = 0xF9
+                self.parent.pms_ptinfo_worker.ptready_flag = False
+            if self.parent.btn_acc_off.isChecked():
+                self.data[4] = 0xF8
+                self.parent.pms_ptinfo_worker.ptready_flag = False
+            elif self.parent.btn_ign.isChecked():
+                self.data[4] = 0xFA
+            elif self.parent.btn_start.isChecked():
+                self.data[4] = 0xFC
+                self.start_ignition_flag = True
 
         if self.parent.btn_bright_afternoon.isChecked():
             self.data[2] = 0xDF
@@ -509,12 +519,11 @@ class PMS_PTInfo(NodeThread):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.period = 0.010
-        self.value = '0000'
         self.send_id = 0x18fab027
         self.data[6] = 0xF3
         self.data[7] = 0x3F
         self.dist_init = True
+        self.ptready_flag = False
 
     def thread_func(self):  # PMS_PTInfoIndicate
         self.data[5] = 0xFC
@@ -527,7 +536,9 @@ class PMS_PTInfo(NodeThread):
         elif self.parent.btn_gear_d.isChecked():
             self.data[4] = 0xFC
 
-        if self.parent.chkbox_pt_ready.isChecked():
+        if self.ptready_flag:
+            self.parent.label_pt_ready.setText("PT Ready")
+            self.parent.label_pt_ready.setStyleSheet("Color : Blue")
             self.data[0] = 0xDF
             if self.dist_init:
                 self.parent.ic_distance_worker.dist_init = True
@@ -535,9 +546,12 @@ class PMS_PTInfo(NodeThread):
                 self.parent.btn_0th_byte_up.setEnabled(True)
                 self.parent.btn_1st_byte_up.setEnabled(True)
         else:
+            self.parent.label_pt_ready.setText("NOT Ready")
+            self.parent.label_pt_ready.setStyleSheet("Color : red")
             self.data[0] = 0xCF
             self.parent.btn_0th_byte_up.setEnabled(False)
             self.parent.btn_1st_byte_up.setEnabled(False)
+
 
         if self.parent.chkbox_h_brake.isChecked():
             self.data[5] = 0xFD
