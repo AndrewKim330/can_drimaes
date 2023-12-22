@@ -368,6 +368,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         print(e1)
                         self.bus_console.appendPlainText("Vector(CANoe) driver is not installed.")
                 elif self.btn_bus_canable.isChecked():
+                    self.selected_ports = list(self.selected_ports)
                     try:
                         temp1 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[0], bitrate='500000')
                         self.bus_console.appendPlainText("Serial bus(CANable bus) is connected.")
