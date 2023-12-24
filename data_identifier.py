@@ -364,6 +364,7 @@ def message_info_by_can_id(can_id, bus):
                     {"name": "SPI_BCM_PowerMode", "bit_st_pos": 61, "bit_len": 3}]
     else:
         info_set.append("No matching id")
+        data_set = []
     info_set += data_set
     return info_set
 
