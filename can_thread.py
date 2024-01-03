@@ -59,8 +59,7 @@ class ThreadWorker(NodeThread):
 
                 if self.parent.chkbox_save_log.isChecked():
                     self.parent.log_data.append(c_recv)
-                if c_recv.arbitration_id == 0x18daf141:
-                    self.reservoir.append(c_recv)
+
                 if c_recv.arbitration_id == 0x18ffd741:
                     self.parent.pms_s_hvsm_worker.data[0] = c_recv.data[1]
                     hvsm_tx = bin(c_recv.data[1])[2:].zfill(8)
@@ -179,6 +178,8 @@ class ThreadWorker(NodeThread):
 
     def signal_emit(self, sig, bus_str, time_delta_diff):
         self.signal_presenter.emit(sig, bus_str, time_delta_diff)
+        if sig.arbitration_id == 0x18daf141 or sig.arbitration_id == 0x18da41f1 or sig.arbitration_id == 0x18db33f1:
+            self.reservoir.append(sig)
 
     def state_check(self):
         # driving state check

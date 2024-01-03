@@ -94,6 +94,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.sub_data_designated = None
 
         self.tx_set = set()
+        self.sig_dict = dict()
 
         self.btn_drv_state.clicked.connect(self.set_drv_state)
 
@@ -565,13 +566,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         elif bus_str == 'p':
             bus = self.p_can_bus
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
-        #message = can.Message(arbitration_id=sig_id, data=send_data, channel=bus)
-        if sig_id == 0x18da41f1:
-            self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Physical Tester)")
-            # print(message)
-        elif sig_id == 0x18db33f1:
-            self.diag_obj.diag_console.appendPlainText(f"{str(message)} (Functional Tester)")
-            # print(message)
         if self.chkbox_save_log.isChecked():
             self.log_data.append(message)
         if bus:
@@ -615,7 +609,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         self.chkbox_save_log.toggle()
                     self.bus_console.appendPlainText("Can Log saving Start")
                     log_path = path + f"/log{self.comboBox_log_format.currentText()}"
-                    # log_dir = path[0]
                     f = open(log_path, 'w')
                     count = 0
                     self.pbar_save_log.setVisible(True)
@@ -836,7 +829,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         elif bus_num == 'p':
             tx_channel = "P-CAN"
         tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
-        tx_name = tx_message_info[0]
+        tx_name = tx_message_info["mess_name"]
         tx_data = ''
         for hex_val in tx_single.data:
             tx_data += (hex(hex_val)[2:].upper().zfill(2) + ' ')
@@ -852,6 +845,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             self.treeWidget_tx.addTopLevelItems([item])
         elif self.btn_fixed_watch.isChecked():
             len_prev = len(self.tx_set)
+            self.sig_dict[tx_single.arbitration_id] = tx_single.channel
             identifier = str(tx_single.arbitration_id) + str(tx_single.channel)
             self.tx_set.add(identifier)
             len_now = len(self.tx_set)
@@ -861,7 +855,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         item.setText(1, tx_time)
                         item.setText(4, tx_data)
                         specific_signals = []
-                        for i, sub_mess in zip(range(item.childCount()), tx_message_info[1:]):
+                        for i, sub_mess in zip(range(item.childCount()), tx_message_info["data_set"]):
                             try:
                                 sub_data = sub_mess[int(data_id.data_matcher(tx_single, sub_mess))]
                             except KeyError:
@@ -892,7 +886,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                 item.setText(2, tx_name)
                 item.setText(3, tx_channel)
                 item.setText(4, tx_data)
-                for sub_message in tx_message_info[1:]:
+                for sub_message in tx_message_info["data_set"]:
                     sub_item = QTreeWidgetItem(item)
                     sub_item.setText(2, sub_message["name"])
                     try:
@@ -1074,10 +1068,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             self.user_signal_obj = user_signal.UserSignal(BASE_DIR, self)
         if type(tx_name) != bool:
             self.user_signal_obj.user_signal_list(tx_name, tx_channel, tx_id)
-        if self.user_signal_obj.chkbox_period.isChecked():
-            self.user_signal_obj.lineEdit_period.setEnabled(True)
-        else:
-            self.user_signal_obj.lineEdit_period.setEnabled(False)
 
     def serial_selector_handler(self):
         if self.btn_bus_peak.isChecked() or self.btn_bus_vector.isChecked():
