@@ -168,6 +168,7 @@ class DiagMain(QDialog):
 
         self.chkbox_diag_test_mode_write.released.connect(self.set_diag_write_btns_labels)
         self.btn_write_data_send.clicked.connect(self.write_data_sender)
+        self.lineEdit_write_data.returnPressed.connect(self.write_data_sender)
 
         # Connect dtc buttons to diagnostic handling function
         self.btn_mem_fault_num_check.clicked.connect(self.diag_func)
@@ -1851,10 +1852,6 @@ class DiagMain(QDialog):
         self.main_obj.drv_state = False
         self.main_obj.set_drv_state()
         self.main_obj.thread_worker.slider_speed_func(0)
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key.Key_Enter:
-            self.write_data_sender()
 
     def tester_present_handler(self):
         if self.chkbox_tester_present.isChecked():

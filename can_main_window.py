@@ -235,9 +235,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
 
         self.tester_worker = worker.TesterPresent(parent=self)
 
-        self.user_signal_worker = worker.UserSignal(parent=self)
-        self.user_signal_worker.user_defined_signal.connect(self.can_signal_sender)
-
         self.btn_tx_console_clear.clicked.connect(self.console_text_clear)
 
         self.btn_bus_peak.setChecked(True)
@@ -302,6 +299,8 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.chkbox_diag_console.clicked.connect(self.diag_main)
 
         self.chkbox_arbitrary_signal_1.clicked.connect(self.user_signal_handler)
+        self.send_arbit_data = None
+        self.arbit_data_init = {"period": 0, "data": []}
 
         self.btn_0th_byte_up.clicked.connect(self.temp_distance)
         self.btn_1st_byte_up.clicked.connect(self.temp_distance)
@@ -567,6 +566,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             bus = self.p_can_bus
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
         if self.chkbox_save_log.isChecked():
+            print(sig_id, type(sig_id))
             self.log_data.append(message)
         if bus:
             bus.send(message)
@@ -855,7 +855,12 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         item.setText(1, tx_time)
                         item.setText(4, tx_data)
                         specific_signals = []
-                        for i, sub_mess in zip(range(item.childCount()), tx_message_info["data_set"]):
+                        for i in range(item.childCount()):
+                            for j in range(len(tx_message_info["data_set"])):
+                                if tx_message_info["data_set"][j]["name"] == item.child(i).text(2):
+                                    sub_num = j
+                                    break
+                            sub_mess = tx_message_info["data_set"][sub_num]
                             try:
                                 sub_data = sub_mess[int(data_id.data_matcher(tx_single, sub_mess))]
                             except KeyError:
@@ -893,6 +898,8 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         sub_item.setText(4, sub_message[int(data_id.data_matcher(tx_single, sub_message))])
                     except KeyError:
                         sub_item.setText(4, str(data_id.data_matcher(tx_single, sub_message)))
+                    except ValueError:
+                        sub_item.setText(4, "")
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 self.comboBox_id.addItem(tx_name)
@@ -921,10 +928,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                 self.bus_console.appendPlainText(bus_mess)
         else:
             self.send_message(bus_mess, send_id, send_data, time_diff_delta)
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key.Key_Enter:
-            self.write_data_sender()
 
     def tpms_handler(self):
         if self.sender().objectName() == "btn_tpms_success":
@@ -977,9 +980,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             if self.user_filter_obj:
                 self.user_filter_obj.ui_close()
                 self.user_filter_obj = None
-
-        if self.user_signal_obj and tx_name[:3] != "MMI":
-            self.user_signal_handler(tx_name=tx_name, tx_channel=tx_channel, tx_id=tx_id)
 
         if self.btn_filter_all.isChecked():
             return True
@@ -1059,15 +1059,13 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         else:
             return self.user_filter_obj.user_filter(tx_name)
 
-    def user_signal_handler(self, tx_name=None, tx_channel=None, tx_id=None):
+    def user_signal_handler(self):
         if not self.chkbox_arbitrary_signal_1.isChecked():
             self.user_signal_obj.ui_close()
             self.user_signal_obj = None
             return 0
         if not self.user_signal_obj:
             self.user_signal_obj = user_signal.UserSignal(BASE_DIR, self)
-        if type(tx_name) != bool:
-            self.user_signal_obj.user_signal_list(tx_name, tx_channel, tx_id)
 
     def serial_selector_handler(self):
         if self.btn_bus_peak.isChecked() or self.btn_bus_vector.isChecked():

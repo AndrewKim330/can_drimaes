@@ -11,7 +11,7 @@ class NodeThread(QThread):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self._isRunning = True
+        self._isRunning = None
         self.period = 0.100
         self.time_flag = False
         self.pre_time = None
@@ -33,7 +33,7 @@ class NodeThread(QThread):
         return delta
 
     def thread_func(self):
-        pass
+        return 0
 
     def stop(self):
         self._isRunning = False
@@ -57,7 +57,8 @@ class ThreadWorker(NodeThread):
                 c_recv = self.parent.c_can_bus.recv()
                 self.calc_delta(c_recv)
 
-                if self.parent.chkbox_save_log.isChecked():
+                # if self.parent.chkbox_save_log.isChecked()
+                if self.parent.chkbox_save_log.isChecked() and c_recv.arbitration_id == 0x0cfab127:
                     self.parent.log_data.append(c_recv)
 
                 if c_recv.arbitration_id == 0x18ffd741:
@@ -164,7 +165,7 @@ class ThreadWorker(NodeThread):
                 # self.signal_emit(p_recv, 'p')
 
             self.state_check()
-            QtCore.QCoreApplication.processEvents()
+        QtCore.QCoreApplication.processEvents()
 
     def calc_delta(self, recv_message):
         recv_id = recv_message.arbitration_id
@@ -553,7 +554,6 @@ class PMS_PTInfo(NodeThread):
             self.parent.btn_0th_byte_up.setEnabled(False)
             self.parent.btn_1st_byte_up.setEnabled(False)
 
-
         if self.parent.chkbox_h_brake.isChecked():
             self.data[5] = 0xFD
 
@@ -868,15 +868,23 @@ class TesterPresent(NodeThread):
 class UserSignal(NodeThread):
     user_defined_signal = pyqtSignal(str, int, list, float)
 
-    def __init__(self, parent):
+    def __init__(self, parent, handle_num):
         super().__init__(parent)
-        # self.data = []
         self.bus_selector = None
+        self.send_data = None
+        self.handle_num = handle_num
 
     def thread_func(self):
-        time_delta = self.calc_delta(self.send_id, time.time())
+        send_id = self.send_data["id"]
+        self.data = self.send_data["data"]
+        period = self.send_data["period"]
         if self.bus_selector == "C-CAN":
             self.bus_selector = "c"
         elif self.bus_selector == "P-CAN":
             self.bus_selector = "p"
-        self.user_defined_signal.emit(self.bus_selector, self.send_id, self.data, time_delta)
+        time_delta = self.calc_delta(send_id, time.time())
+        self.user_defined_signal.emit(self.bus_selector, send_id, self.data, time_delta)
+        if period:
+            time.sleep(float(period/1000))
+        else:
+            self.parent.user_signal_worker[self.handle_num]._isRunning = False
