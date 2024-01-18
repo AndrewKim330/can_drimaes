@@ -1,6 +1,7 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from serial import *
 import serial.tools.list_ports
 
 
@@ -57,6 +58,7 @@ class SerialPortSelection(QDialog):
                 selected_set.add(port.text())
         self.main_obj.selected_ports = selected_set
         self.main_obj.bus_console.appendPlainText("Serial port is selected")
+
         self.ui_close()
 
     def ui_open(self):

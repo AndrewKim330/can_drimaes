@@ -68,16 +68,16 @@ class UserSignal(QDialog):
         self.btn_arbitrary_clear_8.released.connect(self.single_signal_clear)
         self.btn_arbitrary_clear_9.released.connect(self.single_signal_clear)
 
-        self.chkbox_period_0.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_1.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_2.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_3.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_4.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_5.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_6.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_7.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_8.stateChanged.connect(self.period_enable_set)
-        self.chkbox_period_9.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_0.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_1.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_2.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_3.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_4.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_5.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_6.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_7.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_8.stateChanged.connect(self.period_enable_set)
+        self.chkbox_auto_fill_9.stateChanged.connect(self.period_enable_set)
 
         self.lineEdit_id_0.textChanged.connect(self.id_detect)
         self.lineEdit_id_1.textChanged.connect(self.id_detect)
@@ -102,59 +102,59 @@ class UserSignal(QDialog):
         self.btn_arbitrary_send_9.released.connect(self.data_send)
 
         self.send_data = [
-            {"id": None, "data": [], "period": None}, {"id": None, "data": [], "period": None},
-            {"id": None, "data": [], "period": None}, {"id": None, "data": [], "period": None},
-            {"id": None, "data": [], "period": None}, {"id": None, "data": [], "period": None},
-            {"id": None, "data": [], "period": None}, {"id": None, "data": [], "period": None},
-            {"id": None, "data": [], "period": None}, {"id": None, "data": [], "period": None}]
+            {"id": None, "data": [], "period": None, "auto_fill": True}, {"id": None, "data": [], "period": None, "auto_fill": True},
+            {"id": None, "data": [], "period": None, "auto_fill": True}, {"id": None, "data": [], "period": None, "auto_fill": True},
+            {"id": None, "data": [], "period": None, "auto_fill": True}, {"id": None, "data": [], "period": None, "auto_fill": True},
+            {"id": None, "data": [], "period": None, "auto_fill": True}, {"id": None, "data": [], "period": None, "auto_fill": True},
+            {"id": None, "data": [], "period": None, "auto_fill": True}, {"id": None, "data": [], "period": None, "auto_fill": True}]
 
         self.message_comp_list = [
-            {"chkbox": [self.chkbox_period_0], "btn": [self.btn_arbitrary_send_0, self.btn_arbitrary_clear_0],
+            {"chkbox": [self.chkbox_auto_fill_0], "btn": [self.btn_arbitrary_send_0, self.btn_arbitrary_clear_0],
              "combo_box": [self.comboBox_user_signal_mess_name_0, self.comboBox_user_signal_bus_0],
              "line_edit": [self.lineEdit_data_0_0, self.lineEdit_data_0_1, self.lineEdit_data_0_2,
                            self.lineEdit_data_0_3, self.lineEdit_data_0_4, self.lineEdit_data_0_5,
                            self.lineEdit_data_0_6, self.lineEdit_data_0_7, self.lineEdit_period_0, self.lineEdit_id_0]},
-            {"chkbox": [self.chkbox_period_1], "btn": [self.btn_arbitrary_send_1, self.btn_arbitrary_clear_1],
+            {"chkbox": [self.chkbox_auto_fill_1], "btn": [self.btn_arbitrary_send_1, self.btn_arbitrary_clear_1],
              "combo_box": [self.comboBox_user_signal_mess_name_1, self.comboBox_user_signal_bus_1],
              "line_edit": [self.lineEdit_data_1_0, self.lineEdit_data_1_1, self.lineEdit_data_1_2,
                            self.lineEdit_data_1_3, self.lineEdit_data_1_4, self.lineEdit_data_1_5,
                            self.lineEdit_data_1_6, self.lineEdit_data_1_7, self.lineEdit_period_1, self.lineEdit_id_1]},
-            {"chkbox": [self.chkbox_period_2], "btn": [self.btn_arbitrary_send_2, self.btn_arbitrary_clear_2],
+            {"chkbox": [self.chkbox_auto_fill_2], "btn": [self.btn_arbitrary_send_2, self.btn_arbitrary_clear_2],
              "combo_box": [self.comboBox_user_signal_mess_name_2, self.comboBox_user_signal_bus_2],
              "line_edit": [self.lineEdit_data_2_0, self.lineEdit_data_2_1, self.lineEdit_data_2_2,
                            self.lineEdit_data_2_3, self.lineEdit_data_2_4, self.lineEdit_data_2_5,
                            self.lineEdit_data_2_6, self.lineEdit_data_2_7, self.lineEdit_period_2, self.lineEdit_id_2]},
-            {"chkbox": [self.chkbox_period_3], "btn": [self.btn_arbitrary_send_3, self.btn_arbitrary_clear_3],
+            {"chkbox": [self.chkbox_auto_fill_3], "btn": [self.btn_arbitrary_send_3, self.btn_arbitrary_clear_3],
              "combo_box": [self.comboBox_user_signal_mess_name_3, self.comboBox_user_signal_bus_3],
              "line_edit": [self.lineEdit_data_3_0, self.lineEdit_data_3_1, self.lineEdit_data_3_2,
                            self.lineEdit_data_3_3, self.lineEdit_data_3_4, self.lineEdit_data_3_5,
                            self.lineEdit_data_3_6, self.lineEdit_data_3_7, self.lineEdit_period_3, self.lineEdit_id_3]},
-            {"chkbox": [self.chkbox_period_4], "btn": [self.btn_arbitrary_send_4, self.btn_arbitrary_clear_4],
+            {"chkbox": [self.chkbox_auto_fill_4], "btn": [self.btn_arbitrary_send_4, self.btn_arbitrary_clear_4],
              "combo_box": [self.comboBox_user_signal_mess_name_4, self.comboBox_user_signal_bus_4],
              "line_edit": [self.lineEdit_data_4_0, self.lineEdit_data_4_1, self.lineEdit_data_4_2,
                            self.lineEdit_data_4_3, self.lineEdit_data_4_4, self.lineEdit_data_4_5,
                            self.lineEdit_data_4_6, self.lineEdit_data_4_7, self.lineEdit_period_4, self.lineEdit_id_4]},
-            {"chkbox": [self.chkbox_period_5], "btn": [self.btn_arbitrary_send_5, self.btn_arbitrary_clear_5],
+            {"chkbox": [self.chkbox_auto_fill_5], "btn": [self.btn_arbitrary_send_5, self.btn_arbitrary_clear_5],
              "combo_box": [self.comboBox_user_signal_mess_name_5, self.comboBox_user_signal_bus_5],
              "line_edit": [self.lineEdit_data_5_0, self.lineEdit_data_5_1, self.lineEdit_data_5_2,
                            self.lineEdit_data_5_3, self.lineEdit_data_5_4, self.lineEdit_data_5_5,
                            self.lineEdit_data_5_6, self.lineEdit_data_5_7, self.lineEdit_period_5, self.lineEdit_id_5]},
-            {"chkbox": [self.chkbox_period_6], "btn": [self.btn_arbitrary_send_6, self.btn_arbitrary_clear_6],
+            {"chkbox": [self.chkbox_auto_fill_6], "btn": [self.btn_arbitrary_send_6, self.btn_arbitrary_clear_6],
              "combo_box": [self.comboBox_user_signal_mess_name_6, self.comboBox_user_signal_bus_6],
              "line_edit": [self.lineEdit_data_6_0, self.lineEdit_data_6_1, self.lineEdit_data_6_2,
                            self.lineEdit_data_6_3, self.lineEdit_data_6_4, self.lineEdit_data_6_5,
                            self.lineEdit_data_6_6, self.lineEdit_data_6_7, self.lineEdit_period_6, self.lineEdit_id_6]},
-            {"chkbox": [self.chkbox_period_7], "btn": [self.btn_arbitrary_send_7, self.btn_arbitrary_clear_7],
+            {"chkbox": [self.chkbox_auto_fill_7], "btn": [self.btn_arbitrary_send_7, self.btn_arbitrary_clear_7],
              "combo_box": [self.comboBox_user_signal_mess_name_7, self.comboBox_user_signal_bus_7],
              "line_edit": [self.lineEdit_data_7_0, self.lineEdit_data_7_1, self.lineEdit_data_7_2,
                            self.lineEdit_data_7_3, self.lineEdit_data_7_4, self.lineEdit_data_7_5,
                            self.lineEdit_data_7_6, self.lineEdit_data_7_7, self.lineEdit_period_7, self.lineEdit_id_7]},
-            {"chkbox": [self.chkbox_period_8], "btn": [self.btn_arbitrary_send_8, self.btn_arbitrary_clear_8],
+            {"chkbox": [self.chkbox_auto_fill_8], "btn": [self.btn_arbitrary_send_8, self.btn_arbitrary_clear_8],
              "combo_box": [self.comboBox_user_signal_mess_name_8, self.comboBox_user_signal_bus_8],
              "line_edit": [self.lineEdit_data_8_0, self.lineEdit_data_8_1, self.lineEdit_data_8_2,
                            self.lineEdit_data_8_3, self.lineEdit_data_8_4, self.lineEdit_data_8_5,
                            self.lineEdit_data_8_6, self.lineEdit_data_8_7, self.lineEdit_period_8, self.lineEdit_id_8]},
-            {"chkbox": [self.chkbox_period_9], "btn": [self.btn_arbitrary_send_9, self.btn_arbitrary_clear_9],
+            {"chkbox": [self.chkbox_auto_fill_9], "btn": [self.btn_arbitrary_send_9, self.btn_arbitrary_clear_9],
              "combo_box": [self.comboBox_user_signal_mess_name_9, self.comboBox_user_signal_bus_9],
              "line_edit": [self.lineEdit_data_9_0, self.lineEdit_data_9_1, self.lineEdit_data_9_2,
                            self.lineEdit_data_9_3, self.lineEdit_data_9_4, self.lineEdit_data_9_5,
@@ -217,7 +217,6 @@ class UserSignal(QDialog):
             for comp in comp_int:
                 comp.setVisible(visible_flag)
         self.single_signal_clear(message_comp_set)
-        message_comp_set["line_edit"][-2].setEnabled(False)
 
     def single_signal_clear(self, message_comp_set=None):
         if message_comp_set:
@@ -242,9 +241,9 @@ class UserSignal(QDialog):
 
         for comp in reset_set["chkbox"]:
             if comp.isChecked():
-                comp.setChecked(False)
-        if reset_set["chkbox"][0].isChecked():
-            reset_set["chkbox"][0].setChecked(False)
+                comp.setChecked(True)
+        if not reset_set["chkbox"][0].isChecked():
+            reset_set["chkbox"][0].setChecked(True)
 
         self.user_signal_worker[clear_num]._isRunning = False
 
@@ -306,9 +305,9 @@ class UserSignal(QDialog):
     def period_enable_set(self):
         handle_num = int(self.sender().objectName()[-1])
         if self.message_comp_list[handle_num]["chkbox"][0].isChecked():
-            self.message_comp_list[handle_num]["line_edit"][-2].setEnabled(True)
+            self.send_data[handle_num]["auto_fill"] = True
         else:
-            self.message_comp_list[handle_num]["line_edit"][-2].setEnabled(False)
+            self.send_data[handle_num]["auto_fill"] = False
 
     def id_detect(self):
         handle_num = int(self.sender().objectName()[-1])
@@ -376,10 +375,15 @@ class UserSignal(QDialog):
                     return False
                 else:
                     send_list.append(conv_int_data)
-            if len(send_list) == 0:
+            data_len = len(send_list)
+            if data_len == 0:
                 QMessageBox.warning(self, "Data Error", "Insert the 0~8 bytes arbitrary data")
                 return False
             else:
+                if data_len < 8:
+                    if self.send_data[handle_num]["auto_fill"]:
+                        for i in range(8 - data_len):
+                            send_list.append(0xFF)
                 self.send_data[handle_num]["data"] = send_list
         else:
             QMessageBox.warning(self, "ID Error", "Set the CAN id first")
@@ -390,20 +394,16 @@ class UserSignal(QDialog):
             comp.setText("")
 
     def signal_period(self, handle_num):
-        if self.message_comp_list[handle_num]["chkbox"][0].isChecked():
-            if self.send_data[handle_num]["id"]:
-                period = self.message_comp_list[handle_num]["line_edit"][-2].text()
-                try:
-                    conv_int_data = int(period)
-                    self.send_data[handle_num]["period"] = conv_int_data
-                except ValueError:
-                    if conv_int_data == "":
-                        QMessageBox.warning(self, "Period Error", "Set the period or un-check the period(for event message)")
-                    else:
-                        QMessageBox.warning(self, "Data Error", "Write the int number of period (ms)")
-                    return False
+        period = self.message_comp_list[handle_num]["line_edit"][-2].text()
+        try:
+            conv_int_data = int(period)
+            self.send_data[handle_num]["period"] = conv_int_data
+        except ValueError:
+            if period == "":
+                pass
             else:
-                QMessageBox.warning(self, "ID Error", "Set the CAN id first")
+                QMessageBox.warning(self, "Data Error", "Write the int number of period (ms)")
+                return False
         return True
 
     def data_send(self):

@@ -250,8 +250,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.chkbox_save_log.released.connect(self.save_log)
         self.pbar_save_log.setValue(0)
         self.pbar_save_log.setVisible(False)
-        # self.comboBox_log_format.addItem(".blf")
-        self.comboBox_log_format.addItem(".asc")
 
         self.chkbox_can_dump.released.connect(self.can_dump_mode)
 
@@ -294,6 +292,13 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.set_can_basic_btns_labels(False)
 
         self.image_initialization()
+
+        self.comboBox_log_data_init = "All data"
+        self.comboBox_log_data.addItem(self.comboBox_log_data_init)
+        self.comboBox_log_format.addItem("---Select format---")
+        self.comboBox_log_format.addItem("blf")
+        # self.comboBox_log_format.addItem("asc (TBD)")
+        # self.chkbox_save_log.
 
         self.diag_obj = None
         self.chkbox_diag_console.clicked.connect(self.diag_main)
@@ -414,7 +419,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 self.p_can_bus = temp1
                             self.bus_console.appendPlainText("2 Channel is connected")
                         except can.interfaces.pcan.pcan.PcanError:
-                            if temp1.recv(1):
+                            if temp1.recv(0.3):
                                 self.c_can_bus = temp1
                             else:
                                 self.p_can_bus = temp1
@@ -464,13 +469,14 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 self.p_can_bus = temp1
                             self.bus_console.appendPlainText("2 Channel is connected.")
                         except IndexError:
-                            if temp1.recv(1):
+                            if temp1.recv(0.3):
                                 self.c_can_bus = temp1
                             else:
                                 self.p_can_bus = temp1
                             self.bus_console.appendPlainText("1 Channel is connected.")
                         self.bus_connect_handler(True)
-                    except serial.serialutil.SerialException:
+                    except serial.serialutil.SerialException as e1:
+                        print(e1)
                         self.bus_console.appendPlainText("Select appropriate serial port.")
                     except IndexError:
                         self.bus_console.appendPlainText("Select the serial port first.")
@@ -538,7 +544,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.set_general_btns_labels(False)
         self.set_can_basic_btns_labels(False)
 
-        self.comboBox_log_format.setEnabled(False)
+        self.comboBox_log_data.setEnabled(False)
 
         self.acu_worker_handler(flag=False)
         self.bcm_worker_handler(flag=False)
@@ -566,7 +572,6 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             bus = self.p_can_bus
         message = can.Message(timestamp=time.time(), arbitration_id=sig_id, data=send_data, channel=bus)
         if self.chkbox_save_log.isChecked():
-            print(sig_id, type(sig_id))
             self.log_data.append(message)
         if bus:
             bus.send(message)
@@ -601,30 +606,28 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
     def save_log(self):
         if self.sender().objectName() == "btn_save_log":
             if len(self.log_data) > 0:
-                # path = QFileDialog.getOpenFileName(self)
                 path = QFileDialog.getExistingDirectory(self)
                 if path:
                     if self.chkbox_save_log.isChecked():
                         self.bus_console.appendPlainText("Can Log Writing Stop")
                         self.chkbox_save_log.toggle()
                     self.bus_console.appendPlainText("Can Log saving Start")
-                    log_path = path + f"/log{self.comboBox_log_format.currentText()}"
-                    f = open(log_path, 'w')
-                    count = 0
+                    if self.comboBox_log_format.currentText() == "blf":
+                        log_path = path + f"/log.blf"
+                        log_writer = can.BLFWriter(log_path)
+                    elif self.comboBox_log_format.currentText() == "asc":
+                        log_path = path + f"/log.asc"
+                        log_writer = can.ASCWriter(log_path)
+                    else:
+                        QMessageBox.information(self, "Format Error", "Select the log file format")
+                        return False
                     self.pbar_save_log.setVisible(True)
-                    while count < len(self.log_data):
-                        sig_id = self.log_data[count].arbitration_id
-                        if sig_id == 0x18ffd741 or sig_id == 0x18ffd841 or sig_id == 0x0c0ba021 or sig_id == 0x18a9e821 or sig_id == 0x18ff6341 or sig_id == 0x18ff4b41:
-                            data = 'tx ' + str(self.log_data[count])
-                        else:
-                            data = 'rx ' + str(self.log_data[count])
-                        f.write(data)
-                        f.write('\n')
-                        count += 1
-                        save_progress = int((count / len(self.log_data)) * 100)
+                    for i in range(len(self.log_data)):
+                        log_writer.on_message_received(self.log_data[i])
+                        save_progress = int((i / (len(self.log_data)-1)) * 100)
                         self.pbar_save_log.setValue(save_progress)
                         QtCore.QCoreApplication.processEvents()
-                    f.close()
+                    log_writer.stop()
                     self.bus_console.appendPlainText("Can Log saving End")
                     QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
                     self.pbar_save_log.setVisible(False)
@@ -638,7 +641,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                 self.bus_console.appendPlainText("Can Log Writing Start")
             else:
                 self.bus_console.appendPlainText("Can Log Writing Stop")
-                self.comboBox_log_format.setEnabled(True)
+                self.comboBox_log_data.setEnabled(True)
 
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
@@ -709,7 +712,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.chkbox_save_log.setEnabled(flag)
         self.btn_save_log.setEnabled(flag)
         self.chkbox_can_dump.setEnabled(flag)
-        self.comboBox_log_format.setEnabled(flag)
+        self.comboBox_log_data.setEnabled(flag)
 
     def set_can_basic_btns_labels(self, flag):
         if flag:
@@ -812,6 +815,9 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             self.tx_set = set()
             self.item = []
             self.treeWidget_tx.clear()
+            self.comboBox_id.clear()
+            self.comboBox_log_data.clear()
+            self.comboBox_log_data.addItem(self.comboBox_log_data_init)
         elif btn_name == "btn_write_data_clear" or txt:
             if self.diag_obj:
                 self.diag_obj.label_flag_send.setText("Fill the data")
@@ -903,6 +909,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 self.comboBox_id.addItem(tx_name)
+                self.comboBox_log_data.addItem(tx_name)
         if self.comboBox_id.currentText() == tx_name:
             if self.tx_time_rel and self.sub_data_designated:
                 if len(self.graph_x_list) == 10:
@@ -1074,21 +1081,23 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         else:
             if not self.serial_selection_obj:
                 self.serial_selection_obj = serial_port_selection.SerialPortSelection(BASE_DIR, self)
-                self.serial_selection_obj.search_serial()
             if self.serial_selection_obj.open_flag:
                 self.serial_selection_obj.ui_close()
+            self.serial_selection_obj.search_serial()
             self.serial_selection_obj.ui_open()
 
     def bot_disconnect_btn_handler(self):
         self.thread_stop()
+        time.sleep(0.3)
+
         if self.c_can_bus:
+            self.c_can_bus.shutdown()
             self.c_can_bus = None
+
         if self.p_can_bus:
+            self.p_can_bus.shutdown()
             self.p_can_bus = None
         self.bus_connect_handler(False)
-        if self.serial_selection_obj:
-            self.selected_ports = set()
-            self.serial_selection_obj.search_serial()
 
 
 class NodeHandler(object):

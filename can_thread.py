@@ -50,20 +50,21 @@ class ThreadWorker(NodeThread):
         self.delta_diff_li = [None] * 6
         self.pre_time_li = [None] * 6
         self.delta_recv = dict()
+        self.c_recv = None
 
     def run(self):
         while self._isRunning:
             if self.parent.c_can_bus:
-                c_recv = self.parent.c_can_bus.recv()
-                self.calc_delta(c_recv)
+                self.c_recv = self.parent.c_can_bus.recv()
+                self.calc_delta(self.c_recv)
 
                 # if self.parent.chkbox_save_log.isChecked()
-                if self.parent.chkbox_save_log.isChecked() and c_recv.arbitration_id == 0x0cfab127:
-                    self.parent.log_data.append(c_recv)
+                if self.parent.chkbox_save_log.isChecked():
+                    self.parent.log_data.append(self.c_recv)
 
-                if c_recv.arbitration_id == 0x18ffd741:
-                    self.parent.pms_s_hvsm_worker.data[0] = c_recv.data[1]
-                    hvsm_tx = bin(c_recv.data[1])[2:].zfill(8)
+                if self.c_recv.arbitration_id == 0x18ffd741:
+                    self.parent.pms_s_hvsm_worker.data[0] = self.c_recv.data[1]
+                    hvsm_tx = bin(self.c_recv.data[1])[2:].zfill(8)
 
                     self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
                     if int(hvsm_tx[6:], 2) == 3:
@@ -105,7 +106,7 @@ class ThreadWorker(NodeThread):
                     elif int(hvsm_tx[:2], 2) == 0:
                         self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
 
-                    str_whl_heat_tx = c_recv.data[0]
+                    str_whl_heat_tx = self.c_recv.data[0]
                     if str_whl_heat_tx == 0xc0:
                         self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
                     elif str_whl_heat_tx == 0xc3:
@@ -115,8 +116,8 @@ class ThreadWorker(NodeThread):
                     elif str_whl_heat_tx == 0xc1:
                         self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
 
-                    self.parent.bcm_mmi_worker.single_tx_side_mani = c_recv.data[2]
-                    side_mani_tx = c_recv.data[2]
+                    self.parent.bcm_mmi_worker.single_tx_side_mani = self.c_recv.data[2]
+                    side_mani_tx = self.c_recv.data[2]
                     if side_mani_tx == 0xf4:
                         self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
                     elif side_mani_tx == 0xf8:
@@ -124,9 +125,9 @@ class ThreadWorker(NodeThread):
                     # else:
                     #     self.parent.txt_res_side_mani.setText("None")
 
-                if c_recv.arbitration_id == 0x18ffd841:
-                    self.parent.bcm_mmi_worker.single_tx_softswset = c_recv.data
-                    light_tx = c_recv.data[3]
+                if self.c_recv.arbitration_id == 0x18ffd841:
+                    self.parent.bcm_mmi_worker.single_tx_softswset = self.c_recv.data
+                    light_tx = self.c_recv.data[3]
                     if light_tx == 0xcf:
                         self.parent.txt_res_light.setText("30s")
                     elif light_tx == 0xd7:
@@ -136,7 +137,7 @@ class ThreadWorker(NodeThread):
                     else:
                         self.parent.txt_res_light.setText("OFF")
 
-                    side_heat_tx = c_recv.data[7]
+                    side_heat_tx = self.c_recv.data[7]
                     if side_heat_tx == 0x7f:
                         self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
                     elif side_heat_tx == 0xbf:
@@ -144,9 +145,9 @@ class ThreadWorker(NodeThread):
                     # else:
                     #     self.parent.txt_res_side_heat.setText("None")
 
-                if c_recv.arbitration_id == 0x0c0ba021:
-                    self.parent.fcs_aeb_worker.single_tx = c_recv.data[0]
-                    aeb_tx = c_recv.data[0]
+                if self.c_recv.arbitration_id == 0x0c0ba021:
+                    self.parent.fcs_aeb_worker.single_tx = self.c_recv.data[0]
+                    aeb_tx = self.c_recv.data[0]
                     if aeb_tx == 0xfd:
                         self.parent.txt_res_aeb.setText("ON")
                     elif aeb_tx == 0xfc:
