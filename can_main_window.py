@@ -665,9 +665,17 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                     self.bus_console.appendPlainText("Can Log saving Start")
                     if self.comboBox_log_format.currentText() == "blf":
                         log_path = path + f"/log.blf"
+                        dup_num = 1
+                        while os.path.isfile(log_path):
+                            log_path = path + f"/log ({dup_num}).blf"
+                            dup_num += 1
                         log_writer = can.BLFWriter(log_path)
                     elif self.comboBox_log_format.currentText() == "asc":
                         log_path = path + f"/log.asc"
+                        dup_num = 1
+                        while os.path.isfile(log_path):
+                            log_path = path + f"/log ({dup_num}).asc"
+                            dup_num += 1
                         log_writer = can.ASCWriter(log_path)
                     else:
                         QMessageBox.information(self, "Format Error", "Select the log file format")
