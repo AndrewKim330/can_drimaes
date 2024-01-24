@@ -232,6 +232,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
 
         self.thread_worker = worker.ThreadWorker(parent=self)
         self.thread_worker.signal_presenter.connect(self.signal_presenter)
+        self.thread_worker.tx_img_presenter.connect(self.tx_image_present)
 
         self.tester_worker = worker.TesterPresent(parent=self)
 
@@ -245,6 +246,57 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.btn_bus_connect.clicked.connect(self.bus_connect)
         self.btn_bus_start.clicked.connect(self.thread_start)
         self.btn_bus_stop.clicked.connect(self.thread_stop)
+
+        self.mmi_hvac = [0x00] * 8
+
+        self.img_drv_heat_off = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(80)
+        self.img_drv_heat_1 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(80)
+        self.img_drv_heat_2 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(80)
+        self.img_drv_heat_3 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(80)
+        self.img_drv_vent_off = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(80)
+        self.img_drv_vent_1 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(80)
+        self.img_drv_vent_2 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(80)
+        self.img_drv_vent_3 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(80)
+        self.img_pass_heat_off = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(80)
+        self.img_pass_heat_1 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(80)
+        self.img_pass_heat_2 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(80)
+        self.img_pass_heat_3 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(80)
+        self.img_pass_vent_off = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(80)
+        self.img_pass_vent_1 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(80)
+        self.img_pass_vent_2 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(80)
+        self.img_pass_vent_3 = QPixmap(
+            BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(80)
+        self.img_side_mani_on = QPixmap(
+            BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(80)
+        self.img_side_mani_off = QPixmap(
+            BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(80)
+        self.img_side_heat_on = QPixmap(
+            BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(80)
+        self.img_side_heat_off = QPixmap(
+            BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(80)
+        self.img_str_whl_heat_off = QPixmap(
+            BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(80)
+        self.img_str_whl_heat_1 = QPixmap(
+            BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(80)
+        self.img_str_whl_heat_2 = QPixmap(
+            BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(80)
+        self.img_str_whl_heat_3 = QPixmap(
+            BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(80)
 
         self.btn_save_log.released.connect(self.save_log)
         self.chkbox_save_log.released.connect(self.save_log)
@@ -291,10 +343,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.set_node_btns(True)
         self.set_can_basic_btns_labels(False)
 
-        self.image_initialization()
-
         self.comboBox_log_data_init = "All data"
-        # self.comboBox_log_format.addItem("asc (TBD)")
 
         self.comboBox_log_data.currentIndexChanged.connect(self.tree_widget_log_target_adder)
 
@@ -1014,37 +1063,100 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         elif self.sender().objectName() == "btn_1st_byte_up":
             self.ic_distance_worker.dist_1_up += 1
 
-    def image_initialization(self):
-        self.img_drv_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_off.png").scaledToWidth(80)
-        self.img_drv_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_01_on.png").scaledToWidth(80)
-        self.img_drv_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_02_on.png").scaledToWidth(80)
-        self.img_drv_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_left_03_on.png").scaledToWidth(80)
-        self.img_drv_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_off.png").scaledToWidth(80)
-        self.img_drv_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_01_on.png").scaledToWidth(80)
-        self.img_drv_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_02_on.png").scaledToWidth(80)
-        self.img_drv_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_left_03_on.png").scaledToWidth(80)
-        self.img_pass_heat_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_off.png").scaledToWidth(80)
-        self.img_pass_heat_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_01_on.png").scaledToWidth(80)
-        self.img_pass_heat_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_02_on.png").scaledToWidth(80)
-        self.img_pass_heat_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_heating_seat_right_03_on.png").scaledToWidth(80)
-        self.img_pass_vent_off = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_off.png").scaledToWidth(80)
-        self.img_pass_vent_1 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_01_on.png").scaledToWidth(80)
-        self.img_pass_vent_2 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_02_on.png").scaledToWidth(80)
-        self.img_pass_vent_3 = QPixmap(BASE_DIR + r"./src/images/hvac/btn_hvac_ventilation_seat_right_03_on.png").scaledToWidth(80)
+    @pyqtSlot(can.Message, int)
+    def tx_image_present(self, tx_mess, tx_id):
+        if tx_id == 0x18ffd741:
+            self.pms_s_hvsm_worker.data[0] = tx_mess.data[1]
+            hvsm_tx = bin(tx_mess.data[1])[2:].zfill(8)
 
-        self.img_side_mani_on = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_normal.png").scaledToWidth(80)
-        self.img_side_mani_off = QPixmap(BASE_DIR + r"./src/images/side/btn_navi_sidemirror_fold.png").scaledToWidth(80)
-        self.img_side_heat_on = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_on.png").scaledToWidth(80)
-        self.img_side_heat_off = QPixmap(BASE_DIR + r"./src/images/side/sidemirrorheat_off.png").scaledToWidth(80)
+            self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
+            if int(hvsm_tx[6:], 2) == 3:
+                self.txt_res_drv_heat.setPixmap(self.img_drv_heat_3)
+            elif int(hvsm_tx[6:], 2) == 2:
+                self.txt_res_drv_heat.setPixmap(self.img_drv_heat_2)
+            elif int(hvsm_tx[6:], 2) == 1:
+                self.txt_res_drv_heat.setPixmap(self.img_drv_heat_1)
+            elif int(hvsm_tx[6:], 2) == 0:
+                self.txt_res_drv_heat.setPixmap(self.img_drv_heat_off)
 
-        self.img_str_whl_heat_off = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_off.png").scaledToWidth(
-            80)
-        self.img_str_whl_heat_1 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_01_on.png").scaledToWidth(
-            80)
-        self.img_str_whl_heat_2 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_02_on.png").scaledToWidth(
-            80)
-        self.img_str_whl_heat_3 = QPixmap(BASE_DIR + r"./src/images/str_whl_heat/btn_navi_heatedsteeringwheel_03_on.png").scaledToWidth(
-            80)
+            self.mmi_hvac[4] = int(hvsm_tx[2:4], 2)
+            if int(hvsm_tx[2:4], 2) == 3:
+                self.txt_res_drv_vent.setPixmap(self.img_drv_vent_3)
+            elif int(hvsm_tx[2:4], 2) == 2:
+                self.txt_res_drv_vent.setPixmap(self.img_drv_vent_2)
+            elif int(hvsm_tx[2:4], 2) == 1:
+                self.txt_res_drv_vent.setPixmap(self.img_drv_vent_1)
+            elif int(hvsm_tx[2:4], 2) == 0:
+                self.txt_res_drv_vent.setPixmap(self.img_drv_vent_off)
+
+            self.mmi_hvac[3] = int(hvsm_tx[4:6], 2)
+            if int(hvsm_tx[4:6], 2) == 3:
+                self.txt_res_pass_heat.setPixmap(self.img_pass_heat_3)
+            elif int(hvsm_tx[4:6], 2) == 2:
+                self.txt_res_pass_heat.setPixmap(self.img_pass_heat_2)
+            elif int(hvsm_tx[4:6], 2) == 1:
+                self.txt_res_pass_heat.setPixmap(self.img_pass_heat_1)
+            elif int(hvsm_tx[4:6], 2) == 0:
+                self.txt_res_pass_heat.setPixmap(self.img_pass_heat_off)
+
+            self.mmi_hvac[5] = int(hvsm_tx[:2], 2)
+            if int(hvsm_tx[:2], 2) == 3:
+                self.txt_res_pass_vent.setPixmap(self.img_pass_vent_3)
+            elif int(hvsm_tx[:2], 2) == 2:
+                self.txt_res_pass_vent.setPixmap(self.img_pass_vent_2)
+            elif int(hvsm_tx[:2], 2) == 1:
+                self.txt_res_pass_vent.setPixmap(self.img_pass_vent_1)
+            elif int(hvsm_tx[:2], 2) == 0:
+                self.txt_res_pass_vent.setPixmap(self.img_pass_vent_off)
+
+            str_whl_heat_tx = tx_mess.data[0]
+            if str_whl_heat_tx == 0xc0:
+                self.txt_res_st_whl_heat.setPixmap(self.img_str_whl_heat_off)
+            elif str_whl_heat_tx == 0xc3:
+                self.txt_res_st_whl_heat.setPixmap(self.img_str_whl_heat_3)
+            elif str_whl_heat_tx == 0xc2:
+                self.txt_res_st_whl_heat.setPixmap(self.img_str_whl_heat_2)
+            elif str_whl_heat_tx == 0xc1:
+                self.txt_res_st_whl_heat.setPixmap(self.img_str_whl_heat_1)
+
+            self.bcm_mmi_worker.single_tx_side_mani = tx_mess.data[2]
+            side_mani_tx = tx_mess.data[2]
+            if side_mani_tx == 0xf4:
+                self.txt_res_side_mani.setPixmap(self.img_side_mani_off)
+            elif side_mani_tx == 0xf8:
+                self.txt_res_side_mani.setPixmap(self.img_side_mani_on)
+            # else:
+            #     self.txt_res_side_mani.setText("None")
+
+        elif tx_id == 0x18ffd841:
+            self.bcm_mmi_worker.single_tx_softswset = tx_mess.data
+            light_tx = tx_mess.data[3]
+            if light_tx == 0xcf:
+                self.txt_res_light.setText("30s")
+            elif light_tx == 0xd7:
+                self.txt_res_light.setText("60s")
+            elif light_tx == 0xdf:
+                self.txt_res_light.setText("90s")
+            else:
+                self.txt_res_light.setText("OFF")
+
+            side_heat_tx = tx_mess.data[7]
+            if side_heat_tx == 0x7f:
+                self.txt_res_side_heat.setPixmap(self.img_side_heat_off)
+            elif side_heat_tx == 0xbf:
+                self.txt_res_side_heat.setPixmap(self.img_side_heat_on)
+            # else:
+            #     self.txt_res_side_heat.setText("None")
+
+        elif tx_id == 0x0c0ba021:
+            self.fcs_aeb_worker.single_tx = tx_mess.data[0]
+            aeb_tx = tx_mess.data[0]
+            if aeb_tx == 0xfd:
+                self.txt_res_aeb.setText("ON")
+            elif aeb_tx == 0xfc:
+                self.txt_res_aeb.setText("OFF")
+            else:
+                self.txt_res_aeb.setText("None")
 
     def tx_filter(self, tx_id, tx_name, tx_channel):
         if self.btn_filter_user.isChecked():

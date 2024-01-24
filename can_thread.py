@@ -16,7 +16,6 @@ class NodeThread(QThread):
         self.time_flag = False
         self.pre_time = None
         self.data = [0xFF] * 8
-        self.mmi_hvac = [0x00] * 8
 
     def run(self):
         while self._isRunning:
@@ -41,6 +40,7 @@ class NodeThread(QThread):
 
 class ThreadWorker(NodeThread):
     signal_presenter = pyqtSignal(can.Message, str, float)
+    tx_img_presenter = pyqtSignal(can.Message, int)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -61,98 +61,8 @@ class ThreadWorker(NodeThread):
                 if self.parent.chkbox_save_log.isChecked():
                     self.parent.log_data.append(self.c_recv)
 
-                if self.c_recv.arbitration_id == 0x18ffd741:
-                    self.parent.pms_s_hvsm_worker.data[0] = self.c_recv.data[1]
-                    hvsm_tx = bin(self.c_recv.data[1])[2:].zfill(8)
-
-                    self.mmi_hvac[2] = int(hvsm_tx[6:], 2)
-                    if int(hvsm_tx[6:], 2) == 3:
-                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_3)
-                    elif int(hvsm_tx[6:], 2) == 2:
-                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_2)
-                    elif int(hvsm_tx[6:], 2) == 1:
-                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_1)
-                    elif int(hvsm_tx[6:], 2) == 0:
-                        self.parent.txt_res_drv_heat.setPixmap(self.parent.img_drv_heat_off)
-
-                    self.mmi_hvac[4] = int(hvsm_tx[2:4], 2)
-                    if int(hvsm_tx[2:4], 2) == 3:
-                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_3)
-                    elif int(hvsm_tx[2:4], 2) == 2:
-                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_2)
-                    elif int(hvsm_tx[2:4], 2) == 1:
-                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_1)
-                    elif int(hvsm_tx[2:4], 2) == 0:
-                        self.parent.txt_res_drv_vent.setPixmap(self.parent.img_drv_vent_off)
-
-                    self.mmi_hvac[3] = int(hvsm_tx[4:6], 2)
-                    if int(hvsm_tx[4:6], 2) == 3:
-                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_3)
-                    elif int(hvsm_tx[4:6], 2) == 2:
-                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_2)
-                    elif int(hvsm_tx[4:6], 2) == 1:
-                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_1)
-                    elif int(hvsm_tx[4:6], 2) == 0:
-                        self.parent.txt_res_pass_heat.setPixmap(self.parent.img_pass_heat_off)
-
-                    self.mmi_hvac[5] = int(hvsm_tx[:2], 2)
-                    if int(hvsm_tx[:2], 2) == 3:
-                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_3)
-                    elif int(hvsm_tx[:2], 2) == 2:
-                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_2)
-                    elif int(hvsm_tx[:2], 2) == 1:
-                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_1)
-                    elif int(hvsm_tx[:2], 2) == 0:
-                        self.parent.txt_res_pass_vent.setPixmap(self.parent.img_pass_vent_off)
-
-                    str_whl_heat_tx = self.c_recv.data[0]
-                    if str_whl_heat_tx == 0xc0:
-                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_off)
-                    elif str_whl_heat_tx == 0xc3:
-                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_3)
-                    elif str_whl_heat_tx == 0xc2:
-                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_2)
-                    elif str_whl_heat_tx == 0xc1:
-                        self.parent.txt_res_st_whl_heat.setPixmap(self.parent.img_str_whl_heat_1)
-
-                    self.parent.bcm_mmi_worker.single_tx_side_mani = self.c_recv.data[2]
-                    side_mani_tx = self.c_recv.data[2]
-                    if side_mani_tx == 0xf4:
-                        self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_off)
-                    elif side_mani_tx == 0xf8:
-                        self.parent.txt_res_side_mani.setPixmap(self.parent.img_side_mani_on)
-                    # else:
-                    #     self.parent.txt_res_side_mani.setText("None")
-
-                if self.c_recv.arbitration_id == 0x18ffd841:
-                    self.parent.bcm_mmi_worker.single_tx_softswset = self.c_recv.data
-                    light_tx = self.c_recv.data[3]
-                    if light_tx == 0xcf:
-                        self.parent.txt_res_light.setText("30s")
-                    elif light_tx == 0xd7:
-                        self.parent.txt_res_light.setText("60s")
-                    elif light_tx == 0xdf:
-                        self.parent.txt_res_light.setText("90s")
-                    else:
-                        self.parent.txt_res_light.setText("OFF")
-
-                    side_heat_tx = self.c_recv.data[7]
-                    if side_heat_tx == 0x7f:
-                        self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_off)
-                    elif side_heat_tx == 0xbf:
-                        self.parent.txt_res_side_heat.setPixmap(self.parent.img_side_heat_on)
-                    # else:
-                    #     self.parent.txt_res_side_heat.setText("None")
-
-                if self.c_recv.arbitration_id == 0x0c0ba021:
-                    self.parent.fcs_aeb_worker.single_tx = self.c_recv.data[0]
-                    aeb_tx = self.c_recv.data[0]
-                    if aeb_tx == 0xfd:
-                        self.parent.txt_res_aeb.setText("ON")
-                    elif aeb_tx == 0xfc:
-                        self.parent.txt_res_aeb.setText("OFF")
-                    else:
-                        self.parent.txt_res_aeb.setText("None")
+                if self.c_recv.arbitration_id == 0x18ffd741 or self.c_recv.arbitration_id == 0x18ffd841 or self.c_recv.arbitration_id == 0x0c0ba021:
+                    self.parent.tx_image_present(self.c_recv, self.c_recv.arbitration_id)
 
             if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
                 pass
