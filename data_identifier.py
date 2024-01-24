@@ -448,7 +448,7 @@ master_set[0x1CFFD841] = mmi_debug
 master_set_c[0x1CFFD841] = mmi_debug
 
 
-def message_info_by_can_id(can_id, bus):
+def message_info(bus, can_id):
     try:
         if bus == "C-CAN":
             info_set = master_set_c[can_id]

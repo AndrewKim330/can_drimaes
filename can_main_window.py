@@ -294,18 +294,20 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.image_initialization()
 
         self.comboBox_log_data_init = "All data"
-        self.comboBox_log_data.addItem(self.comboBox_log_data_init)
-        self.comboBox_log_format.addItem("---Select format---")
-        self.comboBox_log_format.addItem("blf")
         # self.comboBox_log_format.addItem("asc (TBD)")
-        # self.chkbox_save_log.
+
+        self.comboBox_log_data.currentIndexChanged.connect(self.tree_widget_log_target_adder)
+
+        self.log_str_list = []
+        self.data_entire_list = []
+        self.data_selected_list = []
+        self.select_specific_log_data = False
+        self.logging_init_flag = True
 
         self.diag_obj = None
         self.chkbox_diag_console.clicked.connect(self.diag_main)
 
         self.chkbox_arbitrary_signal_1.clicked.connect(self.user_signal_handler)
-        self.send_arbit_data = None
-        self.arbit_data_init = {"period": 0, "data": []}
 
         self.btn_0th_byte_up.clicked.connect(self.temp_distance)
         self.btn_1st_byte_up.clicked.connect(self.temp_distance)
@@ -622,8 +624,16 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         QMessageBox.information(self, "Format Error", "Select the log file format")
                         return False
                     self.pbar_save_log.setVisible(True)
+                    select_flag = {}
+                    for comp in self.data_entire_list:
+                        select_flag[int(comp["data_id"][2:], 16)] = False
+                        for selected_comp in self.data_selected_list:
+                            if comp["data_name"] == selected_comp["data_name"]:
+                                select_flag[int(comp["data_id"][2:], 16)] = True
+                                break
                     for i in range(len(self.log_data)):
-                        log_writer.on_message_received(self.log_data[i])
+                        if select_flag[self.log_data[i].arbitration_id]:
+                            log_writer.on_message_received(self.log_data[i])
                         save_progress = int((i / (len(self.log_data)-1)) * 100)
                         self.pbar_save_log.setValue(save_progress)
                         QtCore.QCoreApplication.processEvents()
@@ -634,14 +644,68 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                     self.log_data = []
                 else:
                     QMessageBox.warning(self, "Log Save", "Set appropriate directory")
+                    return False
             else:
                 QMessageBox.warning(self, "Log Save", "Check the Log Save checkbox first")
+                return False
         elif self.sender().objectName() == "chkbox_save_log":
             if self.chkbox_save_log.isChecked():
+                if self.logging_init_flag:
+                    self.comboBox_log_data.addItem(self.comboBox_log_data_init)
+                    self.comboBox_log_data.addItems(self.log_str_list)
+                    self.comboBox_log_format.addItem("---Select format---")
+                    self.comboBox_log_format.addItem("blf")
+                    self.comboBox_log_format.addItem("asc")
+                    self.logging_init_flag = False
                 self.bus_console.appendPlainText("Can Log Writing Start")
+                self.tree_widget_log_target_adder()
+                return True
             else:
                 self.bus_console.appendPlainText("Can Log Writing Stop")
-                self.comboBox_log_data.setEnabled(True)
+                self.comboBox_log_data.setCurrentIndex(0)
+        if len(self.log_data) == 0:
+            self.treeWidget_log_target.clear()
+            self.comboBox_log_data.clear()
+            self.comboBox_log_format.clear()
+            self.logging_init_flag = True
+
+    def tree_widget_log_target_adder(self):
+        if len(self.data_entire_list) == 0:
+            for i in range(1, self.comboBox_log_data.count()):
+                data = self.comboBox_log_data.itemText(i)
+                id_index = data.find("(")
+                data_name = data[:id_index]
+                data_id = data[id_index + 1:-1]
+                single_dict = {"data_name": data_name, "data_id": data_id}
+                self.data_entire_list.append(single_dict)
+        index = self.comboBox_log_data.currentIndex()
+        if index < 0:
+            return False
+        elif index == 0:
+            self.treeWidget_log_target.clear()
+            for comp in self.data_entire_list:
+                item = QTreeWidgetItem()
+                item.setText(0, comp["data_id"])
+                item.setText(1, comp["data_name"])
+                self.treeWidget_log_target.addTopLevelItems([item])
+            self.select_specific_log_data = True
+            self.data_selected_list = self.data_entire_list[:]
+        else:
+            if self.select_specific_log_data:
+                self.treeWidget_log_target.clear()
+                self.select_specific_log_data = False
+                self.data_selected_list = []
+            for comp in self.data_selected_list:
+                if comp["data_name"][:7] == self.comboBox_log_data.currentText()[:7]:
+                    return False
+            selected_signal = self.data_entire_list[index-1]
+            item = QTreeWidgetItem()
+            item.setText(0, selected_signal["data_id"])
+            item.setText(1, selected_signal["data_name"])
+            self.treeWidget_log_target.addTopLevelItems([item])
+            self.data_selected_list.append(selected_signal)
+        header = self.treeWidget_log_target.header()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
 
     def set_drv_state(self):
         if self.drv_state or self.sender().text() == 'Set Driving State':
@@ -834,7 +898,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             tx_channel = "C-CAN"
         elif bus_num == 'p':
             tx_channel = "P-CAN"
-        tx_message_info = data_id.message_info_by_can_id(tx_single.arbitration_id, tx_channel)
+        tx_message_info = data_id.message_info(bus=tx_channel, can_id=tx_single.arbitration_id)
         tx_name = tx_message_info["mess_name"]
         tx_data = ''
         for hex_val in tx_single.data:
@@ -871,6 +935,8 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                                 sub_data = sub_mess[int(data_id.data_matcher(tx_single, sub_mess))]
                             except KeyError:
                                 sub_data = str(data_id.data_matcher(tx_single, sub_mess))
+                            except ValueError:
+                                sub_data = ''
                             item.child(i).setText(4, sub_data)
                             specific_signals.append(sub_mess["name"])
                             if self.sub_mess_designated == sub_mess["name"]:
@@ -909,7 +975,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
                 self.comboBox_id.addItem(tx_name)
-                self.comboBox_log_data.addItem(tx_name)
+                self.log_str_list.append(f'{tx_name} ({tx_id})')
         if self.comboBox_id.currentText() == tx_name:
             if self.tx_time_rel and self.sub_data_designated:
                 if len(self.graph_x_list) == 10:

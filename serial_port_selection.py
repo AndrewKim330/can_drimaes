@@ -1,7 +1,6 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from serial import *
 import serial.tools.list_ports
 
 

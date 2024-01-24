@@ -58,7 +58,6 @@ class ThreadWorker(NodeThread):
                 self.c_recv = self.parent.c_can_bus.recv()
                 self.calc_delta(self.c_recv)
 
-                # if self.parent.chkbox_save_log.isChecked()
                 if self.parent.chkbox_save_log.isChecked():
                     self.parent.log_data.append(self.c_recv)
 
