@@ -696,7 +696,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         QtCore.QCoreApplication.processEvents()
                     log_writer.stop()
                     self.bus_console.appendPlainText("Can Log saving End")
-                    QMessageBox.information(self, "Log Save", "CAN Log Saving complete")
+                    QMessageBox.information(self, "Log Save", f"CAN Log Saving complete\n({log_path})")
                     self.pbar_save_log.setVisible(False)
                     self.log_data = []
                 else:
