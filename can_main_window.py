@@ -51,18 +51,21 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.bottom_bar.addPermanentWidget(self.bot_connection_label)
         self.bottom_bar.addPermanentWidget(self.bot_disconnect_btn)
 
-        self.show()
-
-        self.curve = self.graph_widget.plot()
+        self.graph_widget.showGrid(x=False, y=False)
+        self.curve = self.graph_widget.plot(x=[], y=[])
 
         self.data = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+
+        self.graph_comboBox_init = "---Select signal---"
+        self.graph_comboBox_id.addItem(self.graph_comboBox_init)
+        self.graph_comboBox_id_specific.addItem(self.graph_comboBox_init)
 
         self.temp_list = []
         self.graph_x_list = []
         self.graph_y_list = []
         self.log_data = []
-
-        self.curve = self.graph_widget.plot()
+        self.graph_y_axis = None
+        self.graph_y_axis_init_flag = True
 
         self.tx_chronicle = False
         self.recv_flag = False
@@ -329,12 +332,9 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
         self.treeWidget_tx.setColumnWidth(2, 200)
         self.treeWidget_tx.setColumnWidth(4, 170)
 
-        self.comboBox_num.addItem("1")
-        self.comboBox_num.addItem("2")
-        self.comboBox_num.addItem("3")
-
-        self.comboBox_id.addItem("---Select signal---")
-        self.comboBox_id_specific.addItem("---Select signal---")
+        self.graph_comboBox_num.addItem("1")
+        self.graph_comboBox_num.addItem("2")
+        self.graph_comboBox_num.addItem("3")
 
         self.graph_widget.showGrid(x=True, y=True)
 
@@ -512,7 +512,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         self.bus_console.appendPlainText("Serial bus(CANable bus) is connected.")
                         try:
                             temp2 = can.interface.Bus(bustype='slcan', channel=self.selected_ports[1], bitrate='500000')
-                            if temp1.recv():
+                            if temp1.recv(0.3):
                                 self.c_can_bus = temp1
                                 self.p_can_bus = temp2
                             else:
@@ -936,7 +936,7 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
             self.tx_set = set()
             self.item = []
             self.treeWidget_tx.clear()
-            self.comboBox_id.clear()
+            self.graph_comboBox_id.clear()
             self.comboBox_log_data.clear()
             self.comboBox_log_data.addItem(self.comboBox_log_data_init)
         elif btn_name == "btn_write_data_clear" or txt:
@@ -998,20 +998,20 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                             specific_signals.append(sub_mess["name"])
                             if self.sub_mess_designated == sub_mess["name"]:
                                 self.sub_data_designated = data_id.data_matcher(tx_single, sub_mess)
-                        if self.comboBox_id.currentText() == "---Select signal---":
-                            if self.comboBox_id_specific.count() > 1:
-                                self.comboBox_id_specific.clear()
-                                self.comboBox_id_specific.addItem("---Select signal---")
+                        if self.graph_comboBox_id.currentText() == "---Select signal---":
+                            if self.graph_comboBox_id_specific.count() > 1:
+                                self.graph_comboBox_id_specific.clear()
+                                self.graph_comboBox_id_specific.addItem("---Select signal---")
                         else:
-                            if self.comboBox_id.currentText() == tx_name:
-                                if self.comboBox_id_specific.count() == 1:
-                                    self.comboBox_id_specific.addItems(specific_signals)
-                                    self.pre_message = self.comboBox_id.currentText()
-                                if self.pre_message != self.comboBox_id.currentText():
-                                    self.comboBox_id_specific.clear()
-                                    self.comboBox_id_specific.addItem("---Select signal---")
-                                    self.comboBox_id_specific.addItems(specific_signals)
-                                    self.pre_message = self.comboBox_id.currentText()
+                            if self.graph_comboBox_id.currentText() == tx_name:
+                                if self.graph_comboBox_id_specific.count() == 1:
+                                    self.graph_comboBox_id_specific.addItems(specific_signals)
+                                    self.pre_message = self.graph_comboBox_id.currentText()
+                                if self.pre_message != self.graph_comboBox_id.currentText():
+                                    self.graph_comboBox_id_specific.clear()
+                                    self.graph_comboBox_id_specific.addItem("---Select signal---")
+                                    self.graph_comboBox_id_specific.addItems(specific_signals)
+                                    self.pre_message = self.graph_comboBox_id.currentText()
                         break
             else:
                 item = QTreeWidgetItem()
@@ -1031,25 +1031,41 @@ class SimulatorMain(QMainWindow, Ui_MainWindow):
                         sub_item.setText(4, "")
                 self.item.append(item)
                 self.treeWidget_tx.addTopLevelItems(self.item)
-                self.comboBox_id.addItem(tx_name)
+                self.graph_comboBox_id.addItem(tx_name)
                 self.log_str_list.append(f'{tx_name} ({tx_id})')
-        if self.comboBox_id.currentText() == tx_name:
+
+        if self.graph_comboBox_id.currentText() == tx_name:
+            if self.graph_comboBox_id_specific.currentText() == self.graph_comboBox_init:
+                self.graph_y_axis_init_flag = True
+            else:
+                if self.graph_y_axis_init_flag:
+                    # self.graph_y_axis = YAxisItem(orientation='left', txt=self.graph_comboBox_id_specific.currentText())
+                    self.graph_y_axis = pg.AxisItem(orientation='left')
+                    self.graph_y_axis.setTicks([dict(enumerate(range(0, 20))).items()])
+                    # self.graph_widget.setAxisItems(axisItems={'left':self.graph_y_axis})
+                    # print(self.graph_y_axis)
+                    self.graph_y_axis_init_flag = False
             if self.tx_time_rel and self.sub_data_designated:
-                if len(self.graph_x_list) == 10:
-                    self.graph_x_list.pop(0)
-                    self.graph_y_list.pop(0)
+                # if len(self.graph_x_list) == 10:
+                #     self.graph_x_list.pop(0)
+                #     self.graph_y_list.pop(0)
                 self.graph_x_list.append(float(self.tx_time_rel))
-
                 self.graph_y_list.append(int(self.sub_data_designated))
-                # print(int(self.sub_data_designated))
 
-        self.graph_presenter(self.graph_x_list, self.graph_y_list)
+        if len(self.graph_x_list) > 0:
+            self.graph_presenter(self.graph_x_list, self.graph_y_list)
 
-        if self.comboBox_id_specific.currentText() != "---Select signal---":
-            self.sub_mess_designated = self.comboBox_id_specific.currentText()
+        if self.graph_comboBox_id_specific.currentText() != "---Select signal---":
+            self.sub_mess_designated = self.graph_comboBox_id_specific.currentText()
 
     def graph_presenter(self, graph_x_list, graph_y_list):
-        self.curve.setData(graph_x_list, graph_y_list)
+        if len(graph_x_list) < 10:
+            start_x = graph_x_list[0]
+        else:
+            start_x = graph_x_list[-10]
+        end_x = graph_x_list[-1]
+        self.graph_widget.setXRange(start_x, end_x, padding=0)
+        self.curve.setData(graph_x_list, graph_y_list, symbol='o', pen='r')
 
     @pyqtSlot(str, int, list, float)
     def can_signal_sender(self, bus_mess, send_id, send_data, time_diff_delta):
@@ -1300,8 +1316,43 @@ class NodeHandler(object):
                 node_worker.stop()
 
 
+class YAxisItem(pg.AxisItem):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enableAutoSIPrefix(False)
+        if "txt" in kwargs:
+            self.txt = kwargs["txt"]
+        self.entire_signals = []
+        self.y_tick_list()
+
+    def y_tick_list(self):
+        for single_mess in data_id.master_set.values():
+            for single_sig in single_mess["data_set"]:
+                self.entire_signals.append(single_sig)
+
+    def setTicks(self, ticks):
+        pass
+
+    def set_tick_lists(self, values):
+        for single_sig in self.entire_signals:
+            if single_sig["name"] == self.txt:
+                target_sig = single_sig
+                break
+        res_list = []
+        for val in values:
+            if val in target_sig:
+                res_list.append(target_sig[val])
+            else:
+                res_list.append(int(val))
+        return res_list
+
+    def tickStrings(self, values, scale, spacing):
+        return self.set_ticks(values)
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = SimulatorMain()
     main_window.show()
     sys.exit(app.exec_())
+

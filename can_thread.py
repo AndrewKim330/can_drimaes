@@ -51,12 +51,13 @@ class ThreadWorker(NodeThread):
         self.pre_time_li = [None] * 6
         self.delta_recv = dict()
         self.c_recv = None
+        self.p_recv = None
 
     def run(self):
         while self._isRunning:
             if self.parent.c_can_bus:
                 self.c_recv = self.parent.c_can_bus.recv()
-                self.calc_delta(self.c_recv)
+                self.calc_delta(self.c_recv, "c")
 
                 if self.parent.chkbox_save_log.isChecked():
                     self.parent.log_data.append(self.c_recv)
@@ -65,27 +66,23 @@ class ThreadWorker(NodeThread):
                     self.parent.tx_image_present(self.c_recv, self.c_recv.arbitration_id)
 
             if self.parent.chkbox_can_dump.isChecked() and self.parent.p_can_bus:
-                pass
-                # if self.parent.canable_device:
-                #     frame_type, can_id, can_data, extended, ts = self.parent.c_can_bus.read(600000)
-                #     p_recv = can.Message(timestamp=time.time(), arbitration_id=can_id, data=can_data, channel=self.parent.p_can_bus)
-                # else:
-                #     p_recv = self.parent.p_can_bus.recv()
-                # self.calc_delta(p_recv)
-                # self.signal_emit(p_recv, 'p')
+                self.p_recv = self.parent.p_can_bus.recv()
+                self.calc_delta(self.p_recv, "p")
+
+                if self.parent.chkbox_save_log.isChecked():
+                    self.parent.log_data.append(self.p_recv)
 
             self.state_check()
         QtCore.QCoreApplication.processEvents()
 
-    def calc_delta(self, recv_message):
+    def calc_delta(self, recv_message, bus_num):
         recv_id = recv_message.arbitration_id
         try:
             delta_time = recv_message.timestamp - self.delta_recv[recv_id]
         except KeyError:
             delta_time = 0
         self.delta_recv[recv_id] = recv_message.timestamp
-
-        self.signal_emit(recv_message, 'c', delta_time)
+        self.signal_emit(recv_message, bus_num, delta_time)
 
     def signal_emit(self, sig, bus_str, time_delta_diff):
         self.signal_presenter.emit(sig, bus_str, time_delta_diff)

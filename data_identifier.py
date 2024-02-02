@@ -215,8 +215,8 @@ master_set_c[0x18FFD741] = mmi_showapp
 
 mmi_softswset = {
     "mess_name": "MMI_SoftSwSet", "id": 0x18FFD841,
-    "data_set": [{"name": "MMI_HomeSafetyLightsTimeSet", 0x0: "No request", 0x1: "Request reset", 0x2: "Reserved",
-                  0x3: "Invalid", "bit_st_pos": 27, "bit_len": 3},
+    "data_set": [{"name": "MMI_HomeSafetyLightsTimeSet", 0x0: "No Delay", 0x1: "30s", 0x2: "60s", 0x3: "90s",
+                  0x4: "Reserved", "bit_st_pos": 27, "bit_len": 3},
                  {"name": "MMI_RearDefrostKeyRequest", 0x0: "No request", 0x1: "Off", 0x2: "On", 0x3: "Reserved",
                   "bit_st_pos": 62, "bit_len": 2}]}
 master_set[0x18FFD841] = mmi_softswset
